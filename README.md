@@ -57,3 +57,23 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
+## Local Rollback Workflow
+
+Use local checkpoint tags before large UI/CSS refactors:
+
+```bash
+./scripts/git-checkpoint.sh "before-shared-refactor"
+```
+
+If you need to rollback:
+
+```bash
+./scripts/git-rollback.sh checkpoint-before-shared-refactor-YYYY-MM-DD-HHMMSS
+```
+
+List available checkpoints:
+
+```bash
+./scripts/git-rollback.sh
+```
