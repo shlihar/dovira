@@ -1,0 +1,60 @@
+1) На всіх сайтах замінити код в index.php внизу на цей:
+
+<script>
+function submitForm() {
+
+    var form = document.forms["order-form"];
+    var name = form["name"].value.trim();
+    var phone = form["phone"].value.trim();
+
+    if (name === "" || phone === "") {
+        alert("Будь ласка, заповніть всі поля");
+        return;
+    }
+
+    var formData = $('#order_form').serialize();
+
+    $.ajax({
+        type: 'POST',
+        url: 'CMS.php',
+        data: formData,
+
+        success: function(response) {
+
+            // FB Pixel
+            if (typeof trackLeadFacebookPixel === "function") {
+                trackLeadFacebookPixel();
+            }
+
+            let data = null;
+
+            // якщо сервер повернув JSON
+            try {
+                data = (typeof response === "object") ? response : JSON.parse(response);
+            } catch(e) {
+                console.warn("Response is not JSON:", response);
+            }
+
+            // якщо є id замовлення → передаємо його
+            if (data && data.order_id && Number(data.order_id) > 0) {
+                window.location.href = './upsale/index.php?order_id=' + data.order_id;
+            } else {
+                // fallback якщо CRM не повернула id
+                window.location.href = './upsale/index.php';
+            }
+        },
+
+        error: function(xhr, status, error) {
+            console.error("AJAX error:", status, error);
+            window.location.href = './index.php';
+        }
+    });
+}
+</script>
+
+
+2) Просто перезаписати файл CMS.php (Для сайтів з антиспамом з сайту https://4v1mak.evro.website. Для інших з https://niwmilw.ellec.site)
+
+3) в файлі upsale/index.php в форми додати (де proficrmid це id доп товару з CRM)
+    <input type="hidden" name="order_id" value="<?= htmlspecialchars($_GET['order_id'] ?? '') ?>">
+    <input type="hidden" name="proficrmid" value="4"> <!-- Profi CRM ID продукта -->

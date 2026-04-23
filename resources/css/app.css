@@ -1,0 +1,57 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    :root {
+        --font-sans: 'Manrope', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        --color-primary: #1f68ff;
+        --color-primary-dark: #0c3f9e;
+        --color-accent: #4cb3ff;
+        --color-muted: #f5f7fb;
+        --color-border: #e4e9f2;
+        --color-text: #0f1c3f;
+    }
+
+    body {
+        font-family: var(--font-sans);
+        color: var(--color-text);
+        background: #f1f5fd;
+    }
+}
+
+@layer utilities {
+    .bg-hero {
+        background:
+            radial-gradient(circle at 15% 20%, rgba(76, 179, 255, 0.32), transparent 36%),
+            radial-gradient(circle at 80% 0%, rgba(31, 104, 255, 0.32), transparent 42%),
+            linear-gradient(135deg, #1f68ff 0%, #0f4fb8 45%, #1f68ff 100%);
+    }
+
+    .bg-section {
+        background: linear-gradient(180deg, #f5f8ff 0%, #f1f5fd 100%);
+    }
+
+    .card-soft {
+        box-shadow: 0 12px 40px rgba(16, 62, 156, 0.12);
+    }
+
+    .glass {
+        background: rgba(255, 255, 255, 0.92);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+    }
+
+    .floating-shape {
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.8), transparent 35%),
+            radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.6), transparent 35%),
+            linear-gradient(180deg, rgba(255, 255, 255, 0.2), transparent 60%);
+        pointer-events: none;
+    }
+
+    .soft-shadow {
+        box-shadow: 0 12px 32px rgba(23, 70, 170, 0.12);
+    }
+}
