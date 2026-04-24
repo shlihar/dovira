@@ -32,13 +32,44 @@ Route::get('/lawyer/{slug?}', function (?string $slug = null) {
     $profile = $profiles[$slug];
     $profile['slug'] = $slug;
 
-    $relatedProfiles = collect($profiles)
-        ->map(function (array $item, string $itemSlug) {
+    $categoryBySlug = [
+        'nova-market' => 'retail',
+        'resto-family' => 'retail',
+        'freshcare-pharmacy' => 'retail',
+        'tech-hub-store' => 'tech',
+        'smarthome-store' => 'tech',
+        'citydent-clinic' => 'health',
+        'autocare-service' => 'auto',
+        'green-delivery' => 'delivery',
+        'quickbox-delivery' => 'delivery',
+        'tutorspace-academy' => 'education',
+        'buildcraft-studio' => 'construction',
+        'bookflow' => 'services',
+    ];
+
+    $currentCategoryKey = $categoryBySlug[$slug] ?? null;
+
+    $profilesCollection = collect($profiles)
+        ->map(function (array $item, string $itemSlug) use ($categoryBySlug) {
             $item['slug'] = $itemSlug;
+            $item['category_key'] = $categoryBySlug[$itemSlug] ?? null;
             return $item;
         })
-        ->reject(fn (array $item) => $item['slug'] === $slug)
-        ->sortByDesc(fn (array $item) => $item['city'] === $profile['city'])
+        ->reject(fn (array $item) => $item['slug'] === $slug);
+
+    $sameCategory = $profilesCollection
+        ->filter(fn (array $item) => $currentCategoryKey !== null && $item['category_key'] === $currentCategoryKey)
+        ->sortByDesc(fn (array $item) => ($item['rating'] ?? 0) * 1000 + ($item['reviews_count'] ?? 0))
+        ->values();
+
+    $fallbackProfiles = $profilesCollection
+        ->reject(fn (array $item) => $item['category_key'] === $currentCategoryKey)
+        ->sortByDesc(fn (array $item) => ($item['rating'] ?? 0) * 1000 + ($item['reviews_count'] ?? 0))
+        ->values();
+
+    $relatedProfiles = $sameCategory
+        ->concat($fallbackProfiles)
+        ->unique('slug')
         ->take(10)
         ->values()
         ->all();

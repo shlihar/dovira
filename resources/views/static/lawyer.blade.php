@@ -56,17 +56,32 @@
             'tutorspace-academy' => ['label' => 'Освіта', 'icon' => 'fa-solid fa-graduation-cap'],
             'buildcraft-studio' => ['label' => 'Будівництво', 'icon' => 'fa-solid fa-helmet-safety'],
         ];
+
+        $cameFromCatalog = request()->query('from') === 'catalog';
+        $catalogBackUrl = route('catalog');
+        $requestedBackUrl = request()->query('back');
+
+        if ($cameFromCatalog && is_string($requestedBackUrl) && $requestedBackUrl !== '') {
+            $backPath = parse_url($requestedBackUrl, PHP_URL_PATH);
+            if ($backPath === '/catalog') {
+                $catalogBackUrl = $requestedBackUrl;
+            }
+        }
+
+        $relatedProfileUrl = fn (string $slug) => $cameFromCatalog
+            ? route('lawyer', ['slug' => $slug, 'from' => 'catalog', 'back' => $catalogBackUrl])
+            : route('lawyer', ['slug' => $slug]);
     @endphp
 
     <section class="section profile-page">
         <div class="container">
-            <nav class="profile-breadcrumbs" aria-label="Breadcrumbs">
-                <a href="{{ route('home') }}">Головна</a>
-                <span>›</span>
-                <a href="{{ route('catalog') }}">Каталог</a>
-                <span>›</span>
-                <span>{{ $profile['name'] }}</span>
-            </nav>
+            @if ($cameFromCatalog)
+                <nav class="profile-breadcrumbs" aria-label="Breadcrumbs">
+                    <a href="{{ $catalogBackUrl }}">← Назад до каталогу</a>
+                    <span>›</span>
+                    <span>{{ $profile['name'] }}</span>
+                </nav>
+            @endif
 
             <header class="profile-hero">
                 <div class="profile-hero__main">
@@ -106,19 +121,22 @@
 
                         <div class="profile-hero__badges">
                             @if ($profile['verified'])
-                                <span class="profile-chip profile-chip--verified">
+                                <span class="best-lawyer-card__verified-badge">
                                     <i class="fa-solid fa-circle-check" aria-hidden="true"></i> Перевірений акаунт
                                 </span>
                             @endif
                             @if ($profile['pro'])
-                                <span class="profile-chip profile-chip--pro">
+                                <span class="best-lawyer-card__pro-badge">
                                     <i class="fa-solid fa-shield-halved" aria-hidden="true"></i> PRO
                                 </span>
                             @endif
                         </div>
 
                         <div class="profile-hero__actions">
-                            <a class="btn btn--primary" href="{{ route('login') }}">Написати відгук</a>
+                            <a class="btn btn--primary" href="{{ route('login') }}">
+                                <span>Написати відгук</span>
+                                <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -247,7 +265,6 @@
                                         </div>
                                         <strong>{{ number_format($review['rating'], 1) }}</strong>
                                     </div>
-                                    <h3>{{ $review['title'] }}</h3>
                                     <p>{{ $review['text'] }}</p>
                                 </article>
                             @endforeach
@@ -270,13 +287,17 @@
                     <div class="profile-side-card" id="about">
                         <h3>Про профіль</h3>
                         <p>{{ $profile['about'] }}</p>
+                        <a class="btn btn--primary btn--full profile-side-card__review-btn" href="{{ route('login') }}">
+                            <span>Написати відгук</span>
+                            <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
+                        </a>
                     </div>
                 </aside>
             </div>
 
             <section class="section best-lawyers" aria-labelledby="profile-related-title">
                 <div class="home-intents__head">
-                    <h2 id="profile-related-title" class="h2">Схожі профілі</h2>
+                    <h2 id="profile-related-title" class="h2">Найкращі в категорії</h2>
                     <div class="home-intents__actions">
                         <button type="button" class="home-intents__nav home-intents__nav--prev" aria-label="Попередні профілі" data-carousel-prev="best-lawyers-related">
                             <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
@@ -318,7 +339,7 @@
                                 </div>
                             </div>
                             <h3 class="best-lawyer-card__name">
-                                <a href="{{ route('lawyer', ['slug' => $related['slug']]) }}">{{ $related['name'] }}</a>
+                                <a href="{{ $relatedProfileUrl($related['slug']) }}">{{ $related['name'] }}</a>
                             </h3>
                             <a class="best-lawyer-card__site" href="https://{{ $related['website'] }}" target="_blank" rel="noopener noreferrer">
                                 <i class="fa-solid fa-globe" aria-hidden="true"></i><span>{{ $related['website'] }}</span>

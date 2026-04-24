@@ -8,6 +8,14 @@
 @endpush
 
 @section('content')
+    @php
+        $catalogLawyerUrl = fn (string $slug) => route('lawyer', [
+            'slug' => $slug,
+            'from' => 'catalog',
+            'back' => request()->fullUrl(),
+        ]);
+    @endphp
+
     <section class="section reviews-page">
         <div class="container reviews-page__layout">
             <aside class="reviews-sidebar" aria-label="Фільтри">
@@ -130,13 +138,13 @@
                 <div class="reviews-list">
                     <article class="review-list-card review-list-card--priority">
                         <div class="review-list-card__main">
-                            <a class="review-list-card__logo-link" href="{{ route('lawyer', ['slug' => 'nova-market']) }}">
+                            <a class="review-list-card__logo-link" href="{{ $catalogLawyerUrl('nova-market') }}">
                                 <div class="review-list-card__logo">
                                     <img src="https://images.pexels.com/photos/264636/pexels-photo-264636.jpeg?auto=compress&cs=tinysrgb&w=200&h=200&fit=crop" alt="Логотип Nova Market" loading="lazy">
                                 </div>
                             </a>
                             <div>
-                                <h3 class="review-list-card__name"><a class="review-list-card__name-link" href="{{ route('lawyer', ['slug' => 'nova-market']) }}">Nova Market</a></h3>
+                                <h3 class="review-list-card__name"><a class="review-list-card__name-link" href="{{ $catalogLawyerUrl('nova-market') }}">Nova Market</a></h3>
                                 <div class="review-list-card__badges">
                                     <span class="best-lawyer-card__verified-badge"><i class="fa-solid fa-circle-check"></i>Перевірений акаунт</span>
                                     <span class="best-lawyer-card__pro-badge"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> PRO</span>
@@ -155,7 +163,7 @@
                             </div>
                         </div>
                         <div class="review-list-card__actions">
-                            <a class="review-list-card__action-link" href="{{ route('lawyer', ['slug' => 'nova-market']) }}">
+                            <a class="review-list-card__action-link" href="{{ $catalogLawyerUrl('nova-market') }}">
                                 <span>Переглянути профіль</span>
                                 <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
                             </a>
@@ -164,13 +172,13 @@
 
                     <article class="review-list-card review-list-card--priority">
                         <div class="review-list-card__main">
-                            <a class="review-list-card__logo-link" href="{{ route('lawyer', ['slug' => 'tech-hub-store']) }}">
+                            <a class="review-list-card__logo-link" href="{{ $catalogLawyerUrl('tech-hub-store') }}">
                                 <div class="review-list-card__logo">
                                     <img src="https://images.pexels.com/photos/373543/pexels-photo-373543.jpeg?auto=compress&cs=tinysrgb&w=200&h=200&fit=crop" alt="Логотип TECH HUB Store" loading="lazy">
                                 </div>
                             </a>
                             <div>
-                                <h3 class="review-list-card__name"><a class="review-list-card__name-link" href="{{ route('lawyer', ['slug' => 'tech-hub-store']) }}">TECH HUB Store</a></h3>
+                                <h3 class="review-list-card__name"><a class="review-list-card__name-link" href="{{ $catalogLawyerUrl('tech-hub-store') }}">TECH HUB Store</a></h3>
                                 <div class="review-list-card__badges">
                                     <span class="best-lawyer-card__verified-badge"><i class="fa-solid fa-circle-check"></i>Перевірений акаунт</span>
                                     <span class="best-lawyer-card__pro-badge"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> PRO</span>
@@ -189,7 +197,7 @@
                             </div>
                         </div>
                         <div class="review-list-card__actions">
-                            <a class="review-list-card__action-link" href="{{ route('lawyer', ['slug' => 'tech-hub-store']) }}">
+                            <a class="review-list-card__action-link" href="{{ $catalogLawyerUrl('tech-hub-store') }}">
                                 <span>Переглянути профіль</span>
                                 <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
                             </a>
@@ -198,11 +206,11 @@
 
                     <article class="review-list-card">
                         <div class="review-list-card__main">
-                            <a class="review-list-card__logo-link" href="{{ route('lawyer', ['slug' => 'citydent-clinic']) }}">
+                            <a class="review-list-card__logo-link" href="{{ $catalogLawyerUrl('citydent-clinic') }}">
                                 <div class="review-list-card__logo" data-seed="CityDent Clinic">CD</div>
                             </a>
                             <div>
-                                <h3 class="review-list-card__name"><a class="review-list-card__name-link" href="{{ route('lawyer', ['slug' => 'citydent-clinic']) }}">CityDent Clinic</a></h3>
+                                <h3 class="review-list-card__name"><a class="review-list-card__name-link" href="{{ $catalogLawyerUrl('citydent-clinic') }}">CityDent Clinic</a></h3>
                                 <p class="review-list-card__region">Одеса</p>
                                 <a class="best-lawyer-card__site" href="https://citydent.ua" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-globe" aria-hidden="true"></i><span>citydent.ua</span></a>
                                 <div class="review-list-card__meta">
@@ -217,7 +225,7 @@
                             </div>
                         </div>
                         <div class="review-list-card__actions">
-                            <a class="review-list-card__action-link" href="{{ route('lawyer', ['slug' => 'citydent-clinic']) }}">
+                            <a class="review-list-card__action-link" href="{{ $catalogLawyerUrl('citydent-clinic') }}">
                                 <span>Переглянути профіль</span>
                                 <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
                             </a>
@@ -226,13 +234,13 @@
 
                     <article class="review-list-card">
                         <div class="review-list-card__main">
-                            <a class="review-list-card__logo-link" href="{{ route('lawyer', ['slug' => 'autocare-service']) }}">
+                            <a class="review-list-card__logo-link" href="{{ $catalogLawyerUrl('autocare-service') }}">
                                 <div class="review-list-card__logo">
                                     <img src="https://images.pexels.com/photos/3807329/pexels-photo-3807329.jpeg?auto=compress&cs=tinysrgb&w=200&h=200&fit=crop" alt="Логотип AutoCare Service" loading="lazy">
                                 </div>
                             </a>
                             <div>
-                                <h3 class="review-list-card__name"><a class="review-list-card__name-link" href="{{ route('lawyer', ['slug' => 'autocare-service']) }}">AutoCare Service</a></h3>
+                                <h3 class="review-list-card__name"><a class="review-list-card__name-link" href="{{ $catalogLawyerUrl('autocare-service') }}">AutoCare Service</a></h3>
                                 <p class="review-list-card__region">Дніпро</p>
                                 <a class="best-lawyer-card__site" href="https://autocare-service.ua" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-globe" aria-hidden="true"></i><span>autocare-service.ua</span></a>
                                 <div class="review-list-card__meta">
@@ -247,7 +255,7 @@
                             </div>
                         </div>
                         <div class="review-list-card__actions">
-                            <a class="review-list-card__action-link" href="{{ route('lawyer', ['slug' => 'autocare-service']) }}">
+                            <a class="review-list-card__action-link" href="{{ $catalogLawyerUrl('autocare-service') }}">
                                 <span>Переглянути профіль</span>
                                 <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
                             </a>
@@ -256,11 +264,11 @@
 
                     <article class="review-list-card">
                         <div class="review-list-card__main">
-                            <a class="review-list-card__logo-link" href="{{ route('lawyer', ['slug' => 'green-delivery']) }}">
+                            <a class="review-list-card__logo-link" href="{{ $catalogLawyerUrl('green-delivery') }}">
                                 <div class="review-list-card__logo" data-seed="Green Delivery">GD</div>
                             </a>
                             <div>
-                                <h3 class="review-list-card__name"><a class="review-list-card__name-link" href="{{ route('lawyer', ['slug' => 'green-delivery']) }}">Green Delivery</a></h3>
+                                <h3 class="review-list-card__name"><a class="review-list-card__name-link" href="{{ $catalogLawyerUrl('green-delivery') }}">Green Delivery</a></h3>
                                 <p class="review-list-card__region">Київ</p>
                                 <a class="best-lawyer-card__site" href="https://greendelivery.ua" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-globe" aria-hidden="true"></i><span>greendelivery.ua</span></a>
                                 <div class="review-list-card__meta">
@@ -275,7 +283,7 @@
                             </div>
                         </div>
                         <div class="review-list-card__actions">
-                            <a class="review-list-card__action-link" href="{{ route('lawyer', ['slug' => 'green-delivery']) }}">
+                            <a class="review-list-card__action-link" href="{{ $catalogLawyerUrl('green-delivery') }}">
                                 <span>Переглянути профіль</span>
                                 <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
                             </a>
@@ -284,11 +292,11 @@
 
                     <article class="review-list-card">
                         <div class="review-list-card__main">
-                            <a class="review-list-card__logo-link" href="{{ route('lawyer', ['slug' => 'smarthome-store']) }}">
+                            <a class="review-list-card__logo-link" href="{{ $catalogLawyerUrl('smarthome-store') }}">
                                 <div class="review-list-card__logo" data-seed="SmartHome Store">SS</div>
                             </a>
                             <div>
-                                <h3 class="review-list-card__name"><a class="review-list-card__name-link" href="{{ route('lawyer', ['slug' => 'smarthome-store']) }}">SmartHome Store</a></h3>
+                                <h3 class="review-list-card__name"><a class="review-list-card__name-link" href="{{ $catalogLawyerUrl('smarthome-store') }}">SmartHome Store</a></h3>
                                 <p class="review-list-card__region">Харків</p>
                                 <a class="best-lawyer-card__site" href="https://smarthome.store" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-globe" aria-hidden="true"></i><span>smarthome.store</span></a>
                                 <div class="review-list-card__meta">
@@ -303,7 +311,7 @@
                             </div>
                         </div>
                         <div class="review-list-card__actions">
-                            <a class="review-list-card__action-link" href="{{ route('lawyer', ['slug' => 'smarthome-store']) }}">
+                            <a class="review-list-card__action-link" href="{{ $catalogLawyerUrl('smarthome-store') }}">
                                 <span>Переглянути профіль</span>
                                 <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
                             </a>
@@ -312,13 +320,13 @@
 
                     <article class="review-list-card">
                         <div class="review-list-card__main">
-                            <a class="review-list-card__logo-link" href="{{ route('lawyer', ['slug' => 'resto-family']) }}">
+                            <a class="review-list-card__logo-link" href="{{ $catalogLawyerUrl('resto-family') }}">
                                 <div class="review-list-card__logo">
                                     <img src="https://images.pexels.com/photos/262978/pexels-photo-262978.jpeg?auto=compress&cs=tinysrgb&w=200&h=200&fit=crop" alt="Логотип Resto Family" loading="lazy">
                                 </div>
                             </a>
                             <div>
-                                <h3 class="review-list-card__name"><a class="review-list-card__name-link" href="{{ route('lawyer', ['slug' => 'resto-family']) }}">Resto Family</a></h3>
+                                <h3 class="review-list-card__name"><a class="review-list-card__name-link" href="{{ $catalogLawyerUrl('resto-family') }}">Resto Family</a></h3>
                                 <p class="review-list-card__region">Вінниця</p>
                                 <a class="best-lawyer-card__site" href="https://restofamily.ua" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-globe" aria-hidden="true"></i><span>restofamily.ua</span></a>
                                 <div class="review-list-card__meta">
@@ -333,7 +341,7 @@
                             </div>
                         </div>
                         <div class="review-list-card__actions">
-                            <a class="review-list-card__action-link" href="{{ route('lawyer', ['slug' => 'resto-family']) }}">
+                            <a class="review-list-card__action-link" href="{{ $catalogLawyerUrl('resto-family') }}">
                                 <span>Переглянути профіль</span>
                                 <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
                             </a>
@@ -342,11 +350,11 @@
 
                     <article class="review-list-card">
                         <div class="review-list-card__main">
-                            <a class="review-list-card__logo-link" href="{{ route('lawyer', ['slug' => 'bookflow']) }}">
+                            <a class="review-list-card__logo-link" href="{{ $catalogLawyerUrl('bookflow') }}">
                                 <div class="review-list-card__logo has-random-gradient" data-seed="BookFlow">BF</div>
                             </a>
                             <div>
-                                <h3 class="review-list-card__name"><a class="review-list-card__name-link" href="{{ route('lawyer', ['slug' => 'bookflow']) }}">BookFlow</a></h3>
+                                <h3 class="review-list-card__name"><a class="review-list-card__name-link" href="{{ $catalogLawyerUrl('bookflow') }}">BookFlow</a></h3>
                                 <p class="review-list-card__region">Черкаси</p>
                                 <a class="best-lawyer-card__site" href="https://bookflow.ua" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-globe" aria-hidden="true"></i><span>bookflow.ua</span></a>
                                 <div class="review-list-card__meta">
@@ -361,7 +369,7 @@
                             </div>
                         </div>
                         <div class="review-list-card__actions">
-                            <a class="review-list-card__action-link" href="{{ route('lawyer', ['slug' => 'bookflow']) }}">
+                            <a class="review-list-card__action-link" href="{{ $catalogLawyerUrl('bookflow') }}">
                                 <span>Переглянути профіль</span>
                                 <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
                             </a>
@@ -370,11 +378,11 @@
 
                     <article class="review-list-card">
                         <div class="review-list-card__main">
-                            <a class="review-list-card__logo-link" href="{{ route('lawyer', ['slug' => 'freshcare-pharmacy']) }}">
+                            <a class="review-list-card__logo-link" href="{{ $catalogLawyerUrl('freshcare-pharmacy') }}">
                                 <div class="review-list-card__logo has-random-gradient" data-seed="FreshCare Pharmacy">FP</div>
                             </a>
                             <div>
-                                <h3 class="review-list-card__name"><a class="review-list-card__name-link" href="{{ route('lawyer', ['slug' => 'freshcare-pharmacy']) }}">FreshCare Pharmacy</a></h3>
+                                <h3 class="review-list-card__name"><a class="review-list-card__name-link" href="{{ $catalogLawyerUrl('freshcare-pharmacy') }}">FreshCare Pharmacy</a></h3>
                                 <p class="review-list-card__region">Полтава</p>
                                 <a class="best-lawyer-card__site" href="https://freshcare.ua" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-globe" aria-hidden="true"></i><span>freshcare.ua</span></a>
                                 <div class="review-list-card__meta">
@@ -389,7 +397,7 @@
                             </div>
                         </div>
                         <div class="review-list-card__actions">
-                            <a class="review-list-card__action-link" href="{{ route('lawyer', ['slug' => 'freshcare-pharmacy']) }}">
+                            <a class="review-list-card__action-link" href="{{ $catalogLawyerUrl('freshcare-pharmacy') }}">
                                 <span>Переглянути профіль</span>
                                 <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
                             </a>
@@ -398,13 +406,13 @@
 
                     <article class="review-list-card">
                         <div class="review-list-card__main">
-                            <a class="review-list-card__logo-link" href="{{ route('lawyer', ['slug' => 'quickbox-delivery']) }}">
+                            <a class="review-list-card__logo-link" href="{{ $catalogLawyerUrl('quickbox-delivery') }}">
                                 <div class="review-list-card__logo">
                                     <img src="https://images.pexels.com/photos/7706457/pexels-photo-7706457.jpeg?auto=compress&cs=tinysrgb&w=200&h=200&fit=crop" alt="Логотип QuickBox Delivery" loading="lazy">
                                 </div>
                             </a>
                             <div>
-                                <h3 class="review-list-card__name"><a class="review-list-card__name-link" href="{{ route('lawyer', ['slug' => 'quickbox-delivery']) }}">QuickBox Delivery</a></h3>
+                                <h3 class="review-list-card__name"><a class="review-list-card__name-link" href="{{ $catalogLawyerUrl('quickbox-delivery') }}">QuickBox Delivery</a></h3>
                                 <p class="review-list-card__region">Івано-Франківськ</p>
                                 <a class="best-lawyer-card__site" href="https://quickbox.delivery" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-globe" aria-hidden="true"></i><span>quickbox.delivery</span></a>
                                 <div class="review-list-card__meta">
@@ -419,7 +427,7 @@
                             </div>
                         </div>
                         <div class="review-list-card__actions">
-                            <a class="review-list-card__action-link" href="{{ route('lawyer', ['slug' => 'quickbox-delivery']) }}">
+                            <a class="review-list-card__action-link" href="{{ $catalogLawyerUrl('quickbox-delivery') }}">
                                 <span>Переглянути профіль</span>
                                 <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
                             </a>
@@ -428,11 +436,11 @@
 
                     <article class="review-list-card">
                         <div class="review-list-card__main">
-                            <a class="review-list-card__logo-link" href="{{ route('lawyer', ['slug' => 'tutorspace-academy']) }}">
+                            <a class="review-list-card__logo-link" href="{{ $catalogLawyerUrl('tutorspace-academy') }}">
                                 <div class="review-list-card__logo has-random-gradient" data-seed="TutorSpace">TS</div>
                             </a>
                             <div>
-                                <h3 class="review-list-card__name"><a class="review-list-card__name-link" href="{{ route('lawyer', ['slug' => 'tutorspace-academy']) }}">TutorSpace Academy</a></h3>
+                                <h3 class="review-list-card__name"><a class="review-list-card__name-link" href="{{ $catalogLawyerUrl('tutorspace-academy') }}">TutorSpace Academy</a></h3>
                                 <p class="review-list-card__region">Тернопіль</p>
                                 <a class="best-lawyer-card__site" href="https://tutorspace.ua" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-globe" aria-hidden="true"></i><span>tutorspace.ua</span></a>
                                 <div class="review-list-card__meta">
@@ -447,7 +455,7 @@
                             </div>
                         </div>
                         <div class="review-list-card__actions">
-                            <a class="review-list-card__action-link" href="{{ route('lawyer', ['slug' => 'tutorspace-academy']) }}">
+                            <a class="review-list-card__action-link" href="{{ $catalogLawyerUrl('tutorspace-academy') }}">
                                 <span>Переглянути профіль</span>
                                 <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
                             </a>
@@ -456,11 +464,11 @@
 
                     <article class="review-list-card">
                         <div class="review-list-card__main">
-                            <a class="review-list-card__logo-link" href="{{ route('lawyer', ['slug' => 'buildcraft-studio']) }}">
+                            <a class="review-list-card__logo-link" href="{{ $catalogLawyerUrl('buildcraft-studio') }}">
                                 <div class="review-list-card__logo has-random-gradient" data-seed="BuildCraft">BC</div>
                             </a>
                             <div>
-                                <h3 class="review-list-card__name"><a class="review-list-card__name-link" href="{{ route('lawyer', ['slug' => 'buildcraft-studio']) }}">BuildCraft Studio</a></h3>
+                                <h3 class="review-list-card__name"><a class="review-list-card__name-link" href="{{ $catalogLawyerUrl('buildcraft-studio') }}">BuildCraft Studio</a></h3>
                                 <p class="review-list-card__region">Чернігів</p>
                                 <a class="best-lawyer-card__site" href="https://buildcraft.pro" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-globe" aria-hidden="true"></i><span>buildcraft.pro</span></a>
                                 <div class="review-list-card__meta">
@@ -475,7 +483,7 @@
                             </div>
                         </div>
                         <div class="review-list-card__actions">
-                            <a class="review-list-card__action-link" href="{{ route('lawyer', ['slug' => 'buildcraft-studio']) }}">
+                            <a class="review-list-card__action-link" href="{{ $catalogLawyerUrl('buildcraft-studio') }}">
                                 <span>Переглянути профіль</span>
                                 <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
                             </a>
