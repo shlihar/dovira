@@ -2,16 +2,20 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\LawyerController;
-use App\Models\Region;
-use App\Models\Lawyer;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'static.home')->name('home');
 
 Route::get('/platform', function () {
-    $regions = Region::orderBy('name')->get();
-    $topLawyers = Lawyer::with('region')->orderBy('created_at', 'desc')->limit(4)->get();
-    return view('static.platform', compact('regions', 'topLawyers'));
+    return view('static.platform', [
+        'stats' => [
+            'reviews' => 124358,
+            'pro_accounts' => 2190,
+            'profiles' => 18342,
+            'lawyers' => 0,
+            'companies' => 0,
+        ],
+    ]);
 })->name('platform');
 
 Route::view('/catalog', 'static.catalog')->name('catalog');
