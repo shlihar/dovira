@@ -1,7 +1,7 @@
 FROM composer:2 AS vendor
 WORKDIR /app
 COPY composer.json composer.lock ./
-RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
+RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist --no-scripts
 
 FROM node:20-alpine AS assets
 WORKDIR /app
@@ -24,7 +24,8 @@ COPY --from=assets /app/public/build ./public/build
 
 RUN mkdir -p database storage/framework/cache storage/framework/sessions storage/framework/views bootstrap/cache \
     && touch database/database.sqlite \
-    && chmod -R 775 storage bootstrap/cache database
+    && chmod -R 775 storage bootstrap/cache database \
+    && php artisan package:discover --ansi
 
 EXPOSE 10000
 
