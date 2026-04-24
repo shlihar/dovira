@@ -12,7 +12,7 @@ COPY public ./public
 COPY vite.config.js postcss.config.js tailwind.config.js ./
 RUN npm run build
 
-FROM php:8.2-cli-alpine
+FROM php:8.4-cli-alpine
 WORKDIR /app
 
 RUN apk add --no-cache bash icu-dev libzip-dev sqlite-dev oniguruma-dev \
