@@ -1,10 +1,10 @@
 services:
   - type: web
     name: dovira
-    runtime: php
+    runtime: docker
     plan: free
-    buildCommand: ./scripts/render-build.sh
-    startCommand: php artisan serve --host=0.0.0.0 --port=$PORT
+    dockerfilePath: ./Dockerfile
+    dockerCommand: php artisan serve --host=0.0.0.0 --port=$PORT
     healthCheckPath: /
     envVars:
       - key: APP_NAME
