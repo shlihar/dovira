@@ -53,21 +53,22 @@ services:
         value: sync
       - key: APP_MAINTENANCE_DRIVER
         value: file
-      # SMTP: хост/логін/пароль задаються в Render Dashboard (sync: false).
+      # SMTP: пошта info@mydovira.com на хостингу adm.tools.
+      # Пароль скриньки задається в Render Dashboard (sync: false).
       - key: MAIL_MAILER
         value: smtp
       - key: MAIL_HOST
-        sync: false
+        value: mail.adm.tools
       - key: MAIL_PORT
         value: "587"
       - key: MAIL_USERNAME
-        sync: false
+        value: info@mydovira.com
       - key: MAIL_PASSWORD
         sync: false
       - key: MAIL_ENCRYPTION
         value: tls
       - key: MAIL_FROM_ADDRESS
-        value: no-reply@dovira.com.ua
+        value: info@mydovira.com
       - key: MAIL_FROM_NAME
         value: DOVIRA
       # Холодний аутріч на незаявлені профілі про негативні відгуки (двигун
