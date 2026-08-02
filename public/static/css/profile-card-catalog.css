@@ -1,0 +1,691 @@
+/* Catalog profile card module. Keep selectors scoped to avoid home/profile collisions. */
+
+.dovira-catalog-card.dovira-catalog-card {
+  width: 100%;
+  max-width: none;
+  min-height: 0;
+  position: relative;
+  display: grid;
+  grid-template-rows: auto auto auto;
+  gap: 11px;
+  margin: 0;
+  padding: 16px;
+  border: 1px solid #e3e7ee;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 18px 44px rgba(16, 47, 112, 0.07);
+  transition: transform .16s ease, border-color .16s ease, box-shadow .16s ease;
+}
+
+.dovira-catalog-card.dovira-catalog-card:hover {
+  transform: translateY(-2px);
+  border-color: #a9c1fb;
+  box-shadow: 0 24px 58px rgba(31, 85, 187, 0.13);
+}
+
+.dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__identity {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr);
+  gap: 10px;
+  /* Центруємо блок назви проти лого: без бейджів «Довіра рекомендує»
+     назва — один рядок, і при top-align під нею зяяла порожнеча. */
+  align-items: center;
+}
+
+.dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__logo-wrap {
+  position: relative;
+}
+
+.dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__logo {
+  width: 52px;
+  height: 52px;
+  border: 1px solid #e3e7ee;
+  /* Rounded square instead of a circle — reads as a business/brand mark
+     (Trustpilot, G2, Capterra) rather than a personal/social avatar. */
+  border-radius: 15px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  color: #fff;
+  background: linear-gradient(145deg, #6ca2ff, #2f67f4);
+  font: 700 17px var(--font-heading);
+  text-decoration: none;
+  box-shadow: 0 6px 14px rgba(26, 69, 150, 0.12);
+}
+
+.dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__logo.has-random-gradient {
+  background: linear-gradient(150deg, var(--av-bg-2, #2f67f4), #10307e);
+  color: var(--av-text, #fff);
+}
+
+.dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__logo img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  border-radius: inherit;
+}
+
+.dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__main {
+  min-width: 0;
+  display: grid;
+  align-content: start;
+  gap: 4px;
+  padding-top: 2px;
+}
+
+.dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__name {
+  margin: 0;
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  color: #1e293b;
+  font: 700 14px/1.35 var(--font-heading);
+  letter-spacing: -0.01em;
+}
+
+.dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__name a {
+  color: inherit;
+  text-decoration: none;
+  transition: color .16s ease;
+  display: -webkit-box;
+  max-width: 100%;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__name a:hover {
+  color: #2f67f4;
+}
+
+.dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__badges {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 22px;
+  padding: 0 8px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__badge i {
+  display: block;
+  font-size: 10px;
+  line-height: 1;
+}
+
+.dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__badge--recommend {
+  border-color: transparent;
+  color: #fff;
+  background: linear-gradient(135deg, #4e83ff, #2f6df4);
+  box-shadow: 0 3px 8px rgba(47, 109, 244, 0.28);
+}
+
+.dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__badge--not-recommend {
+  border-color: transparent;
+  color: #fff;
+  background: linear-gradient(135deg, #f0685f, #dc3f3f);
+  box-shadow: 0 3px 8px rgba(220, 63, 63, 0.28);
+}
+
+/* Matches the "Підтверджений власником" badge color on the profile page
+   (entity-badge--verified in components.css). */
+.dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__badge--verified {
+  border-color: rgba(18, 168, 109, 0.26);
+  color: #128a5c;
+  background: rgba(18, 168, 109, 0.12);
+}
+
+.dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__badge--verified i {
+  color: #128a5c;
+}
+
+/* Whole-card treatment matching the trust badge, so the card reads
+   differently at a glance without needing to spot the small badge. */
+.dovira-catalog-card.dovira-catalog-card.dovira-catalog-card--recommended {
+  border-color: rgba(47, 109, 244, 0.35);
+  background: linear-gradient(180deg, rgba(78, 131, 255, 0.07), rgba(255, 255, 255, 0) 46%), #fff;
+  box-shadow: 0 18px 40px rgba(47, 109, 244, 0.12);
+}
+
+.dovira-catalog-card.dovira-catalog-card.dovira-catalog-card--recommended:hover {
+  border-color: rgba(47, 109, 244, 0.5);
+  box-shadow: 0 24px 52px rgba(47, 109, 244, 0.18);
+}
+
+.dovira-catalog-card.dovira-catalog-card.dovira-catalog-card--not-recommended {
+  border-color: rgba(220, 63, 63, 0.32);
+  background: linear-gradient(180deg, rgba(220, 63, 63, 0.06), rgba(255, 255, 255, 0) 46%), #fff;
+  box-shadow: 0 18px 36px rgba(220, 63, 63, 0.10);
+}
+
+.dovira-catalog-card.dovira-catalog-card.dovira-catalog-card--not-recommended:hover {
+  border-color: rgba(220, 63, 63, 0.45);
+  box-shadow: 0 22px 46px rgba(220, 63, 63, 0.15);
+}
+
+/* "Live profile" signal — the business replies to its reviews. */
+.dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__responds {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #2e8b62;
+  font-size: 12.5px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__responds i {
+  width: 14px;
+  font-size: 12px;
+  flex: 0 0 auto;
+}
+
+/* Service / direction tags */
+.dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__tags {
+  display: flex;
+  /* Never wrap to a second line — card-tags-tooltip.js measures the row and
+     hides whatever doesn't fit, folding it into the "+N" trigger instead. */
+  flex-wrap: nowrap;
+  overflow: hidden;
+  gap: 6px;
+  margin-top: 1px;
+}
+
+.dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__tag {
+  /* text-overflow: ellipsis does not work on flex containers — this must be
+     inline-block for the truncation dots to actually render. */
+  display: inline-block;
+  flex: 0 0 auto;
+  vertical-align: middle;
+  max-width: 172px;
+  min-height: 23px;
+  padding: 4px 9px;
+  border-radius: 8px;
+  background: #f0f1f4;
+  color: #475569;
+  font-size: 11.5px;
+  font-weight: 700;
+  line-height: 15px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-sizing: border-box;
+}
+
+.dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__tag[hidden] {
+  display: none;
+}
+
+.dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__tag--more {
+  flex: 0 0 auto;
+  background: transparent;
+  color: #64748b;
+  padding: 0 3px;
+}
+
+.dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__tag--more[hidden] {
+  display: none;
+}
+
+.dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__tags[data-card-tags] {
+  cursor: pointer;
+}
+
+.dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__tags[data-card-tags]:hover .dovira-catalog-card__tag--more,
+.dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__tags[data-card-tags]:focus-visible .dovira-catalog-card__tag--more {
+  color: #2f6df4;
+  background: #f0f1f4;
+}
+
+.dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__badge--owner-verified {
+  border-color: rgba(47, 109, 244, 0.24);
+  color: #245bd8;
+  background: rgba(47, 109, 244, 0.12);
+}
+
+.dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__rating {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  color: #102b65;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__rating strong {
+  color: #102b65;
+  font-weight: 850;
+}
+
+.dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__stars {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  color: #f6ad12;
+  font-size: 13px;
+  letter-spacing: 1px;
+}
+
+.dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__stars.rating-stars--excellent {
+  color: #ffb226;
+}
+
+.dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__stars.rating-stars--fair {
+  color: #f28c28;
+}
+
+.dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__stars.rating-stars--poor {
+  color: #dc5a5a;
+}
+
+.dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__reviews-count {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+.dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__body {
+  min-width: 0;
+  display: grid;
+  align-content: start;
+  gap: 7px;
+}
+
+.dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__site,
+.dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__location {
+  max-width: 100%;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  overflow: hidden;
+  color: #667da8;
+  font-size: 12.5px;
+  font-weight: 700;
+  line-height: 1.2;
+  text-decoration: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__site i,
+.dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__location i {
+  width: 14px;
+  color: #7189b8;
+  font-size: 14px;
+  flex: 0 0 auto;
+}
+
+.dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__site:hover {
+  color: #2f67f4;
+}
+
+.dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__site:hover i {
+  color: #2f67f4;
+}
+
+.dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__summary {
+  margin: 0;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+.dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 9px;
+  align-items: center;
+  margin-top: 3px;
+}
+
+/* CTA hierarchy: a grid full of identical filled buttons means none of them
+   stand out. Ordinary cards get a soft tinted button; the filled gradient is
+   reserved for "Довіра рекомендує" cards — one more perk of the badge. */
+.dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__profile-link {
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 12px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  color: var(--c-primary);
+  background: #eaf1ff;
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: transform .16s ease, box-shadow .16s ease, filter .16s ease, background-color .16s ease, color .16s ease;
+}
+
+.dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__profile-link:hover {
+  transform: translateY(-1px);
+  background: #dce8ff;
+}
+
+.dovira-catalog-card.dovira-catalog-card.dovira-catalog-card--recommended .dovira-catalog-card__profile-link {
+  color: #fff;
+  background: var(--c-primary);
+  box-shadow: 0 6px 14px rgba(47, 109, 244, 0.26);
+}
+
+.dovira-catalog-card.dovira-catalog-card.dovira-catalog-card--recommended .dovira-catalog-card__profile-link:hover {
+  filter: brightness(1.05);
+  box-shadow: 0 10px 20px rgba(47, 109, 244, 0.34);
+}
+
+.dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__save {
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  color: #506895;
+  background: transparent;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__save:hover {
+  color: #2f6df4;
+  background: #f4f5f7;
+}
+
+.reviews-list.is-grid .dovira-catalog-card.dovira-catalog-card {
+  height: 100%;
+}
+
+.reviews-carousel__track .dovira-catalog-card.dovira-catalog-card,
+.best-lawyers__carousel .dovira-catalog-card.dovira-catalog-card {
+  width: auto;
+  max-width: none;
+  flex: 0 0 calc((100% - 42px) / 4);
+  min-width: 0;
+  scroll-snap-align: start;
+}
+
+@media (max-width: 900px) {
+  .dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__identity {
+    grid-template-columns: 50px minmax(0, 1fr);
+  }
+
+  .dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__logo {
+    width: 50px;
+    height: 50px;
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 1240px) {
+  .reviews-carousel__track .dovira-catalog-card.dovira-catalog-card,
+  .best-lawyers__carousel .dovira-catalog-card.dovira-catalog-card {
+    flex-basis: calc((100% - 28px) / 3);
+  }
+}
+
+@media (max-width: 900px) {
+  .reviews-carousel__track .dovira-catalog-card.dovira-catalog-card,
+  .best-lawyers__carousel .dovira-catalog-card.dovira-catalog-card {
+    flex-basis: calc((100% - 14px) / 2);
+  }
+}
+
+@media (max-width: 640px) {
+  .dovira-catalog-card.dovira-catalog-card {
+    grid-template-columns: 68px minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    column-gap: 11px;
+    row-gap: 5px;
+    align-items: center;
+    padding: 11px 12px 12px 12px;
+    border-radius: 18px;
+    border-color: #e3e7ee;
+    background: #fff;
+    box-shadow: 0 8px 22px rgba(16, 47, 112, 0.06);
+  }
+
+  .dovira-catalog-card.dovira-catalog-card:hover {
+    transform: none;
+  }
+
+  .dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__identity {
+    display: contents;
+  }
+
+  /* identity is display:contents here, so its children (including the new
+     logo-wrap) become the direct grid items — the wrap needs the same slot
+     .dovira-catalog-card__logo used to occupy on its own. */
+  .dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__logo-wrap {
+    grid-column: 1;
+    grid-row: 1 / 3;
+    align-self: center;
+  }
+
+  .dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__logo {
+    width: 68px;
+    height: 68px;
+    border-color: #d7e4fb;
+    background: #f4f5f7;
+    font-size: 18px;
+    box-shadow: inset 0 0 0 4px rgba(255, 255, 255, 0.78);
+  }
+
+  .dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__main {
+    grid-column: 2;
+    grid-row: 1;
+    align-self: end;
+    gap: 5px;
+  }
+
+  .dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__name {
+    color: #111827;
+   font-size: 12.5px;
+    line-height: 1.14;
+    letter-spacing: 0;
+    display: block;
+    overflow: hidden;
+    text-overflow: clip;
+    white-space: normal;
+  }
+
+  .dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__badges {
+    gap: 4px;
+  }
+
+  .dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__badge {
+    min-height: 17px;
+    padding: 0 6px;
+    gap: 3px;
+    font-size: 9.5px;
+    font-weight: 700;
+  }
+
+  .dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__badge i {
+    font-size: 8px;
+  }
+
+  .dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__badge--pro {
+    background: rgba(73, 120, 249, 0.07);
+  }
+
+  .dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__badge--verified {
+    background: rgba(18, 168, 109, 0.12);
+  }
+
+  .dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__body {
+    grid-column: 2;
+    grid-row: 2;
+    align-self: start;
+    min-width: 0;
+    margin-left: 0;
+    gap: 5px;
+  }
+
+  .dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__rating {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 4px;
+    min-width: 0;
+    color: #111827;
+    font-size: 13px;
+    line-height: 1;
+  }
+
+  .dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__stars {
+    gap: 1px;
+    color: #ffb323;
+    font-size: 12px;
+    letter-spacing: 0;
+    white-space: nowrap;
+  }
+
+  .dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__reviews-count {
+    min-width: 0;
+    color: #7b8aa4;
+    font-size: 11px;
+    line-height: 1.1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__location {
+    margin-top: 0;
+    gap: 6px;
+    color: #7b8aa4;
+    font-size: 12.5px;
+    font-weight: 600;
+  }
+
+  .dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__site {
+    display: inline-flex;
+    gap: 6px;
+    font-size: 11.5px;
+    font-weight: 700;
+  }
+
+  .dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__summary {
+    display: -webkit-box;
+    margin: 1px 0 0;
+    color: #7b8aa4;
+    font-size: 11px;
+    line-height: 1.3;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+  }
+
+  .dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__actions {
+    display: none;
+  }
+
+  .page-catalog .dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__main {
+    display: flex;
+    align-items: left;
+    flex-direction: column-reverse;
+    flex-wrap: nowrap;
+    gap: 6px;
+  }
+
+  .page-catalog .dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__name {
+    flex: 1 1 auto;
+    min-width: 0;
+    margin: 0;
+  }
+
+  .page-catalog .dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__badges {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 4px;
+  }
+
+  .reviews-carousel__track .dovira-catalog-card.dovira-catalog-card,
+  .best-lawyers__carousel .dovira-catalog-card.dovira-catalog-card,
+  .popular-companies__grid .dovira-catalog-card.dovira-catalog-card {
+    flex-basis: min(84vw, 300px);
+  }
+}
+
+/* Zero-review state — neutral, with a first-review prompt. */
+.dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__no-reviews {
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 21px;
+  color: #7588ad;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__no-reviews i {
+  color: #9db0d0;
+  font-size: 13px;
+  flex: 0 0 auto;
+}
+
+.dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__no-reviews a {
+  color: #2f6df4;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__no-reviews a:hover {
+  text-decoration: underline;
+}
+
+/* List view: a horizontal row (logo+name | meta | actions) instead of the
+   grid card stretched edge to edge with a giant full-width button. */
+@media (min-width: 761px) {
+  .reviews-list:not(.is-grid) .dovira-catalog-card.dovira-catalog-card {
+    max-width: none;
+    grid-template-rows: none;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 20px;
+    padding: 14px 18px;
+  }
+
+  .reviews-list:not(.is-grid) .dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__identity {
+    align-items: center;
+  }
+
+  .reviews-list:not(.is-grid) .dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__body {
+    gap: 6px;
+  }
+
+  .reviews-list:not(.is-grid) .dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__actions {
+    margin-top: 0;
+    grid-template-columns: auto auto;
+  }
+
+  .reviews-list:not(.is-grid) .dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__profile-link {
+    min-width: 178px;
+  }
+}

@@ -19,25 +19,36 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
-      height: 42px;
-    padding: 0 18px;
-   border-radius: 50px !important;
+    gap: 8px;
+    height: var(--btn-h);
+    padding: 0 var(--btn-px);
+    border-radius: var(--radius-btn);
     border: 1px solid transparent;
-    font-weight: 700;
+    font-family: inherit;
+    font-size: var(--btn-fs);
+    font-weight: var(--btn-fw);
+    line-height: 1;
+    text-decoration: none;
     cursor: pointer;
-    transition: background-color 0.3s, transform 0.3s;
-    transform-style: preserve-3d;
+    transition: background-color .2s ease, border-color .2s ease, color .2s ease, transform .15s ease, box-shadow .2s ease;
     user-select: none;
-    transform: scale3d(1, 1, 1.01);
-    
 }
+.btn:focus-visible { outline: 2px solid var(--c-primary); outline-offset: 2px; }
+/* Розміри */
+.btn--sm { height: var(--btn-h-sm); padding: 0 16px; font-size: 13px; }
+.btn--lg { height: var(--btn-h-lg); padding: 0 26px; font-size: 16px; }
+/* Вторинна: світлий фон + єдиний синій текст */
+.btn--secondary { background: #eef3ff; color: var(--c-primary); border-color: #dbe6fb; }
+.btn--secondary:hover { background: #e3ecff; }
 .btn--full { width: 100%; }
 .btn--primary {
-    background: #fff;
-    color: var(--c-surface);
-    box-shadow: 0 12px 32px rgba(31, 104, 255, 0.35);
-   background: linear-gradient(135deg, #175cf0 0%, #2d76ff 100%);
+    background: var(--c-primary);
+    color: #fff;
+    box-shadow: 0 10px 22px -8px rgba(37, 99, 235, 0.45);
+}
+.btn--primary:hover {
+    background: var(--c-primary-dark);
+    box-shadow: 0 14px 26px -8px rgba(37, 99, 235, 0.55);
 }
 .btn--ghost {
     background: rgba(255, 255, 255, 0.12);
@@ -47,7 +58,7 @@
 .btn--outline {
    min-height: 44px;
     padding: 0 20px;
-    border-radius: 999px;
+    border-radius: var(--radius-btn);
     border: 1px solid rgba(255, 255, 255, 0.8);
     background: rgba(255, 255, 255, 0.12);
     color: #fff;
@@ -55,7 +66,7 @@
     align-items: center;
     gap: 10px;
     font-size: 15px;
-    font-weight: 700;
+    font-weight: 600;
     transition: all 0.25s ease;
     
   
@@ -70,7 +81,7 @@
   align-items: center;
   gap: 8px;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.01em;
 }
 
@@ -113,13 +124,13 @@
 .dovira-btn {
     max-width: max-content;
     padding: 0 20px;
-    border-radius: 8px;
+    border-radius: var(--radius-btn);
     display: flex;
     align-items: center;
     gap: 12px;
     background: #fff;
     border: 1px solid rgba(255, 255, 255, 0.8);
-    color: #1b3f86;
+    color: var(--c-primary);
     font-size: 15px;
     font-weight: 600;
     box-shadow: 0 8px 20px rgba(30, 58, 138, 0.25),
@@ -148,7 +159,7 @@ inset 0 1px 0 rgba(255, 255, 255, 0.9);
     gap: 8px;
     padding: 6px 12px;
     border-radius: 999px;
-    font-weight: 700;
+    font-weight: 600;
     font-size: 12px;
     border: 1px solid var(--c-border);
     background: rgba(255, 255, 255, 0.7);
@@ -172,10 +183,60 @@ inset 0 1px 0 rgba(255, 255, 255, 0.9);
 
 .best-lawyers .home-intents__head .h2 {
   margin: 0;
-  color: #20396f;
-  font-size: 24px;
+  color: var(--c-heading);
+  font-size: 28px;
+  line-height: 1.14;
+  letter-spacing: -0.01em;
+  font-weight: 800;
+}
+
+/* Profile "Dovira рекомендує" — mirror the home section-title (accent bar +
+   underline). The home treatment lives under .page-home-main, so it never
+   reaches the profile page (body.page-profile); replicate its computed look. */
+.page-profile .best-lawyers .home-intents__head h2.home-section-title {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding-left: 12px;
+  font-size: 15px;
+  line-height: 1.14;
   letter-spacing: -0.02em;
-  font-weight: 575;
+}
+.page-profile .best-lawyers .home-intents__head h2.home-section-title::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 4px;
+  height: 22px;
+  border-radius: 999px;
+  transform: translateY(-50%);
+  background: linear-gradient(180deg, #2f6df6 0%, #9ec2ff 100%);
+  box-shadow: 0 0 0 1px rgba(47, 109, 246, 0.08);
+}
+.page-profile .best-lawyers .home-intents__head h2.home-section-title::after {
+  content: "";
+  position: absolute;
+  left: 12px;
+  right: -8px;
+  bottom: -7px;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(47, 109, 246, 0.18) 0%, rgba(47, 109, 246, 0.08) 28%, rgba(47, 109, 246, 0) 100%);
+}
+@media (min-width: 681px) {
+  .page-profile .best-lawyers .home-intents__head h2.home-section-title {
+    min-height: 34px;
+    padding-left: 14px;
+    font-size: 18px;
+  }
+  .page-profile .best-lawyers .home-intents__head h2.home-section-title::before {
+    width: 5px;
+    height: 26px;
+  }
+  .page-profile .best-lawyers .home-intents__head h2.home-section-title::after {
+    left: 14px;
+  }
 }
 
 .best-lawyers .home-intents__actions {
@@ -211,7 +272,7 @@ inset 0 1px 0 rgba(255, 255, 255, 0.9);
   padding: 0 12px;
   border-radius: 999px;
   border: 1px solid #90b2f4;
-  color: #2f58ba;
+  color: var(--c-heading);
   display: inline-flex;
   align-items: center;
   font-size: 12px;
@@ -234,6 +295,48 @@ inset 0 1px 0 rgba(255, 255, 255, 0.9);
   display: none;
 }
 
+.carousel-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 6px;
+}
+
+.carousel-pagination[hidden] {
+  display: none !important;
+}
+
+/* Крапки — індикатор стану, не заклик до дії: сірі, як у каруселей Apple
+   (активна — графітова). Кольори з токенів механіки (base.css). */
+.carousel-pagination__dot {
+  width: 7px;
+  height: 7px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: var(--c-dot);
+  cursor: pointer;
+  flex: 0 0 auto;
+  transition: transform 160ms ease, background-color 160ms ease, box-shadow 160ms ease;
+}
+
+.carousel-pagination__dot:hover,
+.carousel-pagination__dot:focus-visible {
+  background: var(--c-dot-hover);
+  outline: none;
+}
+
+/* Активна — подовжений слейт-пілл (не круг): чіткий, але тихий індикатор,
+   у парі зі світлими круглими неактивними крапками. */
+.carousel-pagination__dot.is-active {
+  width: 22px;
+  height: 7px;
+  background: var(--c-dot-hover);
+  border: 0;
+  box-shadow: none;
+}
+
 .best-lawyer-card {
   width: 100%;
   max-width: 288px;
@@ -241,7 +344,7 @@ inset 0 1px 0 rgba(255, 255, 255, 0.9);
   scroll-snap-align: start;
   position: relative;
   border-radius: 14px;
-  border: 1px solid #d9e4f7;
+  border: 1px solid #e3e7ee;
   background: #fff;
   padding: 16px 18px 16px;
   display: grid;
@@ -263,19 +366,511 @@ inset 0 1px 0 rgba(255, 255, 255, 0.9);
   gap: 6px;
 }
 
+/* Review popup */
+/* ===================== Review popup (wizard) ===================== */
+.review-popup[hidden] {
+  display: none !important;
+}
+
+.review-popup {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+}
+
+.review-popup__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(10, 20, 44, 0.56);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  opacity: 0;
+  transition: opacity 0.18s ease;
+}
+
+.review-popup.is-open .review-popup__backdrop { opacity: 1; }
+.review-popup.is-closing .review-popup__backdrop { opacity: 0; }
+
+.review-popup__dialog {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: min(600px, calc(100% - 24px));
+  margin: max(16px, calc(var(--header-h, 76px) + 12px)) auto 24px;
+  max-height: min(calc(100dvh - var(--header-h, 76px) - 32px), 780px);
+  background: #fff;
+  border: 1px solid #d4e0f8;
+  border-radius: 18px;
+  box-shadow: 0 22px 52px rgba(14, 39, 92, 0.26);
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(12px) scale(0.985);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.review-popup.is-open .review-popup__dialog {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.review-popup.is-closing .review-popup__dialog {
+  opacity: 0;
+  transform: translateY(8px) scale(0.99);
+}
+
+/* --- Header --- */
+.review-popup__top {
+  position: relative;
+  flex: 0 0 auto;
+  padding: 18px 20px 12px;
+  border-bottom: 1px solid #eef2fb;
+}
+
+.review-popup__close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  border: 1px solid #d3def5;
+  background: #f4f5f7;
+  color: #3f5f9f;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  font-size: 15px;
+}
+.review-popup__close:hover { background: #f4f5f7; }
+
+.review-popup__head { display: grid; gap: 4px; padding-right: 40px; }
+.review-popup__eyebrow {
+  margin: 0;
+  color: #5e7db6;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+.review-popup__title {
+  margin: 0;
+  color: #162f62;
+  font-family: var(--font-heading);
+  font-size: clamp(20px, 2vw, 26px);
+  font-weight: 700;
+  line-height: 1.15;
+}
+.review-popup__lead { margin: 0; color: #64748b; font-size: 13.5px; }
+
+.review-popup__progress { display: flex; gap: 6px; margin-top: 14px; }
+.review-popup__progress[hidden] { display: none; }
+.review-popup__progress-step {
+  flex: 1;
+  height: 4px;
+  border-radius: 999px;
+  background: #e3ebf9;
+  transition: background 0.2s ease;
+}
+.review-popup__progress-step.is-active,
+.review-popup__progress-step.is-done { background: #2f6df4; }
+
+/* --- Form / scrollable body --- */
+.review-popup__form {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1 1 auto;
+}
+
+.review-popup__hp {
+  position: absolute !important;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.review-popup__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 16px 20px;
+}
+
+.review-popup__step { display: grid; gap: 12px; align-content: start; }
+.review-popup__step[hidden] { display: none; }
+
+.review-popup__label {
+  color: #1e293b;
+  font-size: 13px;
+  font-weight: 700;
+}
+.review-popup__label--inline { margin: 0; }
+
+.review-popup__step-hint {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #f4f5f7;
+  border: 1px solid #dbe6fa;
+  color: #33528c;
+  font-size: 13px;
+}
+
+/* --- Profile search --- */
+.review-popup__search-shell { display: block; }
+.review-popup__search-shell[hidden] { display: none; }
+.review-popup__search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid #a8c1f3;
+  border-radius: 12px;
+  background: #f4f5f7;
+  padding: 0 12px;
+  min-height: 48px;
+  transition: border-color .18s ease, box-shadow .18s ease, background .18s ease;
+}
+.review-popup__search:focus-within {
+  border-color: #2f6df4;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(47, 109, 244, .14);
+}
+.review-popup__search-icon { color: #64748b; font-size: 14px; flex: 0 0 auto; }
+.review-popup__search input {
+  flex: 1 1 auto;
+  min-width: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: #1e293b;
+  font-size: 16px;
+  font-weight: 500;
+}
+.review-popup__search input::placeholder { color: #94a3b8; font-weight: 400; }
+
+.review-popup__suggest {
+  position: static !important;
+  inset: auto !important;
+  margin-top: 8px;
+  max-height: min(46vh, 340px);
+  overflow-y: auto;
+  border: 1px solid #e3e7ee;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 12px 28px rgba(16, 52, 120, 0.12);
+  padding: 8px;
+  scrollbar-width: none;
+}
+.review-popup__suggest::-webkit-scrollbar { display: none; }
+.review-popup__suggest[hidden] { display: none; }
+
+.review-popup .hero__search-suggest-title {
+  margin: 0;
+  padding: 6px 8px 8px;
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.review-popup .hero__search-suggest-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 48px;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: #1e293b;
+  text-align: left;
+  cursor: pointer;
+  font-size: 14px;
+}
+.review-popup .hero__search-suggest-item i {
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  background: #f4f5f7;
+  color: #3358a8;
+  font-size: 14px;
+}
+.review-popup .hero__search-suggest-item:hover,
+.review-popup .hero__search-suggest-item.is-active { background: #f4f5f7; }
+.review-popup .hero__search-suggest-text { display: flex; flex-direction: column; min-width: 0; }
+.review-popup .hero__search-suggest-label { font-weight: 600; color: #1e293b; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.review-popup .hero__search-suggest-meta { color: #64748b; font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.review-popup .hero__search-suggest-empty { margin: 0; padding: 16px; text-align: center; color: #64748b; font-size: 14px; }
+
+.review-popup__selected {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid #bfe3cb;
+  background: #f0fbf3;
+  color: #1f7a45;
+  font-weight: 600;
+  font-size: 14px;
+}
+.review-popup__selected[hidden] { display: none; }
+.review-popup__selected > i { color: #22a45c; }
+.review-popup__selected span { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #17532f; }
+.review-popup__selected-clear {
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: 0;
+  background: #dff2e6;
+  color: #3c7d57;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+/* --- Rating --- */
+.review-popup__rating { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+.review-popup__stars { display: inline-flex; flex-direction: row-reverse; gap: 4px; }
+.review-popup__star {
+  border: 0;
+  background: transparent;
+  color: #d6def0;
+  font-size: 30px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 2px;
+  transition: color .12s ease, transform .12s ease;
+}
+.review-popup__star:hover,
+.review-popup__star:hover ~ .review-popup__star,
+.review-popup__star.is-on { color: #ffb703; }
+.review-popup__star:active { transform: scale(1.08); }
+.review-popup__rating-value { color: #64748b; font-weight: 700; font-size: 14px; }
+
+/* --- Fields --- */
+.review-popup__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.review-popup__field { display: grid; gap: 6px; }
+.review-popup__field > span { color: #1e293b; font-size: 13px; font-weight: 700; }
+.review-popup__field input,
+.review-popup__field textarea {
+  width: 100%;
+  border: 1px solid #cddcf5;
+  border-radius: 12px;
+  padding: 11px 13px;
+  font-size: 16px;
+  color: #1e293b;
+  background: #fff;
+  outline: none;
+  transition: border-color .16s ease, box-shadow .16s ease;
+}
+.review-popup__field input:focus,
+.review-popup__field textarea:focus {
+  border-color: #2f6df4;
+  box-shadow: 0 0 0 3px rgba(47, 109, 244, .14);
+}
+.review-popup__field textarea { resize: vertical; min-height: 120px; line-height: 1.5; }
+.review-popup__field > span small { font-weight: 500; color: #64748b; font-size: 12px; }
+
+/* Optional identity block — name/email, never required. */
+.review-popup__optional { display: grid; gap: 12px; margin-top: 4px; }
+.review-popup__optional-hint { margin: 0; color: #64748b; font-size: 12.5px; line-height: 1.4; }
+
+.review-popup__composer-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.review-popup__attach-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+  border-radius: var(--radius-btn);
+  border: 1px dashed #b7cdf3;
+  background: #f4f5f7;
+  color: var(--c-primary);
+  font-weight: 600;
+  font-size: 13.5px;
+  cursor: pointer;
+}
+.review-popup__attach-btn input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.review-popup__media-note { color: #64748b; font-size: 12.5px; }
+.review-popup__media-note:empty { display: none; }
+/* Кнопка «Опублікувати» стоїть в одному ряду з «Додати фото» і тримається праворуч. */
+.review-popup__composer-bar .review-popup__submit { margin-left: auto; box-shadow: none; }
+
+.review-popup__media-preview { display: grid; grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)); gap: 8px; }
+.review-popup__media-preview[hidden] { display: none; }
+.review-popup__media-preview-item {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #dce7f8;
+  background: #eef3fb;
+}
+.review-popup__media-preview-item img,
+.review-popup__media-preview-item video { width: 100%; height: 100%; object-fit: cover; display: block; }
+.review-popup__media-preview-badge {
+  position: absolute;
+  left: 6px;
+  bottom: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(12, 26, 58, .7);
+  color: #fff;
+  font-size: 10px;
+}
+.review-popup__media-preview-remove {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  border: 0;
+  background: rgba(12, 26, 58, .62);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  font-size: 11px;
+}
+
+/* --- Messages --- */
+.review-popup__error,
+.review-popup__success {
+  flex: 0 0 auto;
+  margin: 0 20px;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 13.5px;
+}
+.review-popup__error[hidden],
+.review-popup__success[hidden] { display: none; }
+.review-popup__error { background: #fff1f2; border: 1px solid #ffd2d8; color: #b1324d; }
+.review-popup__success { background: #ebfaef; border: 1px solid #b7e7c4; color: #267548; }
+
+/* --- Post-publish upsell (guests) --- */
+.review-popup__upsell {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 4px 20px 16px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: #f4f5f7;
+  border: 1px solid #d9e5fb;
+}
+.review-popup__upsell[hidden] { display: none; }
+.review-popup__upsell-text { display: grid; gap: 2px; flex: 1 1 auto; min-width: 0; }
+.review-popup__upsell-text strong { color: #162f62; font-size: 15px; font-weight: 800; }
+.review-popup__upsell-text small { color: #5b6f97; font-size: 12.5px; line-height: 1.35; }
+.review-popup__upsell-btn { flex: 0 0 auto; min-height: 44px; border-radius: 11px; white-space: nowrap; }
+
+/* Inline per-step error — sits right under its field so it stays above the
+   mobile keyboard. */
+.review-popup__field-error {
+  margin: 0;
+  border-radius: 10px;
+  padding: 9px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  background: #fff1f2;
+  border: 1px solid #ffd2d8;
+  color: #b1324d;
+}
+.review-popup__field-error[hidden] { display: none; }
+
+/* --- Footer --- */
+.review-popup__foot[hidden] { display: none; }
+.review-popup__foot {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px 20px calc(12px + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid #eef2fb;
+  background: #fff;
+  margin-top: 12px;
+}
+.review-popup__foot .btn {
+  flex: 0 1 auto;
+  justify-content: center;
+  min-width: 220px;
+  max-width: 100%;
+  min-height: 46px;
+  border-radius: var(--radius-btn);
+}
+.review-popup__back { flex: 0 0 auto !important; min-width: 120px; }
+.review-popup__foot .btn[hidden] { display: none; }
+
+body.is-review-popup-open { overflow: hidden; }
+
+/* --- Mobile: full-screen sheet --- */
+@media (max-width: 760px) {
+  .review-popup__dialog {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    max-height: 100dvh;
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  .review-popup__top { padding: 16px 18px 12px; }
+  .review-popup__title { font-size: 20px; }
+  .review-popup__body { padding: 16px 18px; }
+  .review-popup__grid { grid-template-columns: 1fr; }
+  .review-popup__error,
+  .review-popup__success { margin: 0 18px; }
+  .review-popup__upsell { flex-direction: column; align-items: stretch; text-align: center; margin: 4px 18px 16px; }
+  .review-popup__upsell-btn { justify-content: center; }
+  .review-popup__foot { padding-left: 18px; padding-right: 18px; }
+  /* Full-width action buttons on phones (a full-width button reads as centred). */
+  .review-popup__foot .btn { flex: 1 1 auto; min-width: 0; }
+  .review-popup__back { flex: 0 0 auto !important; min-width: 96px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .review-popup__dialog,
+  .review-popup__backdrop { transition: none; }
+}
+
+.entity-logo,
 .best-lawyer-card__logo {
   width: 64px;
   height: 64px;
   border-radius: 14px;
-  border: 1px solid #d4e2f8;
+  border: 1px solid #e3e7ee;
   display: grid;
   place-items: center;
   font-size: 20px;
-  font-weight: 800;
+  font-weight: 700;
   overflow: hidden;
   background: #fff;
 }
 
+.entity-logo img,
 .best-lawyer-card__logo img {
   width: 100%;
   height: 100%;
@@ -283,6 +878,42 @@ inset 0 1px 0 rgba(255, 255, 255, 0.9);
   display: block;
 }
 
+.review-list-card__fallback {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  padding: 6px;
+  text-align: center;
+  color: inherit;
+  font: inherit;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.review-list-card__fallback i {
+  font-size: 1.05em;
+  line-height: 1;
+}
+
+.review-list-card__fallback--visible {
+  display: inline-flex;
+}
+
+.review-list-card__logo.is-broken-image img.is-error,
+.entity-logo.is-broken-image img.is-error,
+.best-lawyer-card__logo.is-broken-image img.is-error {
+  display: none !important;
+}
+
+.review-list-card__logo.is-broken-image .review-list-card__fallback,
+.entity-logo.is-broken-image .review-list-card__fallback,
+.best-lawyer-card__logo.is-broken-image .review-list-card__fallback {
+  display: inline-flex;
+}
+
+.entity-badge.entity-badge--pro,
 .best-lawyer-card__pro-badge {
   display: inline-flex;
   align-items: center;
@@ -294,15 +925,17 @@ inset 0 1px 0 rgba(255, 255, 255, 0.9);
   background: rgba(73, 120, 249, 0.1);
   color: #2d5ecc;
   font-size: 10px;
-  font-weight: 700;
+  font-weight: 600;
   white-space: nowrap;
   text-transform: uppercase;
 }
 
+.entity-badge.entity-badge--pro i,
 .best-lawyer-card__pro-badge i {
   font-size: 11px;
 }
 
+.entity-badge.entity-badge--verified,
 .best-lawyer-card__verified-badge {
   display: inline-flex;
   align-items: center;
@@ -314,22 +947,45 @@ inset 0 1px 0 rgba(255, 255, 255, 0.9);
   background: rgba(18, 168, 109, 0.12);
   color: #128a5c;
   font-size: 10px;
-  font-weight: 700;
+  font-weight: 600;
   white-space: nowrap;
 }
 
+.entity-badge.entity-badge--verified i,
 .best-lawyer-card__verified-badge i {
   font-size: 10px;
 }
 
+.entity-badge.entity-badge--owner-verified {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 24px;
+  padding: 0 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(47, 109, 244, 0.3);
+  background: rgba(47, 109, 244, 0.12);
+  color: #245bd8;
+  font-size: 10px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.entity-badge.entity-badge--owner-verified i {
+  font-size: 10px;
+}
+
+.entity-logo.review-list-card__logo.has-random-gradient,
 .best-lawyer-card__logo.review-list-card__logo.has-random-gradient {
-  background: linear-gradient(145deg, var(--av-bg-1, #6ca2ff), var(--av-bg-2, #2f67f4));
+  /* Насичений колір (bg-2) як база + тінь — щоб біла літера читалась. */
+  background: linear-gradient(150deg, var(--av-bg-2, #2f67f4), #10307e);
   color: var(--av-text, #fff);
+  text-shadow: 0 1px 2px rgba(6, 20, 60, 0.45);
 }
 
 .best-lawyer-card__name {
   margin: 2px 0 0;
-  color: #20396f;
+  color: #1e293b;
   font-size: clamp(18px, 1.2vw, 24px);
   line-height: 1.22;
   letter-spacing: -0.01em;
@@ -345,7 +1001,7 @@ inset 0 1px 0 rgba(255, 255, 255, 0.9);
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: #5f7196;
+  color: #475569;
   font-size: clamp(14px, 0.9vw, 17px);
   text-decoration: none;
   transition: color .16s ease;
@@ -353,7 +1009,7 @@ inset 0 1px 0 rgba(255, 255, 255, 0.9);
 
 .best-lawyer-card__site i {
   font-size: 0.85em;
-  color: #7a92bc;
+  color: #64748b;
   transition: color .16s ease;
 }
 
@@ -365,14 +1021,16 @@ inset 0 1px 0 rgba(255, 255, 255, 0.9);
   color: #2f67f4;
 }
 
+.entity-rating,
 .best-lawyer-card__rating {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: #4f628f;
+  color: #475569;
   font-size: clamp(13px, 0.82vw, 16px);
 }
 
+.entity-stars,
 .best-lawyer-card__stars {
   display: inline-flex;
   align-items: center;
@@ -381,8 +1039,9 @@ inset 0 1px 0 rgba(255, 255, 255, 0.9);
   font-size: 12px;
 }
 
+.entity-rating strong,
 .best-lawyer-card__rating strong {
-  color: #20396f;
+  color: #1e293b;
   font-weight: 800;
 }
 
@@ -393,7 +1052,7 @@ inset 0 1px 0 rgba(255, 255, 255, 0.9);
   width: 28px;
   height: 28px;
   border-radius: 999px;
-  border: 1px solid #c8daf9;
+  border: 1px solid #e3e7ee;
   background: #fff;
   color: #2c5ecc;
   display: inline-grid;
@@ -410,7 +1069,9 @@ inset 0 1px 0 rgba(255, 255, 255, 0.9);
   }
 
   .best-lawyers .home-intents__head .h2 {
-    font-size: clamp(24px, 8vw, 34px);
+    font-size: 22px;
+    line-height: 1.16;
+    letter-spacing: -0.005em;
   }
 
   .best-lawyers .home-intents__actions {
@@ -716,8 +1377,8 @@ justify-content: space-around;
   min-width: 152px;
   height: 45px;
   padding: 0 18px;
-  border-radius: 999px;
-  background: linear-gradient(135deg, #175cf0 0%, #2d76ff 100%);
+  border-radius: var(--radius-btn);
+  background: var(--c-primary);
   color: #fff;
   font-size: 14px;
   font-weight: 600;
@@ -772,19 +1433,23 @@ justify-content: space-around;
   height: 100%;
   display: block;
   object-fit: cover;
+  /* Anchor to the top-left of the screenshot — the key content lives
+     there, center-cropping used to cut card titles and headers. */
+  object-position: left top;
 }
 
 .trust-showcase--screen {
-  inset: 0 18px 12px 92px;
+  inset: 0 14px 12px 64px;
   background: linear-gradient(135deg, #dfe9ff 0%, #aac6ff 100%);
 }
 
 .trust-showcase--photo {
   left: 0;
   bottom: 56px;
-  width: 130px;
-  height: 130px;
-  padding: 14px;
+  width: 96px;
+  height: 96px;
+  padding: 10px;
+  border-radius: 18px;
   display: grid;
   place-content: center;
   text-align: center;
@@ -801,7 +1466,7 @@ justify-content: space-around;
   align-items: center;
   gap: 10px;
   background: rgba(255,255,255,0.94);
-  color: #17305d;
+  color: #1e293b;
   font-size: 13px;
   font-weight: 700;
   white-space: nowrap;
@@ -828,14 +1493,16 @@ justify-content: space-around;
 .trust-showcase--photo strong {
   display: block;
   font-family: var(--font-heading);
-  font-size: 34px;
+  /* Sized to fit 5-digit numbers like "97 370+" in the compact tile. */
+  font-size: 17px;
   line-height: 1;
+  white-space: nowrap;
 }
 
 .trust-showcase--photo span {
   display: block;
-  margin-top: 6px;
-  font-size: 12px;
+  margin-top: 4px;
+  font-size: 10.5px;
   line-height: 1.25;
   font-weight: 700;
   color: rgba(255,255,255,0.95);
@@ -847,7 +1514,7 @@ justify-content: space-around;
   border-radius: 22px;
   overflow: hidden;
   border: 1px solid rgba(191, 209, 244, 0.58);
-  background: #eef4ff;
+  background: #f4f5f7;
   box-shadow:
     0 20px 36px rgba(18, 68, 165, 0.10),
     inset 0 1px 0 rgba(255,255,255,0.85);
@@ -895,7 +1562,7 @@ justify-content: space-around;
   padding: 6px 10px 6px 6px;
   background: rgba(255, 255, 255, 0.92);
   border: 1px solid rgba(30, 98, 255, 0.14);
-  color: #17305d;
+  color: #1e293b;
   font-size: 12px;
   font-weight: 700;
   box-shadow: 0 10px 18px rgba(18, 68, 165, 0.08);
@@ -914,7 +1581,7 @@ justify-content: space-around;
   padding: 8px 12px;
   background: rgba(255, 255, 255, 0.94);
   border: 1px solid rgba(30, 98, 255, 0.14);
-  color: #17305d;
+  color: #1e293b;
   font-size: 13px;
   font-weight: 700;
   box-shadow: 0 10px 18px rgba(18, 68, 165, 0.10);
@@ -1181,7 +1848,7 @@ justify-content: space-around;
   width: min(100%, 400px);
   border-radius: 22px;
   padding: 16px;
-  background: linear-gradient(180deg, #ffffff 0%, #f4f8ff 100%);
+  background: linear-gradient(180deg, #ffffff 0%, #f4f5f7 100%);
   border: 1px solid rgba(191, 209, 244, 0.62);
   box-shadow:
     0 30px 46px rgba(18, 68, 165, 0.10),
@@ -1223,7 +1890,7 @@ justify-content: space-around;
 }
 
 .trust-card__muted {
-  color: #7b8cae;
+  color: #64748b;
   font-size: 12px;
 }
 
@@ -1238,7 +1905,7 @@ justify-content: space-around;
 
 .trust-card__metric small {
   font-size: 13px;
-  color: #7b8cae;
+  color: #64748b;
   font-weight: 600;
 }
 
@@ -1391,7 +2058,7 @@ justify-content: space-around;
 .trust-mini--case small {
   display: block;
   margin-top: 3px;
-  color: #7d8fad;
+  color: #64748b;
   font-size: 11px;
 }
 
@@ -1402,7 +2069,7 @@ justify-content: space-around;
 
 .trust-mini--trend small {
   display: block;
-  color: #7d8fad;
+  color: #64748b;
   font-size: 11px;
 }
 
@@ -1410,7 +2077,7 @@ justify-content: space-around;
   margin-top: 8px;
   height: 36px;
   border-radius: 10px;
-  background: linear-gradient(180deg, #f8fbff, #eef4ff);
+  background: linear-gradient(180deg, #f4f5f7, #f4f5f7);
   border: 1px solid rgba(199,216,248,0.55);
   position: relative;
   overflow: hidden;
@@ -1500,7 +2167,7 @@ justify-content: space-around;
   display: grid;
   place-items: center;
   color: #1f68ff;
-  background: linear-gradient(180deg, #fff 0%, #edf4ff 100%);
+  background: linear-gradient(180deg, #fff 0%, #f4f5f7 100%);
   border: 1px solid rgba(180, 201, 240, 0.6);
   box-shadow: 0 10px 18px rgba(18, 68, 165, 0.08);
 }
@@ -1534,7 +2201,7 @@ justify-content: space-around;
 .trust-stat {
   border-radius: 12px;
   padding: 14px;
-  background: linear-gradient(180deg, #ffffff 0%, #f6f9ff 100%);
+  background: linear-gradient(180deg, #ffffff 0%, #f4f5f7 100%);
   border: 1px solid rgba(187, 205, 241, 0.48);
 }
 
@@ -1546,7 +2213,7 @@ justify-content: space-around;
 }
 
 .trust-stat strong {
-  color: #17305d;
+  color: #1e293b;
   font-size: 24px;
   line-height: 1;
   font-family: var(--font-heading);
@@ -1739,18 +2406,19 @@ justify-content: space-around;
   }
 
   .trust-showcase--screen {
-    inset: 0 10px 8px 74px;
+    inset: 0 8px 8px 52px;
   }
 
   .trust-showcase--photo {
-    width: 108px;
-    min-height: 108px;
-    padding: 12px;
+    width: 80px;
+    height: 80px;
+    min-height: 0;
+    padding: 8px;
     bottom: 42px;
   }
 
   .trust-showcase--feature {
-   
+
     padding: 10px 12px;
     font-size: 12px;
   }
@@ -1763,11 +2431,11 @@ justify-content: space-around;
   }
 
   .trust-showcase--photo strong {
-    font-size: 28px;
+    font-size: 15px;
   }
 
   .trust-showcase--photo span {
-    font-size: 11px;
+    font-size: 9.5px;
   }
 
   .trust-collage {
@@ -1855,4 +2523,508 @@ justify-content: space-around;
   .trust-stat strong {
     font-size: 19px;
   }
+}
+
+@media (min-width: 761px) {
+  .best-lawyer-card__name {
+    font-size: 16px;
+  }
+}
+
+.site-profile-toast {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 120;
+  width: min(320px, calc(100vw - 28px));
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 18px;
+  border: 1px solid rgba(226, 232, 244, 0.9);
+  border-radius: 20px;
+  color: #0f1a3b;
+  background: linear-gradient(180deg, #ffffff 0%, #f7faff 100%);
+  box-shadow: 0 24px 60px -20px rgba(14, 44, 109, 0.28), 0 2px 8px rgba(14, 44, 109, 0.06);
+  backdrop-filter: blur(14px);
+  opacity: 0;
+  transform: translateY(18px) scale(0.98);
+  pointer-events: none;
+  transition: opacity 0.24s ease, transform 0.24s cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+
+.site-profile-toast[hidden] {
+  display: none !important;
+}
+
+.site-profile-toast.is-visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+.site-profile-toast__top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.site-profile-toast__icon {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  color: #2f6df4;
+  background:
+    radial-gradient(34px 34px at 38% 24%, rgba(255, 255, 255, 0.72), transparent 68%),
+    linear-gradient(160deg, #eef5ff 0%, #dfeaff 100%);
+  box-shadow: inset 0 0 0 1px rgba(47, 109, 244, 0.1);
+  font-size: 17px;
+  flex: 0 0 auto;
+}
+
+.site-profile-toast__badge {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #1a9a5a;
+  background: #eafaf1;
+  border: 1px solid #bfe7d0;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+.site-profile-toast__title {
+  color: #0f1a3b;
+  font-size: 15.5px;
+  font-weight: 800;
+  line-height: 1.25;
+  padding-right: 26px;
+}
+
+.site-profile-toast__text {
+  margin: 0;
+  color: #64748b;
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+
+.site-profile-toast__cta {
+  margin-top: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 0 16px;
+  border-radius: 12px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  background: var(--c-primary);
+  box-shadow: 0 12px 24px -8px rgba(28, 99, 232, 0.5);
+  transition: transform 0.16s ease, box-shadow 0.16s ease;
+}
+
+.site-profile-toast__cta:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 16px 30px -8px rgba(28, 99, 232, 0.55);
+}
+
+.site-profile-toast__cta i {
+  font-size: 12px;
+  transition: transform 0.16s ease;
+}
+
+.site-profile-toast__cta:hover i {
+  transform: translateX(2px);
+}
+
+.site-profile-toast__close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 26px;
+  height: 26px;
+  border: 0;
+  border-radius: 999px;
+  color: #94a3b8;
+  background: rgba(148, 163, 184, 0.12);
+  cursor: pointer;
+  display: inline-grid;
+  place-items: center;
+  font-size: 12px;
+  transition: background 0.16s ease, color 0.16s ease;
+}
+
+.site-profile-toast__close:hover {
+  background: rgba(148, 163, 184, 0.22);
+  color: #475569;
+}
+
+@media (max-width: 760px) {
+  .site-profile-toast {
+    right: 10px;
+    left: 10px;
+    bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+    width: auto;
+    padding: 16px;
+    border-radius: 18px;
+    /* Solid background reads more clearly on mobile than a translucent
+       blur over busy page content underneath. */
+    background: #fff;
+  }
+
+  .site-profile-toast__title {
+    font-size: 15px;
+    line-height: 1.3;
+    padding-right: 30px;
+  }
+
+  .site-profile-toast__text {
+    /* На мобільному тост перекриває пів екрана — опис ховаємо,
+       заголовок і кнопка доносять суть компактніше. */
+    display: none;
+  }
+
+  .site-profile-toast__cta {
+    min-height: 44px;
+  }
+}
+
+/* ===== Card tags tooltip (directions "+N" popover) ===== */
+.card-tags-tip {
+  position: fixed;
+  z-index: 250;
+  max-width: min(280px, calc(100vw - 24px));
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #1d2b4a;
+  color: #fff;
+  box-shadow: 0 16px 36px rgba(10, 24, 56, 0.28);
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity .14s ease, transform .14s ease;
+  pointer-events: none;
+}
+
+.card-tags-tip[hidden] {
+  display: none;
+}
+
+.card-tags-tip.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.card-tags-tip__title {
+  margin: 0 0 6px;
+  color: #9db3e0;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.card-tags-tip__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.card-tags-tip__chip {
+  display: inline-block;
+  max-width: 100%;
+  padding: 4px 9px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.12);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.3;
+  white-space: normal;
+  overflow-wrap: break-word;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-tags-tip {
+    transition: none;
+  }
+}
+
+/* Modern contact block — a stacked list of full-width action buttons
+   (phone/website/email/directions) instead of a bare list of text links.
+   The phone button is treated as the primary CTA since it's the action
+   most people actually take on a contact card. */
+.profile-contact-actions {
+  display: grid;
+  gap: 8px;
+}
+
+.profile-contact-action {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid #e1e9f9;
+  background: #fff;
+  text-decoration: none;
+  /* Кнопка «Залишити заявку» — <button>: скидаємо центрування і шрифт UA. */
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+  transition: border-color .18s ease, background-color .18s ease, transform .18s ease, box-shadow .18s ease;
+}
+
+.profile-contact-action:hover {
+  border-color: #bfd2f7;
+  background: #f4f5f7;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(35, 75, 147, 0.1);
+}
+
+.profile-contact-action:focus-visible {
+  outline: 2px solid rgba(47, 110, 249, 0.28);
+  outline-offset: 2px;
+}
+
+.profile-contact-action__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  border-radius: 11px;
+  background: #f4f5f7;
+  /* Нейтральна іконка: синім лишається тільки основна дія «Залишити заявку». */
+  color: #475569;
+  font-size: 15px;
+}
+
+.profile-contact-action__text {
+  display: grid;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.profile-contact-action__text strong {
+  color: #16223f;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.profile-contact-action__text span {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.profile-contact-action::after {
+  content: "\f105";
+  font-family: "Font Awesome 6 Free";
+  font-weight: 900;
+  flex: 0 0 auto;
+  color: #aebeda;
+  font-size: 14px;
+  transition: color .18s ease, transform .18s ease;
+}
+
+.profile-contact-action:hover::after {
+  color: #2f6ef9;
+  transform: translateX(2px);
+}
+
+.profile-contact-action--primary {
+  border-color: rgba(47, 110, 249, 0.35);
+  background: var(--c-primary);
+}
+
+.profile-contact-action--primary .profile-contact-action__icon {
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+}
+
+.profile-contact-action--primary .profile-contact-action__text strong {
+  color: #fff;
+}
+
+.profile-contact-action--primary .profile-contact-action__text span {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.profile-contact-action--primary::after {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.profile-contact-action--primary:hover {
+  border-color: rgba(47, 110, 249, 0.5);
+  background: var(--c-primary-dark);
+  box-shadow: 0 10px 22px rgba(38, 87, 214, 0.28);
+}
+
+.profile-contact-action--primary:hover::after {
+  color: #fff;
+}
+
+.profile-contact-extra-phones {
+  margin: 8px 0 0;
+  padding: 0 2px;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.profile-contact-extra-phones span {
+  margin-right: 6px;
+}
+
+.profile-contact-extra-phones a {
+  color: #2d67d8;
+  font-weight: 600;
+  text-decoration: none;
+  margin-right: 8px;
+}
+
+.profile-contact-extra-phones a:hover {
+  text-decoration: underline;
+}
+
+/* ===== Owner-verified checkmark: corner overlay on avatar/logo =====
+   Replaces the old text pill ("Підтверджено"): a small filled checkmark
+   badge sits in the top-right corner of the logo, with a name/hover
+   tooltip carrying the actual meaning. Reused on catalog cards, the
+   public profile hero, and the PRO cabinet's own hero preview — all of
+   them wrap the badge in a `position:relative` `*__logo-wrap` sibling of
+   the (overflow:hidden) logo box, so the badge never gets clipped. */
+.owner-verified-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  z-index: 2;
+  width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.22), 0 0 0 2px #fff;
+  cursor: default;
+}
+
+.owner-verified-badge img {
+  width: 14px;
+  height: 14px;
+  display: block;
+}
+
+/* «Бізнес підтверджено» — платформенна перевірка без активного власника.
+   Відрізняємо від синьої галочки власника бірюзовим кільцем. */
+.owner-verified-badge--business {
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.22), 0 0 0 2px #0d9488;
+}
+
+.owner-verified-badge--business img {
+  filter: hue-rotate(120deg) saturate(0.85);
+}
+
+.owner-verified-badge__tip {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  z-index: 5;
+  width: max-content;
+  max-width: 220px;
+  padding: 7px 11px;
+  border-radius: 8px;
+  background: #1d2b4a;
+  color: #fff;
+  font-size: 11.5px;
+  font-weight: 500;
+  line-height: 1.35;
+  text-align: center;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.14s ease, transform 0.14s ease;
+}
+
+.owner-verified-badge__tip b {
+  display: inline-block;
+  margin-bottom: 2px;
+  font-weight: 800;
+}
+
+.owner-verified-badge__tip::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: #1d2b4a;
+}
+
+.owner-verified-badge:hover .owner-verified-badge__tip,
+.owner-verified-badge:focus .owner-verified-badge__tip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+
+.owner-verified-badge:focus {
+  outline: none;
+}
+
+.owner-verified-badge:focus-visible {
+  outline: 2px solid #2f6df4;
+  outline-offset: 2px;
+}
+
+@media (max-width: 640px) {
+  .owner-verified-badge {
+    width: 16px;
+    height: 16px;
+    top: -3px;
+    right: -3px;
+  }
+
+  .owner-verified-badge img {
+    width: 11px;
+    height: 11px;
+  }
+}
+
+/* --- Мінімальна шапка на сторінках входу/реєстрації (лише лого) --- */
+.auth-topbar {
+  display: flex;
+  justify-content: center;
+  padding: 24px 16px 4px;
+}
+
+.auth-topbar .brand {
+  gap: 8px;
+}
+
+.auth-topbar .brand__icon-wrap {
+  color: #2f6df4;
+}
+
+.auth-topbar .brand__icon {
+  color: #2f6df4;
+}
+
+.auth-topbar .brand__text {
+  color: #17325f;
 }

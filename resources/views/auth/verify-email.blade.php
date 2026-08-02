@@ -1,31 +1,44 @@
-<x-guest-layout>
-    <div class="mb-4 text-sm text-gray-600">
-        {{ __('Thanks for signing up! Before getting started, could you verify your email address by clicking on the link we just emailed to you? If you didn\'t receive the email, we will gladly send you another.') }}
-    </div>
+@extends('static.layout')
 
-    @if (session('status') == 'verification-link-sent')
-        <div class="mb-4 font-medium text-sm text-green-600">
-            {{ __('A new verification link has been sent to the email address you provided during registration.') }}
-        </div>
-    @endif
+@section('title', 'Підтвердження email | DOVIRA')
+@section('body_class', 'page-auth')
 
-    <div class="mt-4 flex items-center justify-between">
-        <form method="POST" action="{{ route('verification.send') }}">
-            @csrf
+@push('head')
+    <link rel="stylesheet" href="{{ asset('static/css/pages/auth.css') }}">
+@endpush
 
-            <div>
-                <x-primary-button>
-                    {{ __('Resend Verification Email') }}
-                </x-primary-button>
+@section('content')
+    <section class="auth-shell">
+        <div class="container">
+            <div class="auth-wrap">
+                <div class="auth-card">
+                    <div class="auth-head">
+                        <h1 class="auth-title">Підтвердіть email</h1>
+                        <p class="auth-subtitle">
+                            Ми надіслали лист із посиланням для підтвердження на
+                            <strong>{{ auth()->user()?->email }}</strong>.
+                            Перейдіть за ним, щоб завершити реєстрацію.
+                        </p>
+                    </div>
+
+                    @if (session('status') == 'verification-link-sent')
+                        <p class="auth-status">Новий лист із посиланням надіслано на вашу адресу.</p>
+                    @endif
+                    @if (session('status') == 'verification-link-failed')
+                        <p class="auth-error">Не вдалося надіслати лист. Перевірте поштові налаштування або спробуйте пізніше.</p>
+                    @endif
+
+                    <form method="POST" action="{{ route('verification.send') }}" class="auth-form">
+                        @csrf
+                        <button type="submit" class="auth-submit">Надіслати лист ще раз</button>
+                    </form>
+
+                    <form method="POST" action="{{ route('logout') }}" class="auth-form" style="margin-top: 10px;">
+                        @csrf
+                        <button type="submit" class="auth-submit auth-submit--ghost">Вийти з акаунта</button>
+                    </form>
+                </div>
             </div>
-        </form>
-
-        <form method="POST" action="{{ route('logout') }}">
-            @csrf
-
-            <button type="submit" class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                {{ __('Log Out') }}
-            </button>
-        </form>
-    </div>
-</x-guest-layout>
+        </div>
+    </section>
+@endsection

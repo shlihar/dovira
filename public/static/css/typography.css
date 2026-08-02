@@ -1,0 +1,119 @@
+/* Final typography pass for static pages. Keep this loaded after page CSS. */
+:where(.page-platform, .page-catalog, .page-faq, .page-pro, .page-profile) {
+  --ui-title-xl: var(--page-ui-title-xl);
+  --ui-title-lg: var(--page-ui-title-lg);
+  --ui-title-md: var(--page-ui-title-md);
+  --ui-lead: var(--page-ui-lead);
+  --ui-copy: var(--page-ui-copy);
+  --ui-copy-sm: var(--page-ui-copy-sm);
+  --ui-label: var(--page-ui-label);
+  --ui-question: var(--page-ui-question);
+}
+
+:where(.page-platform, .page-catalog, .page-faq, .page-pro, .page-profile)
+  :where(.h1, .hero__title, .pro-hero__title, .catalog-hero h1, .faq-page__title) {
+  font-size: var(--text-h1);
+  line-height: 1.08;
+  letter-spacing: 0;
+}
+
+:where(.page-platform, .page-catalog, .page-faq, .page-pro, .page-profile)
+  :where(.h2, .home-section-title, .hero__bottom h2, .how__title, .trust-proof__title, .pro-pricing__title, .pro-faq .faq__title, .reviews-search-hero__title, .profile-card__head h2) {
+  font-size: var(--ui-title-xl);
+  line-height: 1.12;
+  letter-spacing: 0;
+}
+
+:where(.page-platform, .page-catalog, .page-faq, .page-pro, .page-profile)
+  :where(.trust-proof__feature-title, .platform-contacts__title, .cta-hero-callout__title, .tp-section-title, .tp-large-card h2, .faq-hub__support-title, .profile-summary-panel__title, .profile-side-card h3, .profile-pro-block h3, .profile-pro-section-head h3, .profile-service-card h3) {
+  font-size: var(--ui-title-lg);
+  line-height: 1.14;
+  letter-spacing: 0;
+}
+
+:where(.page-platform, .page-catalog, .page-faq, .page-pro, .page-profile)
+  :where(.hero__lead, .hero__bottom p, .how__lead, .trust-proof__text, .platform-contacts__lead, .cta-hero-callout__text, .reviews-search-hero__lead, .faq-page__lead, .pro-pricing__sub, .pro-faq .faq__lead, .tp-split__lead, .tp-large-card p, .profile-summary-panel__lead) {
+  font-size: var(--ui-lead);
+  line-height: 1.55;
+  letter-spacing: 0;
+}
+
+:where(.page-platform, .page-catalog, .page-faq, .page-pro, .page-profile)
+  :where(.how-step__title, .hero__item__title, .minimal-filter-group__title, .profile-select, .catalog-mobile-control, .faq-hub__category, .profile-filter-chip, .profile-mobile-review-option) {
+  font-size: var(--ui-copy);
+  line-height: 1.35;
+  letter-spacing: 0;
+}
+
+:where(.page-platform, .page-catalog, .page-faq, .page-pro, .page-profile)
+  :where(.how-step__text, .trust-proof__feature-text, .trust-proof__btn, .faq-hub__support-text, .faq-hub__panel .faq__answer, .pro-benefit-card__text, .pro-price-card__text, .tp-way p, .tp-check-list li, .profile-about-card__text, .profile-summary-text, .profile-summary-ai__text, .profile-review__body, .profile-side-card li, .profile-side-card a) {
+  font-size: var(--ui-copy);
+  line-height: 1.55;
+  letter-spacing: 0;
+}
+
+:where(.page-platform, .page-catalog, .page-faq, .page-pro, .page-profile)
+  :where(.badge, .platform-contacts__label, .catalog-hero__eyebrow, .reviews-content__count, .catalog-stat small, .tp-feature-image span, .profile-summary-panel__chip, .profile-hero__meta) {
+  font-size: var(--ui-label);
+  line-height: 1.3;
+  letter-spacing: 0;
+}
+
+:where(.page-platform, .page-catalog, .page-faq, .page-pro, .page-profile)
+  :where(.faq__question, .faq-hub__panel .faq__question, .profile-pro-faq .faq__question) {
+  font-size: var(--ui-question);
+  line-height: 1.35;
+  letter-spacing: 0;
+}
+
+:where(.page-platform, .page-catalog, .page-faq, .page-pro, .page-profile)
+  :where(.catalog-stat strong) {
+  font-size: var(--ui-title-md);
+  line-height: 1;
+  letter-spacing: 0;
+}
+
+body.page-home-main #best-lawyers-title {
+  font-size: 19px;
+  line-height: 1.18;
+  letter-spacing: 0;
+}
+
+body:is(.page-platform, .page-pro)
+  :is(.how__title.h2, .tp-proof-stats__title) {
+  max-width: 900px;
+  font-size: 28px;
+  line-height: 1.16;
+  letter-spacing: 0;
+}
+
+:where(.page-platform, .page-catalog, .page-faq, .page-pro, .page-profile)
+  :where(.hero__item i, .platform-contacts__value i, .catalog-stat__icon, .catalog-search__icon, .minimal-control__icon, .faq-hub__category i, .faq-hub__panel .faq__question::after) {
+  font-size: var(--page-ui-icon-md);
+}
+
+@media (max-width: 760px) {
+  :where(.page-platform, .page-catalog, .page-faq, .page-pro, .page-profile)
+    :where(.h1, .hero__title, .pro-hero__title, .catalog-hero h1, .faq-page__title) {
+    font-size: var(--text-h1);
+  }
+
+  :where(.page-platform, .page-catalog, .page-faq, .page-pro, .page-profile)
+    :where(.h2, .home-section-title, .hero__bottom h2, .how__title, .trust-proof__title, .pro-pricing__title, .pro-faq .faq__title, .reviews-search-hero__title, .profile-card__head h2, .trust-proof__feature-title, .platform-contacts__title, .cta-hero-callout__title, .tp-section-title, .tp-large-card h2, .faq-hub__support-title, .profile-summary-panel__title, .profile-side-card h3, .profile-pro-block h3, .profile-pro-section-head h3, .profile-service-card h3) {
+    font-size: var(--ui-title-lg);
+  }
+
+  :where(.page-platform, .page-catalog, .page-faq, .page-pro, .page-profile)
+    :where(.hero__lead, .hero__bottom p, .how__lead, .trust-proof__text, .platform-contacts__lead, .cta-hero-callout__text, .reviews-search-hero__lead, .faq-page__lead, .pro-pricing__sub, .pro-faq .faq__lead, .tp-split__lead, .tp-large-card p, .profile-summary-panel__lead, .how-step__text, .trust-proof__feature-text, .trust-proof__btn, .faq-hub__support-text, .faq-hub__panel .faq__answer, .pro-benefit-card__text, .pro-price-card__text, .tp-way p, .tp-check-list li, .profile-about-card__text, .profile-summary-text, .profile-summary-ai__text, .profile-review__body, .profile-side-card li, .profile-side-card a) {
+    font-size: var(--ui-copy-sm);
+  }
+
+  body.page-home-main #best-lawyers-title {
+    font-size: 16px;
+  }
+
+  body:is(.page-platform, .page-pro)
+    :is(.how__title.h2, .tp-proof-stats__title) {
+    font-size: var(--ui-title-lg);
+  }
+}

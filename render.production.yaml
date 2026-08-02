@@ -1,0 +1,305 @@
+databases:
+  - name: dovira-db
+    plan: starter
+    databaseName: dovira
+    user: dovira
+
+services:
+  - type: keyvalue
+    name: dovira-redis
+    plan: starter
+    ipAllowList: []
+
+  - type: web
+    name: dovira-web
+    runtime: docker
+    plan: starter
+    dockerfilePath: ./Dockerfile
+    dockerCommand: sh -lc "./scripts/render-start-web.sh"
+    healthCheckPath: /
+    envVars:
+      - key: APP_NAME
+        value: DOVIRA
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_KEY
+        generateValue: true
+      - key: APP_URL
+        sync: false
+      - key: LOG_CHANNEL
+        value: stderr
+      - key: LOG_LEVEL
+        value: warning
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_HOST
+        fromDatabase:
+          name: dovira-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: dovira-db
+          property: port
+      - key: DB_DATABASE
+        fromDatabase:
+          name: dovira-db
+          property: database
+      - key: DB_USERNAME
+        fromDatabase:
+          name: dovira-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: dovira-db
+          property: password
+      - key: SESSION_DRIVER
+        value: redis
+      - key: CACHE_STORE
+        value: redis
+      - key: QUEUE_CONNECTION
+        value: redis
+      - key: REDIS_HOST
+        fromService:
+          type: keyvalue
+          name: dovira-redis
+          property: host
+      - key: REDIS_PORT
+        fromService:
+          type: keyvalue
+          name: dovira-redis
+          property: port
+      - key: REDIS_PASSWORD
+        fromService:
+          type: keyvalue
+          name: dovira-redis
+          property: password
+      - key: REDIS_QUEUE_CONNECTION
+        value: default
+      - key: REDIS_QUEUE_RETRY_AFTER
+        value: "2400"
+      - key: AI_ENRICHMENT_PROVIDER
+        value: openai
+      - key: AI_ENRICHMENT_QUEUE_CONNECTION
+        value: redis
+      - key: AI_ENRICHMENT_QUEUE
+        value: ai-enrichment
+      - key: AI_ENRICHMENT_PRIORITY_QUEUE
+        value: ai-enrichment-priority
+      - key: AI_REVIEW_ANALYSIS_QUEUE
+        value: ai-review-analysis
+      - key: AI_ENRICHMENT_AUTO_START_WORKER
+        value: "false"
+      - key: AI_ENRICHMENT_QUEUE_WORKER_PROCESSES
+        value: "1"
+      - key: AI_ENRICHMENT_QUEUE_WORKER_SLEEP
+        value: "1"
+      - key: AI_ENRICHMENT_QUEUE_WORKER_TRIES
+        value: "3"
+      - key: AI_ENRICHMENT_QUEUE_WORKER_BACKOFF
+        value: "5"
+      - key: AI_ENRICHMENT_QUEUE_WORKER_TIMEOUT
+        value: "1800"
+      - key: AI_ENRICHMENT_QUEUE_WORKER_MAX_TIME
+        value: "3600"
+      - key: AI_ENRICHMENT_RELEASE_STALE_RESERVED_AFTER_SECONDS
+        value: "1800"
+      - key: APP_MAINTENANCE_DRIVER
+        value: file
+      - key: AI_ENRICHMENT_OPENAI_WEB_SEARCH
+        value: "true"
+      - key: AI_ENRICHMENT_GOOGLE_MAPS_REVIEWS
+        value: "true"
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: GOOGLE_MAPS_API_KEY
+        sync: false
+
+  - type: worker
+    name: dovira-queue-worker
+    runtime: docker
+    plan: starter
+    dockerfilePath: ./Dockerfile
+    dockerCommand: sh -lc "./scripts/render-start-worker.sh"
+    envVars:
+      - key: APP_NAME
+        value: DOVIRA
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_KEY
+        sync: false
+      - key: APP_URL
+        sync: false
+      - key: LOG_CHANNEL
+        value: stderr
+      - key: LOG_LEVEL
+        value: warning
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_HOST
+        fromDatabase:
+          name: dovira-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: dovira-db
+          property: port
+      - key: DB_DATABASE
+        fromDatabase:
+          name: dovira-db
+          property: database
+      - key: DB_USERNAME
+        fromDatabase:
+          name: dovira-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: dovira-db
+          property: password
+      - key: CACHE_STORE
+        value: redis
+      - key: SESSION_DRIVER
+        value: redis
+      - key: QUEUE_CONNECTION
+        value: redis
+      - key: REDIS_HOST
+        fromService:
+          type: keyvalue
+          name: dovira-redis
+          property: host
+      - key: REDIS_PORT
+        fromService:
+          type: keyvalue
+          name: dovira-redis
+          property: port
+      - key: REDIS_PASSWORD
+        fromService:
+          type: keyvalue
+          name: dovira-redis
+          property: password
+      - key: REDIS_QUEUE_CONNECTION
+        value: default
+      - key: REDIS_QUEUE_RETRY_AFTER
+        value: "2400"
+      - key: AI_ENRICHMENT_PROVIDER
+        value: openai
+      - key: AI_ENRICHMENT_QUEUE_CONNECTION
+        value: redis
+      - key: AI_ENRICHMENT_QUEUE
+        value: ai-enrichment
+      - key: AI_ENRICHMENT_PRIORITY_QUEUE
+        value: ai-enrichment-priority
+      - key: AI_REVIEW_ANALYSIS_QUEUE
+        value: ai-review-analysis
+      - key: AI_ENRICHMENT_AUTO_START_WORKER
+        value: "false"
+      - key: AI_ENRICHMENT_QUEUE_WORKER_PROCESSES
+        value: "1"
+      - key: AI_ENRICHMENT_QUEUE_WORKER_SLEEP
+        value: "1"
+      - key: AI_ENRICHMENT_QUEUE_WORKER_TRIES
+        value: "3"
+      - key: AI_ENRICHMENT_QUEUE_WORKER_BACKOFF
+        value: "5"
+      - key: AI_ENRICHMENT_QUEUE_WORKER_TIMEOUT
+        value: "1800"
+      - key: AI_ENRICHMENT_QUEUE_WORKER_MAX_TIME
+        value: "3600"
+      - key: AI_ENRICHMENT_RELEASE_STALE_RESERVED_AFTER_SECONDS
+        value: "1800"
+      - key: APP_MAINTENANCE_DRIVER
+        value: file
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: GOOGLE_MAPS_API_KEY
+        sync: false
+
+  - type: worker
+    name: dovira-scheduler
+    runtime: docker
+    plan: starter
+    dockerfilePath: ./Dockerfile
+    dockerCommand: sh -lc "php artisan schedule:work"
+    envVars:
+      - key: APP_NAME
+        value: DOVIRA
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_KEY
+        sync: false
+      - key: APP_URL
+        sync: false
+      - key: LOG_CHANNEL
+        value: stderr
+      - key: LOG_LEVEL
+        value: warning
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_HOST
+        fromDatabase:
+          name: dovira-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: dovira-db
+          property: port
+      - key: DB_DATABASE
+        fromDatabase:
+          name: dovira-db
+          property: database
+      - key: DB_USERNAME
+        fromDatabase:
+          name: dovira-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: dovira-db
+          property: password
+      - key: CACHE_STORE
+        value: redis
+      - key: SESSION_DRIVER
+        value: redis
+      - key: QUEUE_CONNECTION
+        value: redis
+      - key: REDIS_HOST
+        fromService:
+          type: keyvalue
+          name: dovira-redis
+          property: host
+      - key: REDIS_PORT
+        fromService:
+          type: keyvalue
+          name: dovira-redis
+          property: port
+      - key: REDIS_PASSWORD
+        fromService:
+          type: keyvalue
+          name: dovira-redis
+          property: password
+      - key: REDIS_QUEUE_CONNECTION
+        value: default
+      - key: REDIS_QUEUE_RETRY_AFTER
+        value: "2400"
+      - key: AI_ENRICHMENT_PROVIDER
+        value: openai
+      - key: AI_ENRICHMENT_QUEUE_CONNECTION
+        value: redis
+      - key: AI_ENRICHMENT_QUEUE
+        value: ai-enrichment
+      - key: AI_ENRICHMENT_PRIORITY_QUEUE
+        value: ai-enrichment-priority
+      - key: AI_REVIEW_ANALYSIS_QUEUE
+        value: ai-review-analysis
+      - key: AI_ENRICHMENT_AUTO_START_WORKER
+        value: "false"
+      - key: APP_MAINTENANCE_DRIVER
+        value: file
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: GOOGLE_MAPS_API_KEY
+        sync: false

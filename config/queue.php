@@ -37,10 +37,11 @@ return [
 
         'database' => [
             'driver' => 'database',
+            // null → основне зʼєднання (MySQL); окрема sqlite-черга більше не використовується.
             'connection' => env('DB_QUEUE_CONNECTION'),
             'table' => env('DB_QUEUE_TABLE', 'jobs'),
             'queue' => env('DB_QUEUE', 'default'),
-            'retry_after' => (int) env('DB_QUEUE_RETRY_AFTER', 90),
+            'retry_after' => (int) env('DB_QUEUE_RETRY_AFTER', 1200),
             'after_commit' => false,
         ],
 

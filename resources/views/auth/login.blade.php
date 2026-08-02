@@ -1,47 +1,81 @@
-<x-guest-layout>
-    <!-- Session Status -->
-    <x-auth-session-status class="mb-4" :status="session('status')" />
+@extends('static.layout')
 
-    <form method="POST" action="{{ route('login') }}">
-        @csrf
+@section('title', 'Вхід | DOVIRA')
+@section('body_class', 'page-auth')
 
-        <!-- Email Address -->
-        <div>
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autofocus autocomplete="username" />
-            <x-input-error :messages="$errors->get('email')" class="mt-2" />
+@push('head')
+    <link rel="stylesheet" href="{{ asset('static/css/pages/auth.css') }}">
+@endpush
+
+@section('content')
+    <section class="auth-shell">
+        <div class="container">
+            <div class="auth-wrap">
+                <div class="auth-card">
+                    <div class="auth-head">
+                        <h1 class="auth-title">Увійти</h1>
+                        <p class="auth-subtitle">
+                            Ще не маєте акаунта?
+                            <a href="{{ route('register', request()->query('next') ? ['next' => request()->query('next')] : []) }}" data-auth-transition-link>Зареєструйтесь</a>
+                        </p>
+                    </div>
+
+                    @if (session('status'))
+                        <p class="auth-status">{{ session('status') }}</p>
+                    @endif
+
+                    @if ($errors->any())
+                        <div class="auth-global-errors">
+                            <ul>
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
+                    @include('auth.partials.social-auth', ['actionLabel' => 'Увійти'])
+
+                    <div class="auth-divider">Або</div>
+
+                    <form method="POST" action="{{ route('login') }}" class="auth-form">
+                        @csrf
+                        @if (request()->query('next'))
+                            <input type="hidden" name="next" value="{{ request()->query('next') }}">
+                        @endif
+
+                        <div class="auth-group">
+                            <label for="email" class="auth-label">Email</label>
+                            <input id="email" name="email" type="email" class="auth-input" value="{{ old('email') }}" required autofocus autocomplete="username">
+                            @error('email')<p class="auth-error">{{ $message }}</p>@enderror
+                        </div>
+
+                        <div class="auth-group">
+                            <div class="auth-row">
+                                <label for="password" class="auth-label">Пароль</label>
+                                @if (Route::has('password.request'))
+                                    <a href="{{ route('password.request') }}" class="auth-link">Забули пароль?</a>
+                                @endif
+                            </div>
+                            <input id="password" name="password" type="password" class="auth-input" required autocomplete="current-password">
+                            @error('password')<p class="auth-error">{{ $message }}</p>@enderror
+                        </div>
+
+                        {{-- Адаптивна капча: зʼявляється лише після кількох невдалих спроб
+                             входу з цього IP (див. LoginRequest::captchaRequiredForIp). --}}
+                        @if (($captchaRequired ?? false) && \App\Support\Turnstile::isEnabled())
+                            <div class="auth-group auth-group--captcha">
+                                {{-- Turnstile сам додає приховане поле cf-turnstile-response у форму. --}}
+                                <div class="cf-turnstile" data-sitekey="{{ config('services.turnstile.site_key') }}" data-language="uk"></div>
+                            </div>
+                        @endif
+
+                        <button type="submit" class="auth-submit">Увійти</button>
+                    </form>
+                </div>
+            </div>
         </div>
+    </section>
+@endsection
 
-        <!-- Password -->
-        <div class="mt-4">
-            <x-input-label for="password" :value="__('Password')" />
-
-            <x-text-input id="password" class="block mt-1 w-full"
-                            type="password"
-                            name="password"
-                            required autocomplete="current-password" />
-
-            <x-input-error :messages="$errors->get('password')" class="mt-2" />
-        </div>
-
-        <!-- Remember Me -->
-        <div class="block mt-4">
-            <label for="remember_me" class="inline-flex items-center">
-                <input id="remember_me" type="checkbox" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500" name="remember">
-                <span class="ms-2 text-sm text-gray-600">{{ __('Remember me') }}</span>
-            </label>
-        </div>
-
-        <div class="flex items-center justify-end mt-4">
-            @if (Route::has('password.request'))
-                <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" href="{{ route('password.request') }}">
-                    {{ __('Forgot your password?') }}
-                </a>
-            @endif
-
-            <x-primary-button class="ms-3">
-                {{ __('Log in') }}
-            </x-primary-button>
-        </div>
-    </form>
-</x-guest-layout>
+@include('auth.partials.interactions')

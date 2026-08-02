@@ -1,0 +1,328 @@
+@import '../../../../vendor/filafly/brisk/resources/css/theme.css';
+
+@source '../../../../vendor/filament/**/*.blade.php';
+@source '../../../../vendor/filament/**/*.php';
+@source '../../../../vendor/filafly/**/*.blade.php';
+@source '../../../../vendor/filafly/**/*.php';
+@source '../../../../app/Filament/**/*';
+@source '../../../../resources/views/filament/**/*';
+
+/* Admin spacing normalization */
+.fi-page > .fi-page-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.fi-section {
+    border-radius: 1rem;
+}
+
+.fi-sc-tabs {
+    margin-bottom: 0.875rem;
+}
+
+.fi-sc-tabs .fi-tabs {
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.fi-sc-tabs .fi-tabs::-webkit-scrollbar {
+    display: none;
+}
+
+.fi-sc-tabs .fi-tabs-item {
+    white-space: nowrap;
+}
+
+.fi-section-content {
+    gap: 0.875rem;
+}
+
+.fi-page-header-actions {
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+/* Compact admin mode */
+.fi-body {
+    --spacing: 0.2rem;
+    --text-xs: 0.6875rem;
+    --text-xs--line-height: calc(0.9375 / 0.6875);
+    --text-sm: 0.75rem;
+    --text-sm--line-height: calc(1.0625 / 0.75);
+    --text-base: 0.875rem;
+    --text-base--line-height: calc(1.25 / 0.875);
+    --text-lg: 1rem;
+    --text-lg--line-height: calc(1.375 / 1);
+    --text-xl: 1.125rem;
+    --text-xl--line-height: calc(1.5 / 1.125);
+    --text-2xl: 1.25rem;
+    --text-2xl--line-height: calc(1.625 / 1.25);
+    --text-3xl: 1.5rem;
+    --text-3xl--line-height: calc(1.875 / 1.5);
+    --radius-md: 0.3125rem;
+    --radius-lg: 0.4375rem;
+    --radius-xl: 0.625rem;
+}
+
+.fi-body .fi-layout,
+.fi-body .fi-main,
+.fi-body .fi-page,
+.fi-body .fi-section,
+.fi-body .fi-ta,
+.fi-body .fi-fo-field-wrp,
+.fi-body .fi-wi-widget {
+    font-size: var(--text-sm);
+}
+
+.fi-body .fi-main {
+    padding: 0.9rem;
+}
+
+.fi-body .fi-sidebar {
+    width: 15rem;
+}
+
+.fi-body .fi-sidebar-header,
+.fi-body .fi-topbar,
+.fi-body .fi-page-header {
+    min-height: 3.25rem;
+}
+
+.fi-body .fi-sidebar-nav,
+.fi-body .fi-topbar,
+.fi-body .fi-main-ctn {
+    gap: 0.75rem;
+}
+
+.fi-body .fi-sidebar-item .fi-sidebar-item-btn,
+.fi-body .fi-topbar-item .fi-topbar-item-btn,
+.fi-body .fi-sidebar-group-btn,
+.fi-body .fi-topbar-group-dropdown-trigger-btn {
+    padding: 0.5rem 0.75rem;
+}
+
+.fi-body .fi-page > .fi-page-content {
+    gap: 0.75rem;
+}
+
+.fi-body .fi-page-header {
+    gap: 0.625rem;
+    margin-bottom: 0.25rem;
+}
+
+.fi-body .fi-page-header-heading {
+    font-size: var(--text-xl);
+}
+
+.fi-body .fi-page-header-description,
+.fi-body .fi-section-header-description,
+.fi-body .fi-ta-empty-state-description,
+.fi-body .fi-fo-field-wrp-helper-text {
+    font-size: var(--text-xs);
+}
+
+.fi-body .fi-section {
+    border-radius: 0.875rem;
+}
+
+.fi-body .fi-section-header,
+.fi-body .fi-section-content,
+.fi-body .fi-section-footer,
+.fi-body .fi-ta-header-ctn,
+.fi-body .fi-ta-content,
+.fi-body .fi-modal-content,
+.fi-body .fi-dropdown-panel,
+.fi-body .fi-fo-repeater-item-header {
+    padding: 0.75rem;
+}
+
+.fi-body .fi-tabs {
+    gap: 0.35rem;
+}
+
+.fi-body .fi-tabs-item {
+    padding: 0.45rem 0.7rem;
+    font-size: var(--text-xs);
+}
+
+.fi-body .fi-btn {
+    min-height: 2rem;
+    padding: 0.45rem 0.75rem;
+    font-size: var(--text-xs);
+}
+
+.fi-body .fi-icon-btn {
+    min-height: 2rem;
+    min-width: 2rem;
+}
+
+.fi-body .fi-badge {
+    font-size: 0.625rem;
+}
+
+.fi-body .fi-input-wrp,
+.fi-body .fi-select-input,
+.fi-body .fi-textarea,
+.fi-body .fi-input {
+    min-height: 2.1rem;
+    font-size: var(--text-xs);
+}
+
+.fi-body .fi-fo-field-wrp-label,
+.fi-body .fi-ta-header-cell,
+.fi-body .fi-ta-text,
+.fi-body .fi-in-entry-wrp-label {
+    font-size: var(--text-xs);
+}
+
+.fi-body .fi-ta-cell,
+.fi-body .fi-ta-header-cell {
+    padding: 0.55rem 0.65rem;
+}
+
+.fi-body .fi-ta-record {
+    min-height: 2.1rem;
+}
+
+.fi-body .fi-pagination {
+    gap: 0.35rem;
+}
+
+.fi-body .tippy-box {
+    font-size: 12px;
+}
+
+.fi-body .fi-ta-ctn {
+    border-radius: 0.875rem;
+}
+
+.fi-body .fi-ta-header,
+.fi-body .fi-ta-header-toolbar,
+.fi-body .fi-ta-filters-below-content,
+.fi-body .fi-ta-filters-above-content-ctn,
+.fi-body .fi-pagination {
+    padding: 0.625rem 0.875rem;
+}
+
+.fi-body .fi-ta-header {
+    gap: 0.5rem;
+}
+
+.fi-body .fi-ta-header-heading,
+.fi-body .fi-ta-filters-heading {
+    font-size: var(--text-sm);
+    line-height: 1.2;
+}
+
+.fi-body .fi-ta-header-description {
+    margin-top: 0.2rem;
+    font-size: var(--text-xs);
+}
+
+.fi-body .fi-ta-header-toolbar,
+.fi-body .fi-ta-content-header,
+.fi-body .fi-ta-selection-indicator,
+.fi-body .fi-ta-filter-indicators {
+    gap: 0.5rem;
+}
+
+.fi-body .fi-ta-content-ctn .fi-ta-content-header {
+    padding-inline: 0.875rem;
+}
+
+.fi-body .fi-ta-content-ctn .fi-ta-content-header .fi-ta-page-checkbox,
+.fi-body .fi-ta-content-ctn .fi-ta-record .fi-ta-record-checkbox {
+    margin-block: 0.35rem;
+    margin-inline: 0.5rem;
+}
+
+.fi-body .fi-ta-content-ctn .fi-ta-record .fi-ta-reorder-handle {
+    margin-block: 0.35rem;
+    margin-inline: 0.375rem;
+}
+
+.fi-body .fi-ta-content-ctn .fi-ta-record .fi-ta-record-content-ctn {
+    gap: 0.2rem;
+    padding-block: 0.35rem;
+}
+
+.fi-body .fi-ta-content-ctn:not(.fi-ta-content-grid) .fi-ta-record:not(.fi-ta-record-with-content-prefix) .fi-ta-record-content,
+.fi-body .fi-ta-content-ctn:not(.fi-ta-content-grid) .fi-ta-record:not(.fi-ta-record-with-content-prefix) .fi-ta-actions {
+    padding-inline-start: 0.625rem;
+}
+
+.fi-body .fi-ta-content-ctn:not(.fi-ta-content-grid) .fi-ta-record:not(.fi-ta-record-with-content-suffix) .fi-ta-record-content,
+.fi-body .fi-ta-content-ctn:not(.fi-ta-content-grid) .fi-ta-record:not(.fi-ta-record-with-content-suffix) .fi-ta-actions {
+    padding-inline-end: 0.625rem;
+}
+
+.fi-body .fi-ta-content-ctn:not(.fi-ta-content-grid) .fi-ta-record .fi-ta-actions {
+    padding-inline-start: 0.45rem;
+}
+
+.fi-body .fi-ta-cell.fi-ta-selection-cell,
+.fi-body .fi-ta-cell.fi-ta-group-selection-cell,
+.fi-body .fi-ta-cell:has(.fi-ta-record-checkbox),
+.fi-body .fi-ta-cell:has(.fi-ta-actions) {
+    padding: 0.3rem 0.45rem;
+}
+
+.fi-body .fi-ta-summary-row-heading-cell,
+.fi-body .fi-ta-summary-header-cell,
+.fi-body .fi-ta-individual-search-cell {
+    padding: 0.45rem 0.625rem;
+}
+
+.fi-body .fi-ta-text:not(.fi-inline) {
+    padding: 0.3rem 0.45rem;
+}
+
+.fi-body .fi-ta-table-stacked-on-mobile .fi-ta-text,
+.fi-body .fi-ta-text.fi-ta-text-has-descriptions,
+.fi-body .fi-ta-text.fi-ta-text-list-limited {
+    gap: 0.15rem;
+}
+
+.fi-body .fi-ta-text > .fi-ta-text-description,
+.fi-body .fi-ta-text > .fi-ta-text-list-limited-message {
+    font-size: 0.65rem;
+    line-height: 1.05;
+}
+
+.fi-body .fi-ta-text-item {
+    line-height: 1.1;
+}
+
+.fi-body .fi-ta-text-item.fi-size-sm,
+.fi-body .fi-ta-text-item.fi-size-md {
+    font-size: 0.8rem;
+    line-height: 1.1;
+}
+
+.fi-body .fi-ta-header-cell-label,
+.fi-body .fi-ta-header-cell .fi-dropdown-label {
+    line-height: 1.1;
+}
+
+.fi-body .fi-checkbox-input {
+    width: 0.95rem;
+    height: 0.95rem;
+}
+
+.fi-body .fi-ta.fi-ta-profiles .fi-ta-table {
+    width: max-content;
+    min-width: 0;
+}
+
+.fi-body .fi-ta.fi-ta-profiles .fi-ta-main,
+.fi-body .fi-ta.fi-ta-profiles .fi-ta-content-ctn {
+    overflow-x: auto;
+}
+
+.fi-body .fi-ta.fi-ta-profiles .fi-ta-header-cell,
+.fi-body .fi-ta.fi-ta-profiles .fi-ta-cell {
+    white-space: nowrap;
+}

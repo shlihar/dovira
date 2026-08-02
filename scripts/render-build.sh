@@ -5,9 +5,7 @@ composer install --no-dev --optimize-autoloader --no-interaction
 npm ci
 npm run build
 
-# Demo-safe storage/db setup for simple hosting without managed DB.
-mkdir -p database storage/framework/{cache,sessions,views}
-touch database/database.sqlite
+mkdir -p storage/framework/{cache,sessions,views}
 
 php artisan package:discover --ansi
 php artisan config:clear

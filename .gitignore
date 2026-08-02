@@ -15,6 +15,7 @@
 /node_modules
 /public/build
 /public/hot
+/public/media/thumb
 /public/storage
 /storage/app/import
 /storage/*.key
@@ -23,3 +24,19 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Локальні робочі файли — не частина продукту
+/.claude
+/$SCRATCH
+.env.bak
+/backup
+/tmp
+/test-results
+/undefined
+/dataset_*.json
+/lawyer_dossiers.jsonl
+/*.png
+/*.jpg
+/імпорт
+/Логотипи*
+/google-sheets-automation

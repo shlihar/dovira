@@ -94,3 +94,16 @@ Steps:
 Notes:
 - Config is set for demo hosting with SQLite file DB.
 - Sessions/cache use files (`SESSION_DRIVER=file`, `CACHE_STORE=file`) so no separate DB service is required.
+
+## Deploy to Render (Production)
+
+Use the production blueprint:
+
+- [render.production.yaml](/Users/andriishlikhar/Desktop/project/dovira/render.production.yaml)
+
+This setup uses PostgreSQL + Redis + dedicated queue worker + scheduler worker.  
+Run once after first deploy:
+
+```bash
+php artisan migrate --force
+```

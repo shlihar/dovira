@@ -1,0 +1,236 @@
+/* Home profile card module. This is intentionally separate from catalog cards. */
+
+.dovira-home-card.dovira-home-card {
+  width: 100%;
+  max-width: 288px;
+  min-width: min(84vw, 286px);
+  flex: 0 0 auto;
+  scroll-snap-align: start;
+  position: relative;
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 12px;
+  border: 1px solid #e3e7ee;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: none;
+  transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.dovira-home-card.dovira-home-card:hover {
+  transform: translateY(-2px);
+  border-color: #aac0f6;
+  box-shadow: 0 18px 38px rgba(22, 62, 145, 0.1);
+}
+
+.dovira-home-card.dovira-home-card .dovira-home-card__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.dovira-home-card.dovira-home-card .dovira-home-card__logo {
+  width: 50px;
+  height: 50px;
+  border: 1px solid #e3e7ee;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  color: #fff;
+  background: linear-gradient(145deg, #6ca2ff, #2f67f4);
+  font: 800 16px var(--font-heading);
+  text-decoration: none;
+}
+
+.dovira-home-card.dovira-home-card .dovira-home-card__logo.has-random-gradient {
+  background: linear-gradient(150deg, var(--av-bg-2, #2f67f4), #10307e);
+  color: var(--av-text, #fff);
+}
+
+.dovira-home-card.dovira-home-card .dovira-home-card__logo img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  border-radius: inherit;
+}
+
+.dovira-home-card.dovira-home-card .dovira-home-card__badges {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.dovira-home-card.dovira-home-card .dovira-home-card__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border-radius: 999px;
+  white-space: nowrap;
+  font-weight: 700;
+}
+
+.dovira-home-card.dovira-home-card .dovira-home-card__badge--pro {
+  min-height: 26px;
+  padding: 0 8px;
+  border: 1px solid rgba(73, 120, 249, 0.25);
+  color: #2d5ecc;
+  background: rgba(73, 120, 249, 0.1);
+  font-size: 10px;
+  text-transform: uppercase;
+}
+
+.dovira-home-card.dovira-home-card .dovira-home-card__badge--verified {
+  min-height: 20px;
+  padding: 0 6px;
+  border: 1px solid rgba(18, 168, 109, 0.26);
+  color: #128a5c;
+  background: rgba(18, 168, 109, 0.12);
+  font-size: 8px;
+}
+
+.dovira-home-card.dovira-home-card .dovira-home-card__badge--owner-verified {
+  min-height: 20px;
+  padding: 0 6px;
+  border: 1px solid rgba(47, 109, 244, 0.28);
+  color: #245bd8;
+  background: rgba(47, 109, 244, 0.12);
+  font-size: 8px;
+}
+
+.dovira-home-card.dovira-home-card .dovira-home-card__badge i {
+  font-size: 10px;
+}
+
+.dovira-home-card.dovira-home-card .dovira-home-card__name {
+  margin: 2px 0 0;
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  color: #1e293b;
+  font-size: 16px;
+  font-weight: 850;
+  line-height: 1.22;
+  letter-spacing: -0.01em;
+}
+
+.dovira-home-card.dovira-home-card .dovira-home-card__name a {
+  color: inherit;
+  text-decoration: none;
+  display: -webkit-box;
+  max-width: 100%;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.dovira-home-card.dovira-home-card .owner-verified-mark--home {
+  width: 14px;
+  height: 14px;
+  display: inline-block;
+  flex: 0 0 14px;
+  margin-left: 2px;
+  vertical-align: -1px;
+  background-image: url('/static/assets/icons/owner-verified-badge-2.svg');
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+}
+
+.dovira-home-card.dovira-home-card .dovira-home-card__site {
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  overflow: hidden;
+  color: #475569;
+  font-size: 14px;
+  line-height: 1.25;
+  text-decoration: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: color .16s ease;
+}
+
+.dovira-home-card.dovira-home-card .dovira-home-card__site i {
+  color: #64748b;
+  font-size: .85em;
+  transition: color .16s ease;
+}
+
+.dovira-home-card.dovira-home-card .dovira-home-card__site:hover {
+  color: #2f67f4;
+}
+
+.dovira-home-card.dovira-home-card .dovira-home-card__site:hover i {
+  color: #2f67f4;
+}
+
+.dovira-home-card.dovira-home-card .dovira-home-card__rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #475569;
+  font-size: 13px;
+}
+
+.dovira-home-card.dovira-home-card .dovira-home-card__stars {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  color: #ffbf45;
+  font-size: 11px;
+}
+
+.dovira-home-card.dovira-home-card .dovira-home-card__stars.rating-stars--excellent {
+  color: #ffb226;
+}
+
+.dovira-home-card.dovira-home-card .dovira-home-card__stars.rating-stars--fair {
+  color: #f28c28;
+}
+
+.dovira-home-card.dovira-home-card .dovira-home-card__stars.rating-stars--poor {
+  color: #dc5a5a;
+}
+
+.dovira-home-card.dovira-home-card .dovira-home-card__rating strong {
+  color: #1e293b;
+  font-weight: 800;
+}
+
+/* Замало відгуків — замість цифри показуємо нейтральний стан. */
+.dovira-home-card.dovira-home-card .dovira-home-card__rating--pending {
+  color: #64748b;
+}
+
+.dovira-home-card.dovira-home-card .dovira-home-card__rating--pending i {
+  color: #94a3b8;
+  font-size: 11px;
+}
+
+.dovira-home-card.dovira-home-card .dovira-home-card__category {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  width: 30px;
+  height: 30px;
+  border: 1px solid #e3e7ee;
+  border-radius: 999px;
+  display: inline-grid;
+  place-items: center;
+  color: #2c5ecc;
+  background: #fff;
+  font-size: 11px;
+  text-decoration: none;
+  box-shadow: 0 6px 14px rgba(38, 78, 170, 0.12);
+}
+
+.popular-companies .dovira-home-card.dovira-home-card {
+  max-width: 288px;
+}

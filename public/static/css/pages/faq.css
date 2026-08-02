@@ -6,9 +6,7 @@
   overflow-x: hidden;
 }
 
-.page-faq .header {
-  background: rgba(16, 70, 173, 0.86);
-}
+/* Синій оверрайд хедера прибрано — глобальний хедер тепер білий (Apple-стиль). */
 
 .faq-page {
   padding-top: calc(var(--header-h) + 22px);
@@ -150,38 +148,101 @@
 }
 
 .faq-hub__support {
-  border-radius: 20px;
-  border: 1px solid rgba(128, 170, 245, 0.48);
-  background: linear-gradient(165deg, #1c61f7 0%, #0c45c8 100%);
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-radius: 24px;
+  border: 1px solid rgba(146, 182, 247, 0.42);
+  background:
+    radial-gradient(42% 88% at 12% 54%, rgba(26, 90, 255, 0.28), transparent 72%),
+    radial-gradient(44% 86% at 88% 30%, rgba(169, 202, 255, 0.12), transparent 74%),
+    radial-gradient(24% 42% at 58% 50%, rgba(255, 255, 255, 0.07), transparent 84%),
+    linear-gradient(118deg, #3a67f2 0%, #4f7efb 34%, #5a84fb 66%, #4b73ea 100%);
   color: #f4f8ff;
-  box-shadow: 0 16px 30px rgba(8, 53, 157, 0.24);
-  padding: 20px;
+  box-shadow:
+    0 22px 44px rgba(12, 55, 156, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  padding: 24px;
+}
+
+.faq-hub__support::before,
+.faq-hub__support::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.faq-hub__support::before {
+  inset: 10px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  background:
+    radial-gradient(54px 54px at 10% 88%, rgba(255,255,255,0.08), rgba(255,255,255,0) 74%),
+    radial-gradient(80px 60px at 24% 98%, rgba(255,255,255,0.04), rgba(255,255,255,0) 76%),
+    radial-gradient(48px 48px at 92% 90%, rgba(255,255,255,0.07), rgba(255,255,255,0) 74%),
+    radial-gradient(32px 32px at 34% 12%, rgba(255,255,255,0.06), rgba(255,255,255,0) 74%),
+    linear-gradient(132deg, transparent 44%, rgba(255,255,255,0.05) 52%, transparent 60%);
+  box-shadow:
+    inset 0 0 0 1px rgba(120, 154, 255, 0.06),
+    inset 0 22px 36px rgba(255,255,255,0.02);
+}
+
+.faq-hub__support::after {
+  right: -42px;
+  bottom: -68px;
+  width: 176px;
+  height: 176px;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.04) 48%, rgba(255, 255, 255, 0) 74%);
+  opacity: 0.5;
 }
 
 .faq-hub__support-title {
   margin: 0;
+  position: relative;
+  z-index: 1;
   font-size: 24px;
   line-height: 1.14;
+  color: #ffffff;
+  letter-spacing: -0.03em;
 }
 
 .faq-hub__support-text {
   margin: 12px 0 0;
+  position: relative;
+  z-index: 1;
   font-size: 15px;
-  line-height: 1.5;
-  color: rgba(244, 248, 255, 0.9);
+  line-height: 1.55;
+  color: rgba(244, 248, 255, 0.88);
+  max-width: 40ch;
 }
 
 .faq-hub__support-btn {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
   margin-top: 16px;
-  height: 46px;
-  padding-inline: 16px;
-  background: #ffffff;
-  color: #154ecf;
-  box-shadow: none;
+  min-height: 52px;
+  padding-inline: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.54);
+  background: var(--c-primary);
+  color: #ffffff;
+  box-shadow:
+    0 14px 28px rgba(12, 48, 129, 0.16),
+    inset 0 1px 0 rgba(255,255,255,0.92);
 }
 
 .faq-hub__support-btn:hover {
   transform: translateY(-1px);
+}
+
+.faq-hub__support-btn i {
+  font-size: 18px;
+  color: currentColor;
 }
 
 .faq-hub__content {
@@ -249,8 +310,8 @@
 
 .faq-hub__panel .faq__panel {
   height: 0;
-  overflow: clip;
-  transition: height 0.34s cubic-bezier(0.25, 0.8, 0.25, 1);
+  overflow: hidden;
+  transition: height .3s cubic-bezier(.4, 0, .2, 1);
 }
 
 .faq-hub__panel .faq__answer {
@@ -381,26 +442,51 @@
     font-size: 11px;
   }
 
+  /* Full-bleed support banner: stretches edge-to-edge past the container
+     padding so it reads as an app-like section, not a squeezed card. */
   .faq-hub__support {
-    border-radius: 16px;
-    padding: 12px;
+    /* The hub is a flex column with align-items:start, so an auto width
+       would shrink-wrap — span the full container plus its padding. */
+    width: calc(100% + 32px);
+    margin-inline: -16px;
+    border-radius: 0;
+    border-left: 0;
+    border-right: 0;
+    padding: 22px 16px;
     order: 5;
-    margin-top: 2px;
+    margin-top: 6px;
+    text-align: center;
+  }
+
+  .faq-hub__support::before {
+    display: none;
+  }
+
+  .faq-hub__support::after {
+    right: -56px;
+    bottom: -84px;
   }
 
   .faq-hub__support-title {
-    font-size: 18px;
+    font-size: 19px;
   }
 
   .faq-hub__support-text {
+    max-width: 34ch;
+    margin-inline: auto;
     font-size: 13px;
     margin-top: 8px;
   }
 
   .faq-hub__support-btn {
-    margin-top: 10px;
-    height: 40px;
+    width: 100%;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 14px;
+    height: 48px;
     font-size: 14px;
+    min-height: 48px;
+    padding-inline: 16px;
   }
 
   .faq-hub__content {
@@ -454,4 +540,152 @@
   .faq-hub__panel .faq__question {
     font-size: 13px;
   }
+}
+
+/* Unified typography scale for non-home pages */
+.page-faq .faq-page__title {
+  font-size: clamp(24px, 2.25vw, 34px);
+  line-height: 1.08;
+}
+
+.page-faq .faq-page__lead {
+  font-size: 15px;
+  line-height: 1.48;
+}
+
+.page-faq .faq-hub__category {
+  font-size: 14px;
+}
+
+.page-faq .faq-hub__category i {
+  font-size: var(--page-ui-icon-md);
+}
+
+.page-faq .faq-hub__category::after {
+  font-size: var(--page-ui-icon-sm);
+}
+
+.page-faq .faq-hub__support-title {
+  font-size: clamp(18px, 1.5vw, 24px);
+  line-height: 1.16;
+}
+
+.page-faq .faq-hub__support-text {
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.page-faq .faq-hub__panel .faq__question {
+  font-size: clamp(15px, 1.15vw, 17px);
+  line-height: 1.32;
+}
+
+.page-faq .faq-hub__panel .faq__question::after {
+  font-size: var(--page-ui-icon-lg);
+}
+
+.page-faq .faq-hub__panel .faq__answer {
+  font-size: 14px;
+  line-height: 1.54;
+}
+
+@media (max-width: 760px) {
+  .page-faq .faq-page__title {
+    font-size: clamp(22px, 7vw, 28px);
+  }
+
+  .page-faq .faq-page__lead,
+  .page-faq .faq-hub__support-text {
+    font-size: 13px;
+  }
+
+  .page-faq .faq-hub__category {
+    font-size: 13px;
+  }
+
+  .page-faq .faq-hub__support-title {
+    font-size: 16px;
+  }
+
+  .page-faq .faq-hub__panel .faq__question {
+    font-size: 14px;
+  }
+
+  .page-faq .faq-hub__panel .faq__answer {
+    font-size: 13px;
+  }
+}
+
+/* Покрокові інструкції (HowTo): видимі кроки, що дзеркалять HowTo-схему.
+   Процесні запити «як залишити відгук / підтвердити профіль». */
+.faq-howtos {
+  display: grid;
+  gap: 24px;
+  margin-top: 40px;
+}
+
+@media (min-width: 860px) {
+  .faq-howtos {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.faq-howto {
+  padding: 24px;
+  border: 1px solid #e6ebf3;
+  border-radius: 16px;
+  background: #fff;
+}
+
+.faq-howto__title {
+  margin: 0 0 16px;
+  font-size: 18px;
+  line-height: 1.4;
+  color: #17233b;
+}
+
+.faq-howto__steps {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: faq-howto;
+  display: grid;
+  gap: 14px;
+}
+
+.faq-howto__step {
+  counter-increment: faq-howto;
+  position: relative;
+  padding-left: 40px;
+}
+
+.faq-howto__step::before {
+  content: counter(faq-howto);
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #eef3ff;
+  color: #2a78d6;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.faq-howto__step-name {
+  display: block;
+  color: #23324a;
+  font-size: 15px;
+}
+
+.faq-howto__step-text {
+  display: block;
+  margin-top: 2px;
+  color: #55627a;
+  font-size: 14px;
+  line-height: 1.55;
 }

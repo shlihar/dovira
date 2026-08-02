@@ -1,10 +1,51 @@
 @extends('static.layout')
 
-@section('title', 'PRO акаунт — DOVIRA')
+@php
+    $stats = $stats ?? [];
+
+    // Гість спершу реєструється, авторизований — одразу в кабінет.
+    $isAuthed = auth()->check();
+    $proPrimaryUrl = $isAuthed ? route('pro.account') : route('register');
+    $proClaimUrl = $isAuthed ? route('pro.account', ['tab' => 'claims']) : route('register');
+    $proPrimaryLabel = $isAuthed ? 'Відкрити PRO кабінет' : 'Підключити PRO';
+@endphp
+
+@section('title', 'Для бізнесу — DOVIRA PRO: клієнти з каталогу відгуків')
+@section('description', 'PRO-профіль на DOVIRA: пріоритет у каталозі, офіційні відповіді на відгуки та аналітика звернень. Профіль індексується в Google — люди знаходять вас за назвою і послугами.')
+@section('canonical', route('pro'))
 @section('body_class', 'page-pro')
 
 @push('head')
-    <link rel="stylesheet" href="{{ asset('static/css/pages/pro.css') }}">
+    <link rel="stylesheet" href="{{ asset('static/css/pages/pro.css') }}?v={{ @filemtime(public_path('static/css/pages/pro.css')) }}">
+    @php
+        $proOfferSchema = [
+            '@context' => 'https://schema.org',
+            '@type' => 'Product',
+            'name' => 'DOVIRA PRO',
+            'description' => 'PRO-підписка для компаній і спеціалістів на платформі DOVIRA: пріоритет у каталозі, офіційні відповіді на відгуки та аналітика звернень.',
+            'brand' => ['@type' => 'Brand', 'name' => 'DOVIRA'],
+            'url' => route('pro'),
+            'offers' => [
+                [
+                    '@type' => 'Offer',
+                    'name' => 'START',
+                    'description' => 'Базова присутність у каталозі: профіль, рейтинг, відгуки та форма заявки від клієнтів — безкоштовно.',
+                    'price' => '0',
+                    'priceCurrency' => 'UAH',
+                    'url' => route('pro') . '#pro-pricing',
+                ],
+                [
+                    '@type' => 'Offer',
+                    'name' => 'PRO — стартова пропозиція',
+                    'description' => 'Повний PRO-доступ на 6 місяців за стартовою ціною: пріоритет у каталозі, офіційні відповіді, аналітика та захист репутації. Ціна фіксується назавжди при продовженні.',
+                    'price' => (string) \App\Support\ProPricing::DISPLAY_CURRENT,
+                    'priceCurrency' => \App\Support\ProPricing::DISPLAY_CURRENCY,
+                    'url' => route('pro') . '#pro-pricing',
+                ],
+            ],
+        ];
+    @endphp
+    <script type="application/ld+json">@json($proOfferSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)</script>
 @endpush
 
 @section('content')
@@ -14,316 +55,279 @@
                 <section class="pro-hero" aria-labelledby="pro-hero-title">
 
                     <div class="pro-hero__content">
-                        <span class="pro-hero__badge">Професійний кабінет</span>
+                        <span class="pro-hero__badge">Для компаній і спеціалістів</span>
                         <h1 class="pro-hero__title" id="pro-hero-title">
-                            Керуйте репутацією професійно <br>
-                            з PRO-акаунтом
+                            Клієнти вже шукають вас
                         </h1>
                         <p class="pro-hero__subtitle">
-                            Підтверджуйте профіль, відповідайте на відгуки, працюйте зі зверненнями
-                            та будуйте публічну довіру в одному кабінеті.
+                            PRO піднімає профіль у видачі каталогу й дає офіційний голос у кожному відгуку.
+                            А сторінка профілю індексується в Google — вас знаходять і поза DOVIRA.
                         </p>
 
                         <div class="pro-hero__actions">
-                            <a class="btn dovira-btn pro-hero__btn" href="{{ route('login') }}">
-                                <span>Підключити PRO</span>
-                                <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+                            <a class="btn dovira-btn pro-hero__btn" href="{{ $proPrimaryUrl }}">
+                                <span>{{ $isAuthed ? 'Відкрити PRO кабінет' : 'Створити профіль' }}</span>
                             </a>
-                            <a class="btn dovira-btn pro-hero__btn pro-hero__btn--alt" href="#pro-features">
-                                <span>Переглянути можливості</span>
-                                <i class="fa-solid fa-layer-group" aria-hidden="true"></i>
+                            <a class="btn dovira-btn pro-hero__btn pro-hero__btn--alt" href="#pro-pricing">
+                                <span>Переглянути тарифи</span>
                             </a>
                         </div>
                     </div>
 
-                    <img
-                        class="pro-hero__side pro-hero__side--left"
-                        src="https://cdn.prod.website-files.com/66e3cafc52638c58d5c746f1/66e7b492babda97095c5f01a_boxes1.webp"
-                        srcset="https://cdn.prod.website-files.com/66e3cafc52638c58d5c746f1/66e7b492babda97095c5f01a_boxes1-p-500.webp 500w, https://cdn.prod.website-files.com/66e3cafc52638c58d5c746f1/66e7b492babda97095c5f01a_boxes1.webp 606w"
-                        sizes="(max-width: 606px) 100vw, 606px"
-                        loading="lazy"
-                        alt=""
-                        aria-hidden="true"
-                    >
-                    <img
-                        class="pro-hero__side pro-hero__side--right"
-                        src="https://cdn.prod.website-files.com/66e3cafc52638c58d5c746f1/66e7b492babda97095c5f01a_boxes1.webp"
-                        srcset="https://cdn.prod.website-files.com/66e3cafc52638c58d5c746f1/66e7b492babda97095c5f01a_boxes1-p-500.webp 500w, https://cdn.prod.website-files.com/66e3cafc52638c58d5c746f1/66e7b492babda97095c5f01a_boxes1.webp 606w"
-                        sizes="(max-width: 606px) 100vw, 606px"
-                        loading="lazy"
-                        alt=""
-                        aria-hidden="true"
-                    >
-
                     <div class="pro-hero__cards" aria-hidden="true">
-                        <article class="pro-stat-card pro-stat-card--left">
-                            <div class="pro-benefit-card__head">
-                                <span class="pro-benefit-card__icon">
-                                    <i class="fa-solid fa-circle-check"></i>
-                                </span>
-                                <span class="pro-benefit-card__tag">PRO STATUS</span>
-                            </div>
-                            <h3 class="pro-benefit-card__title">Підтверджений профіль</h3>
-                            <p class="pro-benefit-card__text">Бейдж довіри, верифікація реквізитів та офіційний статус у каталозі.</p>
-                            <div class="pro-benefit-card__visual pro-benefit-card__visual--verified">
-                                <span class="profile-chip profile-chip--verified">
-                                    <i class="fa-solid fa-circle-check" aria-hidden="true"></i> Перевірений акаунт
-                                </span>
-                                <span class="profile-chip profile-chip--pro">
-                                    <i class="fa-solid fa-shield-halved" aria-hidden="true"></i> PRO
-                                </span>
+                        <article class="pro-hero-card">
+                            <span class="pro-hero-card__icon"><i class="fa-solid fa-arrow-trend-up"></i></span>
+                            <h3 class="pro-hero-card__title">Вище за конкурентів</h3>
+                            <p class="pro-hero-card__text">PRO-профілі — першими у видачі за категорією і містом.</p>
+                            <div class="pro-hero-card__visual">
+                                <div class="pro-rank-row pro-rank-row--you">
+                                    <span class="pro-rank-row__pos">1</span>
+                                    <span class="pro-rank-row__name">Ваша компанія</span>
+                                    <span class="pro-rank-row__pro">PRO</span>
+                                </div>
+                                <div class="pro-rank-row">
+                                    <span class="pro-rank-row__pos">2</span>
+                                    <span class="pro-rank-row__name">Конкурент</span>
+                                </div>
                             </div>
                         </article>
 
-                        <article class="pro-stat-card pro-stat-card--center">
-                            <div class="pro-benefit-card__head">
-                                <span class="pro-benefit-card__icon">
-                                    <i class="fa-solid fa-arrow-trend-up"></i>
-                                </span>
-                                <span class="pro-benefit-card__tag">SEARCH BOOST</span>
-                            </div>
-                            <h3 class="pro-benefit-card__title">Вища позиція в пошуку</h3>
-                            <p class="pro-benefit-card__text">PRO-профілі ранжуються вище в релевантній видачі та картках регіону.</p>
-                            <div class="pro-benefit-card__visual pro-benefit-card__visual--reviews">
-                                <picture class="pro-benefit-card__reviews-picture" aria-hidden="true">
-                                    <source media="(max-width: 760px)" srcset="{{ asset('static/assets/rev-list-mb.png') }}">
-                                    <img src="{{ asset('static/assets/rev-list-full.png') }}" alt="" class="pro-benefit-card__reviews-image" loading="lazy">
-                                </picture>
+                        <article class="pro-hero-card">
+                            <span class="pro-hero-card__icon"><i class="fa-solid fa-comments"></i></span>
+                            <h3 class="pro-hero-card__title">Ваш голос у відгуках</h3>
+                            <p class="pro-hero-card__text">Офіційна відповідь компанії на кожен відгук.</p>
+                            <div class="pro-hero-card__visual">
+                                <div class="pro-rank-row pro-rank-row--reply">
+                                    <span class="pro-rank-row__reply-icon"><i class="fa-solid fa-reply"></i></span>
+                                    <span class="pro-rank-row__name">Офіційна відповідь<em>від представника компанії</em></span>
+                                </div>
                             </div>
                         </article>
 
-                        <article class="pro-stat-card pro-stat-card--right">
-                            <div class="pro-benefit-card__head">
-                                <span class="pro-benefit-card__icon">
-                                    <i class="fa-solid fa-comments"></i>
-                                </span>
-                                <span class="pro-benefit-card__tag">REPUTATION</span>
-                            </div>
-                            <h3 class="pro-benefit-card__title">Модерація і відповідь на відгуки</h3>
-                            <p class="pro-benefit-card__text">Швидке опрацювання звернень, публічні відповіді та керування репутацією.</p>
-                            <div class="pro-benefit-card__visual pro-benefit-card__visual--moderation">
-                                <div class="pro-moderation-card">
-                                    <span class="pro-moderation-card__icon-wrap">
-                                        <i class="fa-solid fa-comment-dots"></i>
-                                        <span class="pro-moderation-card__badge">12</span>
-                                    </span>
-                                    <span class="pro-moderation-card__text-wrap">
-                                        <strong class="pro-moderation-card__title">Нові відгуки</strong>
-                                        <span class="pro-moderation-card__meta">чекають відповіді</span>
-                                    </span>
+                        <article class="pro-hero-card">
+                            <span class="pro-hero-card__icon"><i class="fa-solid fa-chart-line"></i></span>
+                            <h3 class="pro-hero-card__title">Видно результат</h3>
+                            <p class="pro-hero-card__text">Перегляди, кліки на контакти та джерела звернень.</p>
+                            <div class="pro-hero-card__visual">
+                                <div class="pro-rank-row pro-rank-row--stat">
+                                    <span class="pro-rank-row__name">Кліки на контакти</span>
+                                    <b class="pro-rank-row__value"><i class="fa-solid fa-arrow-up"></i> +38%</b>
                                 </div>
                             </div>
                         </article>
                     </div>
                 </section>
 
-                <section class="pro-unlock" id="pro-features" aria-labelledby="pro-unlock-title">
-                    <div class="container">
-                    <div class="pro-unlock__head">
-                        <h2 class="pro-unlock__title" id="pro-unlock-title">
-                            Розкрийте силу вашого
-                            <span>PRO-профілю</span>
-                        </h2>
-                        <a class="btn dovira-btn pro-unlock__cta" href="{{ route('login') }}">
-                            <span>Підключити PRO</span>
-                            <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
-                        </a>
+                <section class="prol-steps" aria-labelledby="prol-steps-title" id="pro-features">
+                    <div class="prol-section-head">
+                        <h2 id="prol-steps-title">Три кроки до перших звернень</h2>
+                        <p>Старт безкоштовний — PRO вмикається, коли будете готові.</p>
                     </div>
 
-                    <div class="pro-unlock__stats">
-                        <article class="pro-unlock-card">
-                            <div class="pro-unlock-card__icon">
-                                <i class="fa-solid fa-users"></i>
-                            </div>
-                            <div class="pro-unlock-card__content">
-                                <strong>2500<span>+</span></strong>
-                                <p> Користувачів щомісяця переглядають профілі</p>
-                            </div>
+                    <div class="prol-steps__row">
+                        <article class="prol-step">
+                            <span class="prol-step__num">1</span>
+                            <h3>Знайдіть свій профіль</h3>
+                            <p>Ваша компанія може вже бути в каталозі — люди бачать її і без вас. Підтвердьте права безкоштовно — а керування сторінкою відкриє PRO.</p>
                         </article>
 
-                        <article class="pro-unlock-card">
-                            <div class="pro-unlock-card__icon">
-                                <i class="fa-solid fa-comments-dollar"></i>
-                            </div>
-                            <div class="pro-unlock-card__content">
-                                <strong>1200<span>+</span></strong>
-                                <p> Нових звернень через відгуки і каталог</p>
-                            </div>
+                        <article class="prol-step">
+                            <span class="prol-step__num">2</span>
+                            <h3>Оформіть сторінку</h3>
+                            <p>Додайте послуги, фото, контакти й переваги — профіль почне працювати як вітрина вашого бізнесу.</p>
                         </article>
 
-                        <article class="pro-unlock-card">
-                            <div class="pro-unlock-card__icon">
-                                <i class="fa-solid fa-star"></i>
-                            </div>
-                            <div class="pro-unlock-card__content">
-                                <strong>4.9<span>/5.0</span></strong>
-                                <p> Середня оцінка активних PRO-профілів</p>
-                            </div>
+                        <article class="prol-step">
+                            <span class="prol-step__num">3</span>
+                            <h3>Перетворюйте перегляди на звернення</h3>
+                            <p>Люди порівнюють виконавців і звертаються до тих, кому довіряють. PRO підніме вас у видачі й покаже, звідки приходять клієнти.</p>
                         </article>
-                    </div>
                     </div>
                 </section>
 
-                <section class="section trust-proof pro-flow" id="pro-flow" aria-label="Як працює PRO кабінет">
-                    <div class="container">
-                        <div class="trust-proof__panel">
-                            <div class="pro-flow__head">
-                                <h2 class="pro-flow__main-title">
-                                    Як PRO-кабінет DOVIRA
-                                    <span>спрощує вашу роботу</span>
-                                </h2>
-                                <div class="section-divider pro-flow__divider"></div>
-                                <p class="pro-flow__sub muted">
-                                    Три прості кроки, які перетворюють профіль на повноцінний інструмент репутації.
-                                </p>
-                            </div>
+                <section class="prol-features" aria-labelledby="prol-features-title">
+                    <div class="prol-features__panel">
+                        <div class="prol-section-head">
+                            <h2 id="prol-features-title">Що дає PRO</h2>
+                            <p>Не просто позначка біля назви — інструменти, які перетворюють профіль на канал продажів.</p>
+                        </div>
 
-                            <div class="trust-proof__features">
-                                <article class="trust-proof__feature pro-flow__feature">
-                                    <div class="trust-proof__visual" aria-hidden="true">
-                                        <div class="trust-stack trust-stack--showcase">
-                                            <div class="trust-showcase trust-showcase--screen">
-                                                <img class="trust-showcase__image" src="{{ asset('static/assets/how1.jpg') }}" alt="">
-                                            </div>
-                                            <div class="trust-showcase trust-showcase--mini-image">
-                                                <div class="pro-flow-mini">
-                                                    <div class="pro-flow-mini__icon"><i class="fa-solid fa-users"></i></div>
-                                                    <div class="pro-flow-mini__body">
-                                                        <p>Total users</p>
-                                                        <strong>25k+</strong>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
+                        <div class="prol-features__grid">
+                            <article class="prol-feature">
+                                <span class="prol-feature__icon prol-feature__icon--blue"><i class="fa-solid fa-arrow-trend-up" aria-hidden="true"></i></span>
+                                <div>
+                                    <h3>Вас знаходять першими</h3>
+                                    <p>PRO-профілі показуються вище у видачі каталогу та в підказках пошуку. Профіль також індексується Google і видимий для AI-пошуку — ChatGPT, Gemini, Perplexity.</p>
+                                </div>
+                            </article>
 
-                                    <div class="trust-proof__copy">
-                                        <div class="pro-flow__num">1</div>
-                                        <h3 class="trust-proof__feature-title">Профіль, якому довіряють</h3>
-                                        <p class="trust-proof__feature-text">
-                                            PRO-акаунт додає сторінці професійний статус, підтверджені елементи профілю та публічну ознаку активної присутності на платформі.
-                                        </p>
-                                        <div class="pro-flow__chips">
-                                            <span class="pro-flow__pill"><i class="fa-solid fa-circle-check"></i> Підтверджений статус</span>
-                                            <span class="pro-flow__pill"><i class="fa-solid fa-shield-halved"></i> Офіційна сторінка</span>
-                                        </div>
-                                        <a class="trust-proof__btn" href="{{ route('login') }}">
-                                            <span>Дізнатись більше</span>
-                                            <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
-                                        </a>
-                                    </div>
-                                </article>
+                            <article class="prol-feature">
+                                <span class="prol-feature__icon prol-feature__icon--green"><i class="fa-solid fa-comments" aria-hidden="true"></i></span>
+                                <div>
+                                    <h3>Ваш голос у кожному відгуку</h3>
+                                    <p>Офіційна відповідь компанії — подяка чи аргументована позиція — працює на довіру публічно.</p>
+                                </div>
+                            </article>
 
-                                <article class="trust-proof__feature pro-flow__feature">
-                                    <div class="trust-proof__visual" aria-hidden="true">
-                                        <div class="trust-stack trust-stack--showcase">
-                                            <div class="trust-showcase trust-showcase--screen">
-                                                <img class="trust-showcase__image" src="{{ asset('static/assets/how2.png') }}" alt="">
-                                            </div>
-                                            <div class="trust-showcase trust-showcase--mini-image">
-                                                <div class="pro-flow-mini">
-                                                    <div class="pro-flow-mini__icon"><i class="fa-solid fa-circle-check"></i></div>
-                                                    <div class="pro-flow-mini__body">
-                                                        <p>Import data</p>
-                                                        <strong>Успішно</strong>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
+                            <article class="prol-feature">
+                                <span class="prol-feature__icon prol-feature__icon--violet"><i class="fa-solid fa-chart-line" aria-hidden="true"></i></span>
+                                <div>
+                                    <h3>Рішення на цифрах</h3>
+                                    <p>Перегляди, кліки на телефон і сайт, джерела трафіку — видно, що саме приводить клієнтів.</p>
+                                </div>
+                            </article>
 
-                                    <div class="trust-proof__copy">
-                                        <div class="pro-flow__num">2</div>
-                                        <h3 class="trust-proof__feature-title">Відповідайте на відгуки</h3>
-                                        <p class="trust-proof__feature-text">
-                                            Публічні відповіді допомагають пояснювати позицію профілю, коректно реагувати на відгуки та показувати відповідальний підхід до комунікації.
-                                        </p>
-                                        <div class="pro-flow__chips">
-                                            <span class="pro-flow__pill"><i class="fa-solid fa-comments"></i> Офіційні відповіді</span>
-                                            <span class="pro-flow__pill"><i class="fa-solid fa-bullhorn"></i> Публічна позиція</span>
-                                        </div>
-                                        <a class="trust-proof__btn btn" href="{{ route('pro') }}#pro-features">
-                                            <span>Дізнатись більше</span>
-                                            <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
-                                        </a>
-                                    </div>
-                                </article>
+                            <article class="prol-feature">
+                                <span class="prol-feature__icon prol-feature__icon--amber"><i class="fa-regular fa-id-card" aria-hidden="true"></i></span>
+                                <div>
+                                    <h3>Повноцінна вітрина</h3>
+                                    <p>Фото, галерея, послуги, переваги, FAQ і SEO-дані публічної сторінки.</p>
+                                </div>
+                            </article>
 
-                                <article class="trust-proof__feature pro-flow__feature">
-                                    <div class="trust-proof__visual" aria-hidden="true">
-                                        <div class="trust-stack trust-stack--showcase">
-                                            <div class="trust-showcase trust-showcase--screen">
-                                                <img class="trust-showcase__image" src="{{ asset('static/assets/how3.png') }}" alt="">
-                                            </div>
-                                            <div class="trust-showcase trust-showcase--mini-image">
-                                                <div class="pro-flow-mini">
-                                                    <div class="pro-flow-mini__icon"><i class="fa-solid fa-chart-line"></i></div>
-                                                    <div class="pro-flow-mini__body">
-                                                        <p>Amount</p>
-                                                        <strong>$50,782</strong>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
+                            <article class="prol-feature">
+                                <span class="prol-feature__icon prol-feature__icon--green"><i class="fa-solid fa-scale-balanced" aria-hidden="true"></i></span>
+                                <div>
+                                    <h3>Захист від несправедливого</h3>
+                                    <p>Окремий механізм звернень щодо фейкових чи образливих відгуків — розгляд за правилами.</p>
+                                </div>
+                            </article>
 
-                                    <div class="trust-proof__copy">
-                                        <div class="pro-flow__num">3</div>
-                                        <h3 class="trust-proof__feature-title">Усе в одному кабінеті</h3>
-                                        <p class="trust-proof__feature-text">
-                                            Керуйте зверненнями, перевірками, документами та іншими репутаційними процесами з одного професійного кабінету без зайвого хаосу.
-                                        </p>
-                                        <div class="pro-flow__chips">
-                                            <span class="pro-flow__pill"><i class="fa-solid fa-briefcase"></i> Кейси і звернення</span>
-                                            <span class="pro-flow__pill"><i class="fa-solid fa-folder-open"></i> Документи і статуси</span>
-                                        </div>
-                                        <a class="trust-proof__btn" href="{{ route('pro') }}#pro-flow">
-                                            <span>Дізнатись більше</span>
-                                            <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
-                                        </a>
-                                    </div>
-                                </article>
-                            </div>
+                            <article class="prol-feature">
+                                <span class="prol-feature__icon prol-feature__icon--violet"><i class="fa-solid fa-code" aria-hidden="true"></i></span>
+                                <div>
+                                    <h3>Віджет рейтингу на ваш сайт</h3>
+                                    <p>Бейдж із живим рейтингом і відгуками для вашого сайту та соцмереж — готовий код у кабінеті. Довіра з DOVIRA працює й на вашій сторінці.</p>
+                                </div>
+                            </article>
+                        </div>
+
+                        <div class="prol-features__cta">
+                            <a class="btn btn--primary" href="{{ $proPrimaryUrl }}">
+                                <span>{{ $proPrimaryLabel }}</span>
+                                <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                            </a>
+                            <a class="prol-link" href="#pro-pricing">
+                                <span>Переглянути тарифи</span>
+                                <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                            </a>
                         </div>
                     </div>
                 </section>
 
-                <section class="section pro-demo" id="pro-demo" aria-labelledby="pro-demo-title">
-                    <div class="container">
-                        <div class="pro-demo__head">
-                            <h2 class="h2 pro-demo__title" id="pro-demo-title">
-                                Демонстрація <span>PRO-панелі</span> 
-                            </h2>
-                            <div class="section-divider pro-demo__divider"></div>
-                            <p class="pro-demo__sub muted">
-                                Перегляньте, як виглядає робота з репутацією в інтерфейсі PRO-кабінету.
+                <section class="prol-demo" aria-label="Як PRO виглядає в дії">
+                    <div class="prol-section-head">
+                        <h2>Як це працює для вашого бізнесу</h2>
+                        <p>Вас знаходять, вам довіряють — і ви бачите результат.</p>
+                    </div>
+
+                    <div class="prol-demo__row">
+                        <div class="prol-demo__copy">
+                            <p class="prol-pill"><span>1</span> Каталог</p>
+                            <h3>Вас знаходять у каталозі</h3>
+                            <p class="prol-demo__text">
+                                Люди шукають виконавців за категорією і містом — і бачать ваш профіль.
+                            </p>
+                            <ul class="prol-demo__list">
+                                <li><i class="fa-solid fa-check" aria-hidden="true"></i><span>Профіль у видачі каталогу та пошуку</span></li>
+                                <li><i class="fa-solid fa-check" aria-hidden="true"></i><span>Сторінка індексується в Google — вас знаходять за назвою і послугами</span></li>
+                                <li><i class="fa-solid fa-check" aria-hidden="true"></i><span>Рейтинг і кількість відгуків видно одразу</span></li>
+                                <li><i class="fa-solid fa-check" aria-hidden="true"></i><span>PRO піднімає вас вище за конкурентів</span></li>
+                            </ul>
+                            <div class="prol-demo__actions">
+                                <a class="btn btn--primary" href="{{ $proClaimUrl }}">
+                                    <span>Додати свою компанію</span>
+                                    <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                                </a>
+                            </div>
+                            <p class="prol-demo__note">
+                                <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+                                Підтвердження прав — безкоштовне
                             </p>
                         </div>
 
-                        <div class="pro-demo__stage">
-                            <span class="pro-demo__tag pro-demo__tag--live">
-                                <i class="fa-solid fa-circle-play" aria-hidden="true"></i>
-                                Live demo
-                            </span>
-
-                            <div class="pro-demo__screen">
-                                <video
-                                    class="pro-demo__video"
-                                    autoplay
-                                    muted
-                                    loop
-                                    playsinline
-                                    preload="metadata"
-                                    poster="{{ asset('static/assets/pro-demo-poster.jpg') }}"
-                                >
-                                    <source src="{{ asset('static/assets/pro-demo-panel.mp4') }}" type="video/mp4">
-                                </video>
+                        <div class="prol-demo__visual" aria-hidden="true">
+                            <div class="prol-photo">
+                                <img src="{{ asset('static/assets/fp1.jpg') }}" alt="" loading="lazy">
                             </div>
+                            <div class="prol-chip prol-chip--left">
+                                <i class="fa-solid fa-arrow-trend-up" aria-hidden="true"></i>
+                                <span>PRO — вище у видачі</span>
+                            </div>
+                        </div>
+                    </div>
 
-                            <span class="pro-demo__tag pro-demo__tag--pro">
-                                <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
-                                PRO Dashboard
-                            </span>
+                    <div class="prol-demo__row prol-demo__row--reverse">
+                        <div class="prol-demo__copy">
+                            <p class="prol-pill"><span>2</span> Ваша сторінка</p>
+                            <h3>Клієнт бачить, чому вам можна довіряти</h3>
+                            <p class="prol-demo__text">
+                                Одна сторінка відповідає на всі питання клієнта перед зверненням.
+                            </p>
+                            <ul class="prol-demo__list">
+                                <li><i class="fa-solid fa-check" aria-hidden="true"></i><span>Послуги, фото, переваги й контакти</span></li>
+                                <li><i class="fa-solid fa-check" aria-hidden="true"></i><span>Відгуки з вашими офіційними відповідями</span></li>
+                                <li><i class="fa-solid fa-check" aria-hidden="true"></i><span>Статуси довіри — «Перевірений акаунт» і PRO</span></li>
+                            </ul>
+                            <div class="prol-demo__actions">
+                                <a class="btn btn--primary" href="{{ $proPrimaryUrl }}">
+                                    <span>Оформити свою сторінку</span>
+                                    <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                                </a>
+                                <a class="prol-link" href="{{ route('catalog') }}">
+                                    <span>Подивитись приклади</span>
+                                    <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="prol-demo__visual" aria-hidden="true">
+                            <div class="prol-photo">
+                                <img src="{{ asset('static/assets/fp2.webp') }}" alt="" loading="lazy">
+                            </div>
+                            <div class="prol-chip prol-chip--right">
+                                <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+                                <span>Перевірений акаунт</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="prol-demo__row">
+                        <div class="prol-demo__copy">
+                            <p class="prol-pill"><span>3</span> Аналітика</p>
+                            <h3>Ви бачите, що приводить звернення</h3>
+                            <p class="prol-demo__text">
+                                PRO-кабінет показує шлях клієнта до вас — без здогадок.
+                            </p>
+                            <ul class="prol-demo__list">
+                                <li><i class="fa-solid fa-check" aria-hidden="true"></i><span>Перегляди й унікальні відвідувачі</span></li>
+                                <li><i class="fa-solid fa-check" aria-hidden="true"></i><span>Кліки на телефон, сайт і email</span></li>
+                                <li><i class="fa-solid fa-check" aria-hidden="true"></i><span>Джерела трафіку та нові відгуки</span></li>
+                            </ul>
+                            <div class="prol-demo__actions">
+                                <a class="btn btn--primary" href="{{ $proPrimaryUrl }}">
+                                    <span>{{ $proPrimaryLabel }}</span>
+                                    <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                                </a>
+                                <a class="prol-link" href="#pro-pricing">
+                                    <span>Тарифи</span>
+                                    <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                                </a>
+                            </div>
+                            <p class="prol-demo__note">
+                                <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+                                Скасування підписки будь-коли
+                            </p>
+                        </div>
+
+                        <div class="prol-demo__visual" aria-hidden="true">
+                            <div class="prol-photo">
+                                <img src="{{ asset('static/assets/fp3.jpg') }}" alt="" loading="lazy">
+                            </div>
+                            <div class="prol-chip prol-chip--right">
+                                <i class="fa-solid fa-arrow-trend-up" aria-hidden="true"></i>
+                                <span>Кліки на контакти</span>
+                            </div>
                         </div>
                     </div>
                 </section>
@@ -332,88 +336,75 @@
                     <div class="container">
                         <div class="pro-pricing__head">
                             <h2 class="h2 pro-pricing__title" id="pro-pricing-title">
-                                Тарифи <span>PRO-акаунту</span>
+                                Формати <span>доступу</span>
                             </h2>
                             <div class="section-divider pro-pricing__divider"></div>
                             <p class="pro-pricing__sub muted">
-                                Оберіть формат підключення під ваш обсяг роботи та рівень публічної присутності.
+                                Профіль у каталозі, відгуки та підтвердження прав — безкоштовно. Керування сторінкою, контакти й аналітика відкриваються з PRO.
                             </p>
 
-                            <div class="pro-pricing__switch" role="tablist" aria-label="Період оплати">
-                                <button class="pro-pricing__switch-btn is-active" type="button" role="tab" aria-selected="true" data-billing-toggle="monthly">Щомісяця</button>
-                                <button class="pro-pricing__switch-btn" type="button" role="tab" aria-selected="false" data-billing-toggle="yearly">Щороку</button>
-                            </div>
+                            <p class="pro-pricing__promo">
+                                <i class="fa-solid fa-bolt" aria-hidden="true"></i>
+                                <span>Стартова пропозиція діє лише <strong>3 дні</strong> — далі вартість буде {{ \App\Support\ProPricing::formatDisplay(\App\Support\ProPricing::DISPLAY_FUTURE) }}</span>
+                            </p>
                         </div>
 
                         <div class="pro-pricing__grid">
                             <article class="pro-price-card">
                                 <div class="pro-benefit-card__head pro-price-card__head">
                                     <span class="pro-benefit-card__icon"><i class="fa-solid fa-star"></i></span>
-                                    <span class="pro-benefit-card__tag">FREE</span>
+                                    <span class="pro-benefit-card__tag">START</span>
                                 </div>
                                 <p class="pro-price-card__price">
-                                    <span data-price-amount data-monthly="0" data-yearly="0">0</span>
-                                    <small data-price-period data-monthly="грн" data-yearly="грн">грн</small>
+                                    <span>{{ \App\Support\ProPricing::formatDisplay(0) }}</span>
+                                    <small>назавжди</small>
                                 </p>
-                                <p class="pro-price-card__text">Базовий тариф для старту: офіційна присутність профілю та ключова підтримка.</p>
+                                <p class="pro-price-card__text">Базова присутність у каталозі DOVIRA: сторінка профілю, рейтинг і відгуки.</p>
                                 <ul class="pro-price-card__list">
-                                    <li><i class="fa-solid fa-circle-check"></i> Підтверджений статус</li>
-                                    <li><i class="fa-solid fa-circle-check"></i> Базова статистика профілю</li>
-                                    <li><i class="fa-solid fa-circle-check"></i> Email-підтримка</li>
-                                    <li><i class="fa-solid fa-circle-check"></i> Публічна сторінка в каталозі</li>
+                                    <li><i class="fa-solid fa-circle-check"></i> Сторінка профілю в каталозі</li>
+                                    <li><i class="fa-solid fa-circle-check"></i> Підтвердження прав на профіль</li>
+                                    <li><i class="fa-solid fa-circle-check"></i> Рейтинг і відгуки клієнтів</li>
+                                    <li><i class="fa-solid fa-circle-check"></i> Форма «Залишити заявку» від клієнтів</li>
+                                    <li><i class="fa-solid fa-circle-check"></i> Видимість у каталозі та індексація в Google</li>
+                                    <li><i class="fa-solid fa-circle-check"></i> Віджет рейтингу для вашого сайту й соцмереж</li>
                                 </ul>
-                                <a class="btn pro-price-card__btn pro-price-card__btn--ghost" href="{{ route('login') }}">
+                                <a class="btn pro-price-card__btn pro-price-card__btn--ghost" href="{{ $proPrimaryUrl }}">
                                     <span>Почати безкоштовно</span>
                                     <i class="fa-solid fa-arrow-right"></i>
                                 </a>
                             </article>
 
                             <article class="pro-price-card pro-price-card--featured">
-                               
-                                <div class="pro-benefit-card__head pro-price-card__head">
-                                    <span class="pro-benefit-card__icon"><i class="fa-solid fa-crown"></i></span>
-                                    <span class="pro-benefit-card__tag">BUSINESS</span>
-                                     <div class="pro-price-card__badge">Рекомендовано</div>
-                                </div>
-                                <p class="pro-price-card__price">
-                                    <span data-price-amount data-monthly="2990" data-yearly="29900">2990</span>
-                                    <small data-price-period data-monthly="грн / міс" data-yearly="грн / рік">грн / міс</small>
-                                </p>
-                                <p class="pro-price-card__text">Для команд і компаній з великим потоком звернень та складними кейсами.</p>
-                                <ul class="pro-price-card__list">
-                                    <li><i class="fa-solid fa-circle-check"></i> Пріоритетна модерація</li>
-                                    <li><i class="fa-solid fa-circle-check"></i> Документи та статуси в кабінеті</li>
-                                    <li><i class="fa-solid fa-circle-check"></i> Модерація та видалення відгуків</li>
-                                    <li><i class="fa-solid fa-circle-check"></i> Персональна підтримка</li>
-                                </ul>
-                                <a class="btn pro-price-card__btn pro-price-card__btn--primary" href="{{ route('login') }}">
-                                    <span>Підключити Business</span>
-                                    <i class="fa-solid fa-arrow-right"></i>
-                                </a>
-                            </article>
-
-                            <article class="pro-price-card">
                                 <div class="pro-benefit-card__head pro-price-card__head">
                                     <span class="pro-benefit-card__icon"><i class="fa-solid fa-shield-halved"></i></span>
                                     <span class="pro-benefit-card__tag">PRO</span>
+                                    <div class="pro-price-card__badge">Стартова пропозиція</div>
                                 </div>
                                 <p class="pro-price-card__price">
-                                    <span data-price-amount data-monthly="1490" data-yearly="14900">1490</span>
-                                    <small data-price-period data-monthly="грн / міс" data-yearly="грн / рік">грн / міс</small>
+                                    <s class="pro-price-card__old">{{ \App\Support\ProPricing::formatDisplay(\App\Support\ProPricing::DISPLAY_FUTURE) }}</s>
+                                    <span>{{ \App\Support\ProPricing::formatDisplay(\App\Support\ProPricing::DISPLAY_CURRENT) }}</span>
+                                    <small>/ 6 місяців</small>
                                 </p>
-                                <p class="pro-price-card__text">Тариф для активної репутаційної роботи з видимістю та публічною комунікацією.</p>
+                                <p class="pro-price-card__text">Стартова ціна на запуску платформи, разовий платіж за 6 місяців. <strong>Фіксуємо її назавжди:</strong> при продовженні ви платите ті самі {{ \App\Support\ProPricing::formatDisplay(\App\Support\ProPricing::DISPLAY_CURRENT) }}, навіть коли тариф коштуватиме {{ \App\Support\ProPricing::formatDisplay(\App\Support\ProPricing::DISPLAY_FUTURE) }}.</p>
                                 <ul class="pro-price-card__list">
-                                    <li><i class="fa-solid fa-circle-check"></i> Пріоритет у пошуку</li>
+                                    <li><i class="fa-solid fa-circle-check"></i> Повне керування сторінкою профілю</li>
+                                    <li><i class="fa-solid fa-circle-check"></i> Контакти на сторінці: телефон, сайт, соцмережі</li>
+                                    <li><i class="fa-solid fa-circle-check"></i> Контакти клієнтів із заявок</li>
+                                    <li><i class="fa-solid fa-circle-check"></i> Пріоритет у каталозі й пошуку</li>
                                     <li><i class="fa-solid fa-circle-check"></i> Публічні відповіді на відгуки</li>
-                                    <li><i class="fa-solid fa-circle-check"></i> Статус PRO</li>
-                                    <li><i class="fa-solid fa-circle-check"></i> Розширена статистика профілю</li>
+                                    <li><i class="fa-solid fa-circle-check"></i> Аналітика переглядів, кліків і CTR</li>
                                 </ul>
-                                <a class="btn pro-price-card__btn pro-price-card__btn--ghost" href="{{ route('login') }}">
-                                    <span>Підключити PRO</span>
+                                <a class="btn pro-price-card__btn pro-price-card__btn--primary" href="{{ $proPrimaryUrl }}">
+                                    <span>{{ $proPrimaryLabel }}</span>
                                     <i class="fa-solid fa-arrow-right"></i>
                                 </a>
                             </article>
                         </div>
+
+                        <p class="muted" style="text-align: center; margin-top: 18px; font-size: 14px;">
+                            <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+                            Скасувати підписку можна будь-коли в кабінеті — профіль залишиться в каталозі на безкоштовному тарифі.
+                        </p>
                     </div>
                 </section>
 
@@ -422,7 +413,7 @@
                         <div class="faq__head">
                             <div class="badge faq__badge">FAQ PRO</div>
                             <h2 class="h2 faq__title">Поширені питання про PRO-акаунт</h2>
-                            <p class="muted faq__lead">Коротко про підключення, модерацію, відповіді на відгуки та умови тарифів.</p>
+                            <p class="muted faq__lead">Коротко про каталог, нових клієнтів, контактні дії, аналітику і підписку.</p>
                         </div>
 
                         <div class="faq__list">
@@ -430,46 +421,143 @@
                                 <summary class="faq__question">Що дає PRO-акаунт у порівнянні з безкоштовним профілем?</summary>
                                 <div class="faq__panel">
                                     <div class="faq__answer">
-                                        PRO відкриває розширені інструменти: пріоритет у пошуку, публічні відповіді на відгуки, модераційні функції та додаткову статистику для системної роботи з репутацією.
+                                        PRO посилює профіль як канал залучення клієнтів: дає пріоритет у каталозі та пошуку,
+                                        публічні відповіді на відгуки, детальну аналітику переглядів і контактних дій та сповіщення по ключових подіях.
                                     </div>
                                 </div>
                             </details>
 
                             <details class="faq__item">
-                                <summary class="faq__question">Як працює пріоритет у пошуку?</summary>
+                                <summary class="faq__question">Чи знаходять мій профіль у Google та AI-пошуку?</summary>
                                 <div class="faq__panel">
                                     <div class="faq__answer">
-                                        Профілі з PRO-статусом мають вищу видимість у релевантних результатах каталогу. Це допомагає користувачам швидше знаходити активні та офіційно керовані сторінки.
+                                        Так. Кожна публічна сторінка профілю на DOVIRA індексується Google та іншими пошуковиками:
+                                        вона потрапляє в sitemap, має структуровані дані Schema.org (рейтинг, відгуки, контакти),
+                                        тож у видачі профіль може показуватися із зірочками рейтингу. Сторінки також відкриті для
+                                        AI-пошуку — ChatGPT, Gemini і Perplexity можуть посилатися на ваш профіль, коли людина шукає
+                                        виконавця. Що повніший профіль і що більше в нього відгуків, то легше вас знайти.
                                     </div>
                                 </div>
                             </details>
 
                             <details class="faq__item">
-                                <summary class="faq__question">Чи можна відповідати на негативні або спірні відгуки?</summary>
+                                <summary class="faq__question">Чи гарантує DOVIRA нових клієнтів?</summary>
                                 <div class="faq__panel">
                                     <div class="faq__answer">
-                                        Так. У PRO-тарифах доступні публічні офіційні відповіді, щоб коректно пояснювати позицію, уточнювати контекст та вести відкриту комунікацію з аудиторією.
+                                        Ні, платформа не може гарантувати продажі. Але DOVIRA дає власнику PRO-профілю видимість у каталозі,
+                                        повну публічну сторінку з контактами й аналітику, щоб люди, які вже шукають послугу,
+                                        могли перейти до сайту, телефону, email або адреси чи залишити заявку.
                                     </div>
                                 </div>
                             </details>
 
                             <details class="faq__item">
-                                <summary class="faq__question">Що входить у модерацію та видалення відгуків?</summary>
+                                <summary class="faq__question">Що таке віджет рейтингу і навіщо він моєму сайту?</summary>
                                 <div class="faq__panel">
                                     <div class="faq__answer">
-                                        Для BUSINESS-тарифу доступні пріоритетні модераційні звернення, робота з кейсами та процедура перевірки сумнівних публікацій згідно правил платформи.
+                                        Віджет — це бейдж або інтерактивна картка з вашим живим рейтингом на DOVIRA,
+                                        яку можна вставити на власний сайт чи додати посиланням у соцмережі. Готовий код —
+                                        у кабінеті на вкладці «Огляд». Відвідувачі вашого сайту бачать підтверджений рейтинг
+                                        і реальні відгуки — це знімає сумніви перед зверненням. А посилання між вашим сайтом
+                                        і профілем допомагає обом сторінкам у пошуку Google. Віджет доступний усім власникам
+                                        профілів, включно з безкоштовним тарифом.
                                     </div>
                                 </div>
                             </details>
 
                             <details class="faq__item">
-                                <summary class="faq__question">Чи можу я змінити тариф після підключення?</summary>
+                                <summary class="faq__question">Як працює прив'язка профілю?</summary>
                                 <div class="faq__panel">
                                     <div class="faq__answer">
-                                        Так, тариф можна змінити в особистому кабінеті. Під час зміни зберігаються ваші дані профілю, історія звернень та ключові налаштування сторінки.
+                                        У кабінеті можна знайти потрібний профіль через пошук, подати заявку на прив'язку
+                                        і відстежувати її статус. Для підтвердження прав на профіль система підтримує дозавантаження доказів.
+                                        Підтвердження прав безкоштовне; керування сторінкою (редагування, відповіді, контакти)
+                                        відкривається з PRO-підпискою.
                                     </div>
                                 </div>
                             </details>
+
+                            <details class="faq__item">
+                                <summary class="faq__question">Що саме можна редагувати в публічному профілі?</summary>
+                                <div class="faq__panel">
+                                    <div class="faq__answer">
+                                        З активною PRO-підпискою — назву, slug, категорію, послуги, короткий і повний опис,
+                                        досьє, контакти, сайт, соцмережі, місто, фото, галерею, FAQ, переваги та SEO-дані сторінки.
+                                    </div>
+                                </div>
+                            </details>
+
+                            <details class="faq__item">
+                                <summary class="faq__question">Що саме доступно для роботи з відгуками?</summary>
+                                <div class="faq__panel">
+                                    <div class="faq__answer">
+                                        У кабінеті є список відгуків із фільтрами, пошуком і сортуванням. Для PRO-профілю
+                                        доступні офіційні відповіді, а також швидка зміна видимості відгуку в інтерфейсі.
+                                    </div>
+                                </div>
+                            </details>
+
+                            <details class="faq__item">
+                                <summary class="faq__question">Чи можна скасувати підписку PRO?</summary>
+                                <div class="faq__panel">
+                                    <div class="faq__answer">
+                                        Так, підписку можна скасувати будь-коли в кабінеті. Профіль при цьому не зникає —
+                                        він залишається в каталозі на безкоштовному тарифі: сторінка, рейтинг і відгуки видимі,
+                                        але контакти на сторінці, редагування й аналітика знову відкриються з PRO.
+                                    </div>
+                                </div>
+                            </details>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="prol-final" aria-labelledby="prol-final-title">
+                    <div class="prol-final__card">
+                        <div class="prol-final__glow" aria-hidden="true"></div>
+
+                        <div class="prol-final__copy">
+                            <span class="prol-final__eyebrow">
+                                <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+                                DOVIRA PRO
+                            </span>
+                            <h2 id="prol-final-title">Ваші клієнти вже читають відгуки</h2>
+                            <p>
+                                Питання лише в тому, що вони бачать про вас.
+                                Створіть профіль безкоштовно — PRO увімкнете, коли будете готові.
+                            </p>
+                            <div class="prol-final__actions">
+                                <a class="btn prol-final__btn" href="{{ $proPrimaryUrl }}">
+                                    <span>{{ $proPrimaryLabel }}</span>
+                                    <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                                </a>
+                                <a class="prol-final__link" href="#pro-pricing">
+                                    <span>Переглянути тарифи</span>
+                                    <i class="fa-solid fa-tags" aria-hidden="true"></i>
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="prol-final__visual" aria-hidden="true">
+                            <div class="prol-final__mini prol-final__mini--rating">
+                                <span class="prol-final__mini-icon"><i class="fa-solid fa-star"></i></span>
+                                <div>
+                                    <strong>4.9 із 5</strong>
+                                    <span>рейтинг вашого профілю</span>
+                                </div>
+                            </div>
+                            <div class="prol-final__mini prol-final__mini--review">
+                                <div class="prol-final__mini-stars">
+                                    <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                                </div>
+                                <p>«Обрала за відгуками — все зробили вчасно і якісно»</p>
+                            </div>
+                            <div class="prol-final__mini prol-final__mini--reply">
+                                <span class="prol-final__mini-icon prol-final__mini-icon--reply"><i class="fa-solid fa-reply"></i></span>
+                                <div>
+                                    <strong>Офіційна відповідь</strong>
+                                    <span>ваш голос у кожному відгуку</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </section>

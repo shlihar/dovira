@@ -5,16 +5,27 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
+        <link rel="icon" type="image/svg+xml" href="{{ asset('static/favicon.svg') }}">
+        <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('static/favicon-32.png') }}">
+        <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
+        <link rel="apple-touch-icon" href="{{ asset('static/apple-touch-icon.png') }}">
+
         <title>{{ config('app.name', 'Laravel') }}</title>
 
         <!-- Fonts -->
-        <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="font-sans antialiased">
+        <div class="app-page-skeleton" data-page-skeleton hidden aria-hidden="true">
+            <div class="app-page-skeleton__box"></div>
+            <div class="app-page-skeleton__box"></div>
+            <div class="app-page-skeleton__box"></div>
+        </div>
         <div class="min-h-screen bg-gray-100">
             @include('layouts.navigation')
 

@@ -1,0 +1,1076 @@
+.page-account .account-shell {
+  padding-top: calc(var(--header-h, 64px) + 20px);
+}
+
+.account-mobile-menu-btn,
+.account-mobile-overlay,
+.account-sidebar__close {
+  display: none;
+}
+
+.account-mobile-head {
+  display: none;
+}
+
+/* Тулбар тепер несе єдиний заголовок вкладки (hero-заголовки прибрані).
+   На десктопі — без гамбургера, лише заголовок сторінки. */
+.account-mobile-toolbar {
+  display: block;
+  margin: 0 0 16px;
+}
+
+.account-mobile-toolbar__title {
+  margin: 0;
+  color: #16305f;
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.account-layout {
+  display: grid;
+  grid-template-columns: 224px minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.account-sidebar,
+.account-main .card {
+  background: #fff;
+  border: 1px solid #d7e3f8;
+  border-radius: 12px;
+  box-shadow: 0 8px 22px rgba(16, 56, 136, 0.08);
+}
+
+.account-sidebar {
+  padding: 12px;
+  position: sticky;
+  top: calc(var(--header-h, 64px) + 14px);
+}
+
+.account-sidebar__title {
+  margin: 0 0 10px;
+  padding-right: 36px;
+  color: #123066;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.account-nav {
+  display: grid;
+  gap: 4px;
+}
+
+.account-sidebar__pro-btn {
+  margin-top: 10px;
+  width: 100%;
+}
+
+.account-nav__item {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: #3a4a67;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  text-decoration: none;
+  text-align: left;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  transition: background-color 0.18s ease, color 0.18s ease;
+}
+
+.account-nav__item:hover {
+  background: #f4f7ff;
+  color: #244d9e;
+}
+
+.account-nav__icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #334155;
+  font-size: 16px;
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.account-nav__icon--with-badge {
+  overflow: visible;
+}
+
+.account-nav__badge {
+  position: absolute;
+  top: -7px;
+  right: -7px;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: #ff3142;
+  color: #fff;
+  border: none;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+}
+
+.account-nav__text {
+  line-height: 1.2;
+}
+
+/* На десктопі/планшеті показуємо повну назву, коротку ховаємо.
+   У мобільному доці (нижче) робимо навпаки — там мало місця. */
+.account-nav__text-compact {
+  display: none;
+}
+
+.account-nav__item.is-active {
+  background: #eef4ff;
+  color: #1f5dd9;
+  font-weight: 700;
+}
+
+.account-nav__item.is-active .account-nav__icon {
+ 
+  color: #1f5dd9;
+
+}
+
+.account-main {
+  display: grid;
+  gap: 12px;
+}
+
+.account-alert {
+  margin: 0;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 13px;
+}
+
+.account-alert ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.account-alert--success {
+  background: #ebf9ef;
+  border: 1px solid #b9e6c4;
+  color: #1f7b4a;
+}
+
+.account-alert--error {
+  background: #fff2f4;
+  border: 1px solid #ffd2d9;
+  color: #ba3349;
+}
+
+.account-hero {
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.account-hero__avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 999px;
+  overflow: hidden;
+  border: 1px solid #d7e4fa;
+  background: #f4f8ff;
+  display: grid;
+  place-items: center;
+  color: #5475b2;
+  font-size: 18px;
+}
+
+.account-hero__avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.account-hero__avatar.is-fallback {
+  background: linear-gradient(145deg, #dceaff 0%, #4f92ff 100%);
+  color: #fff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.48), 0 10px 22px rgba(45, 98, 194, 0.18);
+}
+
+.account-hero__name {
+  margin: 0;
+  color: #112f63;
+  font-size: 24px;
+  line-height: 1.2;
+}
+
+.account-hero__email {
+  margin: 2px 0 0;
+  color: #627ca8;
+  font-size: 14px;
+}
+
+.account-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.account-stat {
+  padding: 12px;
+  display: grid;
+  gap: 3px;
+}
+
+.account-stat strong {
+  color: #1c4fb8;
+  font-size: 24px;
+  line-height: 1;
+}
+
+.account-stat span {
+  color: #6079a3;
+  font-size: 12px;
+}
+
+.account-block {
+  padding: 14px;
+}
+
+.account-block__head h2 {
+  margin: 0;
+  color: var(--c-heading);
+  font-size: 22px;
+}
+
+.account-block__head p {
+  margin: 4px 0 0;
+  color: #6882ad;
+  font-size: 13px;
+}
+
+.account-reviews {
+  display: grid;
+  gap: 12px;
+}
+
+.account-review-item {
+  padding: 16px 18px;
+  display: grid;
+  gap: 9px;
+}
+
+.account-review-item__top {
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.account-review-item__title {
+  margin: 0;
+  color: #16305f;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.account-review-item__meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #6c80a8;
+  font-size: 13px;
+}
+
+.account-review-item__rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #d8930b;
+  font-weight: 700;
+}
+
+.account-review-item__rating i {
+  font-size: 12px;
+}
+
+.account-review-item__sep {
+  color: #c3cee0;
+}
+
+.account-status {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  border-radius: 999px;
+  padding: 0 10px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.account-status.is-published {
+  border: 1px solid #b6e7c7;
+  color: #1b7f4a;
+  background: #ebf8ef;
+}
+
+.account-status.is-pending {
+  border: 1px solid #ffe6b2;
+  color: #996300;
+  background: #fff7e2;
+}
+
+.account-status.is-rejected {
+  border: 1px solid #ffc9d0;
+  color: #b23a4a;
+  background: #fff0f2;
+}
+
+.account-status.is-muted {
+  border: 1px solid #d5e0f6;
+  color: #5f769f;
+  background: #f5f8ff;
+}
+
+.account-review-item__text {
+  margin: 0;
+  color: #46597e;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.account-review-item__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.account-review-item__delete {
+  margin-left: auto;
+}
+
+.account-icon-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-btn);
+  border: 1px solid #d6e2f7;
+  background: #fff;
+  color: #4f6792;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease;
+}
+
+.account-icon-btn:hover {
+  border-color: #b8ccef;
+  color: #2d4f8f;
+}
+
+.account-icon-btn--danger {
+  border-color: #f4b4be;
+  color: #c34757;
+}
+
+.account-icon-btn--danger:hover {
+  border-color: #ec8f9f;
+  background: #fff6f7;
+  color: #aa2f42;
+}
+
+.account-review-edit summary {
+  list-style: none;
+}
+
+.account-review-edit summary::-webkit-details-marker {
+  display: none;
+}
+
+.account-review-edit__form {
+  margin-top: 8px;
+  display: grid;
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid #dbe6f9;
+  border-radius: 10px;
+}
+
+.account-review-edit__form label,
+.account-form label {
+  display: grid;
+  gap: 6px;
+}
+
+.account-review-edit__form span,
+.account-form span {
+  color: #234174;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.account-review-edit__form textarea,
+.account-review-edit__form select,
+.account-form input {
+  min-height: 36px;
+  border: 1px solid #cad9f5;
+  border-radius: 8px;
+  padding: 0 10px;
+  font: inherit;
+  color: #1d396d;
+  background: #fff;
+}
+
+.account-review-edit__form textarea {
+  min-height: 84px;
+  resize: vertical;
+  padding-top: 10px;
+}
+
+.account-form {
+  display: grid;
+  gap: 10px;
+}
+
+.account-form .btn {
+  justify-self: flex-start;
+}
+
+.account-form__submit {
+  min-width: 176px;
+  height: 38px;
+  padding: 0 16px;
+  border-radius: 10px !important;
+  box-shadow: 0 8px 18px rgba(31, 104, 255, 0.2);
+  font-size: 13px;
+}
+
+.account-btn--mini {
+  min-height: 32px;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: var(--radius-btn);
+  font-size: 12px;
+  font-weight: 600;
+  gap: 6px;
+}
+
+.account-btn--mini i {
+  font-size: 11px;
+}
+
+.account-review-item__actions .btn--ghost {
+  background: #fff;
+  border: 1px solid #d5e2f7;
+  color: #2e4a7f;
+}
+
+.account-review-item__actions .btn--ghost:hover {
+  background: #f6f9ff;
+  border-color: #b9cef2;
+}
+
+.account-switch {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 8px;
+}
+
+.account-switch input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+}
+
+.account-notifications {
+  margin-top: 14px;
+  display: grid;
+  gap: 10px;
+}
+
+.account-note {
+  border: 1px solid #dbe6f9;
+  border-radius: 10px;
+  padding: 10px;
+}
+
+.account-note h3 {
+  margin: 0;
+  color: var(--c-heading);
+  font-size: 16px;
+}
+
+.account-note p {
+  margin: 4px 0 0;
+  color: #6079a4;
+  font-size: 13px;
+}
+
+.account-note small {
+  display: block;
+  margin-top: 5px;
+  color: #879bc0;
+  font-size: 12px;
+}
+
+.account-empty {
+  color: #6e84ac;
+}
+
+/* Порожній стан як картка (відгуки, обране). */
+.account-empty-state {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  padding: 40px 20px;
+  text-align: center;
+}
+
+.account-empty-state__icon {
+  width: 56px;
+  height: 56px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: #eef4ff;
+  color: #4f7be0;
+  font-size: 22px;
+}
+
+.account-empty-state p {
+  margin: 0;
+  color: #64789f;
+  font-size: 15px;
+}
+
+/* Кнопка збереження секції: десктоп — угорі праворуч (як було),
+   мобільний — окремим рядком унизу секції (див. док-медіа нижче).
+   Скоуп на .account-settings-editor, щоб не чіпати PRO-кабінет. */
+.account-settings-editor .pro-profile-section {
+  position: relative;
+}
+
+.account-settings-editor .pro-profile-section__foot {
+  position: absolute;
+  top: 15px;
+  right: 22px;
+  margin: 0;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.account-pagination {
+  margin-top: 12px;
+}
+
+.btn.btn--danger {
+  border-color: #ef9aaa;
+  color: #b73647;
+  background: #fff5f6;
+}
+
+.btn.btn--danger:hover {
+  border-color: #e07385;
+  background: #ffe9ec;
+}
+
+.account-danger-zone {
+  border: 1px solid #f2cad1;
+}
+
+.account-danger-zone .pro-profile-section__head h3,
+.account-danger-zone .pro-profile-section__head h3 i {
+  color: #b73647;
+}
+
+.account-danger-zone__note {
+  margin: 0 0 14px;
+  color: #7a5560;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+@media (max-width: 960px) {
+  .account-mobile-toolbar {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 8px;
+  }
+
+  .account-mobile-toolbar__title {
+    margin: 0;
+    color: #1a376f;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .account-mobile-menu-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 34px;
+    padding: 0 10px;
+    margin: 0;
+    border-radius: var(--radius-btn);
+    border: 1px solid #d8e3f6;
+    background: #f8fbff;
+    color: #325492;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .account-mobile-overlay {
+    display: block;
+    position: fixed;
+    top: var(--header-h, 64px);
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(12, 24, 48, 0.36);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.22s ease, visibility 0.22s ease;
+    z-index: 110;
+  }
+
+  .account-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .account-sidebar {
+    position: fixed;
+    top: var(--header-h, 64px);
+    left: 0;
+    width: min(304px, calc(100vw - 20px));
+    height: calc(100dvh - var(--header-h, 64px));
+    border-radius: 0 12px 12px 0;
+    border-left: 0;
+    z-index: 130;
+    isolation: isolate;
+    overflow-y: auto;
+    transform: translateX(-110%);
+    transition: transform 0.24s ease;
+    box-shadow: 0 18px 36px rgba(11, 38, 91, 0.25);
+  }
+
+  .account-sidebar__close {
+    display: inline-flex;
+    width: 30px;
+    height: 30px;
+    border-radius: 999px;
+    border: 1px solid #d8e4f8;
+    background: #fff;
+    color: #3f5e95;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    cursor: pointer;
+  }
+
+  body.is-account-menu-open {
+    overflow: hidden;
+  }
+
+  body.is-account-menu-open .account-mobile-overlay {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+
+
+  body.is-account-menu-open .account-sidebar {
+    transform: translateX(0);
+  }
+
+  .account-nav {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .account-sidebar__pro-btn {
+    margin-top: 12px;
+  }
+
+  .account-nav__item {
+    min-height: 42px;
+    gap: 10px;
+    padding: 6px 8px;
+    text-align: left;
+  }
+
+  .account-nav__text {
+    font-size: 13px;
+  }
+
+  .account-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+    margin-top: 8px;
+  }
+
+  .account-stat {
+    min-height: 72px;
+    border-radius: 10px;
+    padding: 10px 9px;
+    gap: 3px;
+    box-shadow: none !important;
+    border-color: #dce6f8 !important;
+    background: #fbfdff !important;
+  }
+
+  .account-stat strong {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  .account-stat span {
+    font-size: 11px;
+    line-height: 1.25;
+    color: #647aa4;
+  }
+
+  .account-hero {
+    display: none;
+  }
+
+  .account-hero--compact {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 6px 9px;
+    min-height: 44px;
+    border-radius: 10px !important;
+    box-shadow: none !important;
+    border-color: #dce6f8 !important;
+    background: #fbfdff !important;
+  }
+
+  .account-hero--compact .account-hero__avatar {
+    width: 30px;
+    height: 30px;
+    font-size: 11px;
+  }
+
+  .account-hero--compact .account-hero__name {
+    font-size: 15px;
+    line-height: 1.1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .account-hero--compact .account-hero__email {
+    font-size: 11px;
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .account-main {
+    gap: 8px;
+  }
+
+  .account-block {
+    padding: 12px;
+  }
+
+  .account-block__head h2 {
+    font-size: 19px;
+  }
+
+  .account-block__head p {
+    font-size: 12px;
+    margin-top: 3px;
+  }
+}
+
+@media (max-width: 560px) {
+  .page-account .account-shell {
+    padding-top: calc(var(--header-h, 64px) + 12px);
+  }
+
+  .account-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .account-mobile-toolbar {
+    gap: 6px;
+    margin-bottom: 6px;
+  }
+
+  .account-mobile-toolbar__title {
+    font-size: 13px;
+  }
+
+  .account-hero__name,
+  .account-block__head h2 {
+    font-size: 20px;
+  }
+
+  .account-stat {
+    min-height: 68px;
+    padding: 9px 8px;
+  }
+
+  .account-stat strong {
+    font-size: 20px;
+  }
+
+  .account-stat span {
+    font-size: 11px;
+  }
+
+  .account-nav {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Налаштування «Мій кабінет» переюзають форми PRO-кабінету (.pro-profile-*).
+   Мобільні докрутки PRO прив'язані до .page-pro-account, якого тут немає,
+   тож дублюємо їх під локальний .account-settings-editor, щоб мобільний
+   вигляд збігався з PRO (вищі поля, м'якші радіуси, компактніший падінг). */
+/* Картка користувача переюзає .account-hero, який на ≤960px ховається старим
+   правилом display:none. Вища вага (.account-main …) повертає її на всіх
+   ширинах — це вже не дубль-герой, а єдина картка профілю на дашборді. */
+.account-main .account-user-card {
+  display: flex;
+}
+
+@media (max-width: 760px) {
+  .account-settings-editor .pro-profile-section {
+    padding: 14px;
+  }
+
+  .account-settings-editor .pro-profile-live-field input,
+  .account-settings-editor .pro-profile-live-field select {
+    min-height: 42px;
+    height: 42px;
+    border-radius: 12px;
+    font-size: 13px;
+  }
+
+  /* 4 стат-плитки дашборду у 2 колонки на мобільному. Вища вага, бо базовий
+     .pro-overview-metrics (repeat 4) вантажиться пізніше з pro-account.css. */
+  .account-main .account-dashboard-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  /* Фон сторінки як у PRO-кабінеті — щоб темний док читався так само. */
+  .page-account {
+    background: #f7f8fa;
+  }
+
+  .page-account .account-shell > .container {
+    width: 100%;
+    padding-inline: 16px;
+  }
+
+  /* Кнопки «Зберегти»/«Оновити» — окремим рядком унизу секції на мобільному. */
+  .account-settings-editor .pro-profile-section__foot {
+    position: static;
+    margin-top: 16px;
+    display: block;
+  }
+
+  .account-settings-editor .pro-profile-section__save {
+    width: 100%;
+    justify-content: center;
+    min-height: 44px;
+  }
+}
+
+/* ============================================================= */
+/* Мобільна навігація «Мій кабінет» — фіксований нижній док,      */
+/* один-в-один як у PRO-кабінеті (замість гамбургер-меню).        */
+/* Правила прив'язані до .page-account і перебивають старий       */
+/* слайд-ін сайдбар (той на ≤960px) вищою вагою.                  */
+/* ============================================================= */
+@media (max-width: 760px) {
+  /* Місце зверху під шапку і знизу під плаваючий док.
+     isolation:auto прибирає stacking-context від `.section` (base.css),
+     інакше він ловить фіксований док усередині й той малюється під футером
+     (жоден z-index не рятує — контекст цілком нижчий за пізніший футер). */
+  .page-account .account-shell {
+    padding-top: calc(var(--header-h, 64px) + 14px);
+    padding-bottom: calc(98px + env(safe-area-inset-bottom, 0px));
+    isolation: auto;
+  }
+
+  .page-account .account-layout {
+    display: block;
+  }
+
+  /* .section > .container дає z-index:1 → створює stacking-context, який
+     ловить фіксований док ПІД пізнішим у DOM футером. Прибираємо його на
+     мобільному, щоб док (z-index:120) малювався поверх футера. */
+  .page-account .account-shell > .container {
+    position: static;
+    z-index: auto;
+  }
+
+  /* Гамбургер, оверлей, заголовок і кнопки сайдбару більше не потрібні —
+     навігація живе в доку. */
+  .page-account .account-sidebar__title,
+  .page-account .account-sidebar__close,
+  .page-account .account-sidebar__pro-btn,
+  .page-account .account-mobile-menu-btn,
+  .page-account .account-mobile-overlay {
+    display: none !important;
+  }
+
+  /* Тулбар без гамбургера: заголовок стає великим заголовком сторінки. */
+  .page-account .account-mobile-toolbar {
+    display: block;
+    position: static;
+    margin: 0 0 12px;
+    padding: 0 2px;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .page-account .account-mobile-toolbar__title {
+    color: #17366f;
+    font-size: 22px;
+    font-weight: 850;
+    line-height: 1.1;
+    text-align: left;
+    letter-spacing: -0.03em;
+    overflow: visible;
+  }
+
+  /* Сайдбар → плаваючий нижній ТЕМНИЙ док (1:1 як у PRO-кабінеті). */
+  .page-account .account-sidebar {
+    position: fixed;
+    left: 10px;
+    right: 10px;
+    bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+    top: auto;
+    z-index: 120;
+    width: auto;
+    max-width: 640px;
+    height: auto;
+    margin: 0 auto;
+    padding: 5px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 22px;
+    background: linear-gradient(180deg, #1b2a47 0%, #131f38 100%);
+    box-shadow: 0 -8px 24px rgba(15, 23, 42, 0.18), 0 10px 26px rgba(15, 23, 42, 0.22);
+    transform: none !important;
+    overflow: visible;
+  }
+
+  .page-account .account-nav.pro-account-nav {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    grid-template-columns: none;
+    gap: 2px;
+  }
+
+  .page-account .account-nav__item {
+    min-height: 56px;
+    display: grid;
+    grid-template-rows: 24px auto;
+    justify-items: center;
+    align-content: center;
+    gap: 3px;
+    padding: 6px 2px 5px;
+    border: 0;
+    border-radius: 16px;
+    background: transparent;
+    color: #8fa3c9;
+    box-shadow: none;
+    min-width: 0;
+    transition: background-color 0.18s ease, color 0.18s ease;
+  }
+
+  .page-account .account-nav__item.is-active {
+    background: rgba(255, 255, 255, 0.14);
+    color: #fff;
+  }
+
+  .page-account .account-nav__icon {
+    width: 24px;
+    height: 24px;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font-size: 16px;
+  }
+
+  .page-account .account-nav__item.is-active .account-nav__icon {
+    background: transparent;
+    color: inherit;
+  }
+
+  .page-account .account-nav__text {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    color: inherit;
+    font-size: 9px;
+    font-weight: 800;
+    line-height: 1;
+    text-align: center;
+    white-space: nowrap;
+    letter-spacing: -0.2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* У доці для довгих назв показуємо коротку форму (напр. «Опції»). */
+  .page-account .account-nav__text-full {
+    display: none;
+  }
+
+  .page-account .account-nav__text-compact {
+    display: inline;
+  }
+
+  /* Червоний лічильник сповіщень на іконці дока. */
+  .page-account .account-nav__icon--with-badge {
+    overflow: visible;
+  }
+
+  .page-account .account-nav__badge {
+    top: -6px;
+    right: -6px;
+  }
+}

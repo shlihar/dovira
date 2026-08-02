@@ -1,0 +1,124 @@
+.page-legal {
+  background: linear-gradient(180deg, #f9fcff 0%, #f0f6ff 100%);
+}
+
+.legal-page {
+  padding-top: calc(var(--header-h, 64px) + 28px);
+  padding-bottom: 72px;
+}
+
+/* Хлібні крихти — над карткою, в її ж межах по ширині. */
+.legal-page__breadcrumbs {
+  max-width: 860px;
+  margin: 0 auto 16px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--c-muted, #64748b);
+}
+
+.legal-page__breadcrumbs a {
+  color: var(--c-muted, #64748b);
+  font-weight: 500;
+  text-decoration: none;
+  transition: color 160ms ease;
+}
+
+.legal-page__breadcrumbs a:hover {
+  color: var(--c-primary, #2563eb);
+}
+
+.legal-page__breadcrumbs i {
+  font-size: 10px;
+  color: #b6bfce;
+}
+
+.legal-page__breadcrumbs [aria-current="page"] {
+  color: #3f4d6b;
+  font-weight: 600;
+}
+
+.legal-page__card {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 34px 38px 38px;
+  border: 1px solid #e2e9f7;
+  border-radius: 24px;
+  background: #fff;
+  box-shadow: 0 16px 34px rgba(35, 54, 95, 0.08);
+}
+
+.legal-page__title {
+  margin: 0 0 6px;
+  color: #0f2e70;
+  font-size: clamp(24px, 2.4vw, 32px);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+.legal-page__updated {
+  margin: 0 0 22px;
+  color: #8a96ad;
+  font-size: 13px;
+}
+
+.legal-page__card h2 {
+  margin: 26px 0 10px;
+  color: #14337a;
+  font-size: 19px;
+  line-height: 1.25;
+}
+
+.legal-page__card p,
+.legal-page__card li {
+  margin: 0 0 10px;
+  color: #45587f;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.legal-page__card ul {
+  margin: 0 0 12px;
+  padding-left: 20px;
+}
+
+.legal-page__card li {
+  margin-bottom: 6px;
+}
+
+.legal-page__card a {
+  color: #245cdd;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* Кнопки всередині картки — біле на синьому, без «лінкового» підкреслення
+   (правило .legal-page__card a специфічніше за .btn--primary і фарбувало
+   текст кнопки в синій). */
+.legal-page__card a.btn {
+  color: #fff;
+  text-decoration: none;
+}
+
+@media (max-width: 760px) {
+  .legal-page {
+    padding-top: calc(var(--header-h, 64px) + 16px);
+    padding-bottom: 44px;
+  }
+
+  .legal-page__card {
+    padding: 20px 16px 24px;
+    border-radius: 18px;
+  }
+
+  .legal-page__card h2 {
+    font-size: 17px;
+  }
+
+  .legal-page__card p,
+  .legal-page__card li {
+    font-size: 14px;
+  }
+}

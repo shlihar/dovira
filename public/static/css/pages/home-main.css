@@ -13,16 +13,55 @@
   padding-bottom: 32px;
 }
 
+.page-home-main .home-section-title {
+  margin: 0;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-height: 38px;
+  padding-left: 0;
+  color: var(--c-heading);
+  font-size: clamp(16px, 1.35vw, 21px);
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+  font-weight: 800;
+}
+
+/* Синю рисочку-маркер і градієнтне підкреслення прибрано: декор без
+   функції. Заголовок тримає ієрархію розміром і вагою, як у Apple. */
+.page-home-main .home-section-title::before,
+.page-home-main .home-section-title::after {
+  content: none;
+}
+
+.page-home-main .home-section-title span {
+  color: inherit;
+}
+
 .page-home-main .hero__desktop-search {
   display: none;
 }
 
-.page-home-main .home-review-cta--in-hero {
+.page-home-main .home-review-cta--desktop-only,
+.page-home-main .home-intents--desktop-only,
+.page-home-main .hero__chips--desktop-only,
+.page-home-main .hero__proof--desktop-only,
+.page-home-main .hero__cards,
+.page-home-main .hero__halo,
+.page-home-main .hero__lead--desktop-only {
   display: none;
 }
 
-.page-home-main .home-review-cta--desktop-only,
-.page-home-main .home-intents--desktop-only {
+/* Live-крапка бейджа (усі екрани). */
+.page-home-main .badge__live {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #22c55e;
+  flex: none;
+}
+
+.page-home-main .cta-hero-callout--catalog-mobile {
   display: none;
 }
 
@@ -39,6 +78,7 @@ linear-gradient(118deg, #3a67f2 0%, #4f7efb 32%, #5a84fb 65%, #4b73ea 100%);
   grid-template-columns: minmax(0, 1.04fr) minmax(0, 1fr);
   gap: 24px;
   position: relative;
+
 }
 .home-trust-explainer__wrap::before {
     content: "";
@@ -50,10 +90,10 @@ linear-gradient(132deg, transparent 38%, rgba(255,255,255,0.07) 46%, transparent
 linear-gradient(132deg, transparent 56%, rgba(255,255,255,0.04) 63%, transparent 70%);
     pointer-events: none;
     opacity: 0.92;
-   
+
 }
 .home-trust-explainer__wrap::after {
- 
+
     content: "";
     position: absolute;
     inset: 6px;
@@ -113,7 +153,7 @@ inset 0 24px 40px rgba(255,255,255,0.02);
 .home-trust-explainer__btn--register {
   min-height: 44px;
   padding: 0 20px;
-  border-radius: 999px;
+  border-radius: var(--radius-btn);
   border: 1px solid rgba(255, 255, 255, 0.8);
   background: rgba(255, 255, 255, 0.12);
   color: #fff;
@@ -204,6 +244,12 @@ inset 0 24px 40px rgba(255,255,255,0.02);
     display: block;
   }
 
+  /* Standalone «Що ви шукаєте?» (B-карусель) — desktop-only. На мобільному
+     показується компактна hero-вбудована версія, тож тут прибираємо дубль. */
+  .page-home-main .home-intents.home-intents--desktop-only {
+    display: block;
+  }
+
   .page-home-main .hero .home-review-cta--standalone,
   .page-home-main .hero .home-intents {
     margin-top: 0;
@@ -214,83 +260,68 @@ inset 0 24px 40px rgba(255,255,255,0.02);
     margin-top: 15px;
   }
   .page-home-main .hero .home-intents{
-    margin-top: 15vh;
+    /* Було 15vh (~190px) — друга «розпірка» діри. */
+    margin-top: 24px;
   }
 
   .page-home-main .hero .home-review-cta--standalone .container,
   .page-home-main .hero .home-intents .container {
-   
+
   }
 
   .page-home-main .hero > .container.hero__inner {
-    width: min(1860px, calc(100% - 64px));
+    /* Контент hero — у глобальних межах 1280px, як і решта сторінок
+       (фонова підкладка hero лишається на всю ширину екрана). */
+    width: min(1280px, calc(100% - 64px));
   }
 
   .page-home-main .hero {
-   
-    
-    height: 100vh;
-    background-image: none;
+    /* Варіант A: природна висота замість height:100vh — той розтяг
+       створював порожню діру між пошуком і категоріями. */
+    height: auto;
     color: #101c3f;
-    background: #eef2fb;
+    /* Фон з делікатною глибиною: два радіальні акценти по верхніх кутах
+       на світлому переході — без текстур і декору. */
+    background:
+      radial-gradient(52% 44% at 84% 6%, rgba(167, 199, 255, 0.55) 0%, rgba(167, 199, 255, 0) 100%),
+      radial-gradient(46% 40% at 10% 18%, rgba(190, 212, 255, 0.42) 0%, rgba(190, 212, 255, 0) 100%),
+      linear-gradient(180deg, #f2f6fe 0%, #e9effb 52%, #dfe8f9 100%);
     border-radius: 0;
-    overflow: hidden;
+    /* overflow: visible — дропдаун сагеста вищий за hero і має виходити
+       за його межу (hidden обрізав список по шву із секцією категорій).
+       z-index — щоб сагест малювався ПОВЕРХ контенту секції нижче. */
+    overflow: visible;
     position: relative;
+    z-index: 5;
+  }
+
+  /* Варіанти з дрейф-декором на всю секцію — їм кліп потрібен. */
+  .page-home-main .hero--v-f,
+  .page-home-main .hero--v-j {
+    overflow: hidden;
   }
 
   .page-home-main .hero::before {
-    content: "";
-    position: absolute;
-    width: 720px;
-    height: 240px;
-    left: 56%;
-   top: -130px;
-    transform: translateX(-50%);
-    border-radius: 999px;
-    background: linear-gradient(180deg, #9fc1ff 0%, #6e99fa 54%, #4f7efb 100%);
-    opacity: 0.56;
-    animation: heroDriftTop 12s ease-in-out infinite;
-    will-change: transform;
+    content: none;
   }
 
   .page-home-main .hero::after {
-    content: "";
-    position: absolute;
-    right: -110px;
-    bottom: -180px;
-width: 520px;
-height: 290px;
-    border-radius: 220px;
-    
-     background: linear-gradient(180deg, #4c8dff 0%, #2b6ce9 100%);
-    transform: rotate(-10deg);
-    opacity: 0.52;
-    animation: heroDriftRight 14s ease-in-out infinite;
-    will-change: transform;
+    content: none;
   }
 
   .page-home-main .hero__bg {
     background: transparent;
+    filter: none;
   }
 
   .page-home-main .hero__bg::before {
-    content: "";
-    position: absolute;
-    left: -92px;
-    bottom: -165px;
-    width: 460px;
-    height: 360px;
-    border-radius: 50%;
-    background: linear-gradient(180deg, #bed3ff 0%, #9bb8f4 100%);
-    opacity: 0.9;
-    animation: heroDriftLeft 13s ease-in-out infinite;
-    will-change: transform;
+    content: none;
   }
 
   .page-home-main .hero__inner {
     height: auto;
-    min-height: clamp(560px, 74vh, 760px);
-    padding: calc(var(--header-h) + 20px) 0 36px;
+    min-height: 0;
+    padding: calc(var(--header-h) + 44px) 0 56px;
     display: flex;
     align-items: center;
   }
@@ -298,7 +329,7 @@ height: 290px;
   .page-home-main .hero__content {
     width: 100%;
     min-height: 0;
-   
+
     margin: 0 auto;
     justify-content: center;
     display: flex;
@@ -317,40 +348,45 @@ height: 290px;
   }
 
   .page-home-main .hero .badge--soft,
+  .page-home-main .hero__mobile-utility,
   .page-home-main .hero__mobile-cta,
+  .page-home-main .hero__visual,
   .page-home-main .hero__top__wrap,
   .page-home-main .hero__bottom {
     display: none;
   }
 
   .page-home-main .hero__title {
-    margin-top: 15vh;
-    font-size: clamp(44px, 3.0vw, 82px);
+    /* Було 15vh (~135px) повітря над заголовком — підтиснуто. */
+    margin-top: 56px;
+    font-size: clamp(38px, 2.55vw, 68px);
     line-height: 1.02;
     letter-spacing: -0.03em;
     color: #0f1a3b;
     max-width: none;
   }
 
+  /* Акцентне слово більше не синє: єдиний кольоровий акцент hero —
+     кнопка пошуку (синій = інтерактив, заголовок — не кнопка). */
   .page-home-main .hero__title .hero__title-accent {
-    background: linear-gradient(180deg, #1c63e8 0%, #3d86ff 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    color: transparent;
+    background: none;
+    -webkit-background-clip: initial;
+    background-clip: initial;
+    -webkit-text-fill-color: currentColor;
+    color: inherit;
   }
   .hero__title-accent{
-     background: linear-gradient(180deg, #1c63e8 0%, #3d86ff 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    color: transparent;
+     background: none;
+    -webkit-background-clip: initial;
+    background-clip: initial;
+    -webkit-text-fill-color: currentColor;
+    color: inherit;
   }
   .page-home-main .hero__lead {
     margin: 14px auto 0;
     max-width: none;
-    color: #5d719a;
-    font-size: clamp(24px, 0.5vw, 34px);
+    color: #475569;
+    font-size: clamp(19px, 0.4vw, 27px);
     line-height: 1.32;
   }
 
@@ -376,7 +412,7 @@ height: 290px;
     border: 0;
     outline: none;
     background: transparent;
-    color: #31446f;
+    color: #1e293b;
     font-size: 16px;
     font-weight: 500;
   }
@@ -395,16 +431,24 @@ height: 290px;
     color: #fff;
     cursor: pointer;
     font-size: 16px;
-    background: linear-gradient(180deg, #1c63e8 0%, #357fff 100%);
+    background: var(--c-primary);
     box-shadow: 0 10px 24px rgba(28, 99, 232, 0.28);
   }
 
+  .page-home-main .hero__desktop-search.is-open,
+  .page-home-main .hero__desktop-search:focus-within,
+  .page-home-main .hero__mobile-search.is-open .hero__mobile-search-field,
+  .page-home-main .hero__mobile-search:focus-within .hero__mobile-search-field {
+    border-color: #7da6f8;
+    box-shadow: 0 0 0 3px rgba(47, 109, 244, 0.14), 0 14px 30px rgba(26, 61, 131, 0.22);
+  }
+
   .page-home-main .hero__search-suggest {
-    position: absolute !important;
+    position: absolute;
     left: 0;
-    top: 0;
-    width: min(100vw - 24px, 660px);
-    border: 1px solid #d8e3f7;
+    top: calc(100% + 10px);
+    width: 100%;
+    border: 1px solid #e3e7ee;
     border-radius: 18px;
     background: #fff;
     box-shadow: 0 18px 32px rgba(16, 52, 120, 0.18);
@@ -419,7 +463,7 @@ height: 290px;
 
   .page-home-main .hero__search-suggest-title {
     margin: 0;
-    color: #7588b3;
+    color: #64748b;
     font-size: 12px;
     font-weight: 700;
     letter-spacing: 0.06em;
@@ -433,21 +477,80 @@ height: 290px;
     align-items: center;
     gap: 10px;
     padding: 0 16px;
-    color: #1d315f;
+    color: #1e293b;
     font-size: 15px;
     font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
   }
 
   .page-home-main .hero__search-suggest-item i {
-    color: #7a8fb9;
+    color: #64748b;
     font-size: 14px;
     width: 16px;
+    flex-shrink: 0;
     text-align: center;
   }
 
   .page-home-main .hero__search-suggest-item:hover {
-    background: #f3f7ff;
+    background: #f4f5f7;
     color: #1648ac;
+  }
+
+  .page-home-main .hero__search-suggest-item.is-active {
+    background: #f4f5f7;
+    color: #1648ac;
+  }
+
+  .page-home-main .hero__search-suggest-text {
+    min-width: 0;
+    display: grid;
+    flex: 1 1 auto;
+    width: 100%;
+    gap: 2px;
+    line-height: 1.2;
+  }
+
+  .page-home-main .hero__search-suggest-label {
+    display: block;
+    width: 100%;
+    line-height: 1.24;
+  }
+
+  .page-home-main .hero__search-suggest-meta {
+    display: block;
+    color: #64748b;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.25;
+    width: 100%;
+    word-break: break-word;
+  }
+
+  .page-home-main .hero__search-suggest-empty {
+    margin: 0;
+    padding: 4px 16px 8px;
+    color: #7e92bc;
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  .page-home-main .hero__lead--mobile-only {
+    display: none;
+  }
+
+  .page-home-main .hero__lead--desktop-only {
+    display: block;
+  }
+
+  /* Цифри в ліді — брендовий синій як СМИСЛОВИЙ акцент даних (виняток
+     з правила «синій = інтерактив», як бурштин у зірок): на нейтральному
+     тлі дві сині цифри римуються з кнопкою пошуку й ведуть око. */
+  .page-home-main .hero__lead strong {
+    color: var(--c-primary);
+    font-weight: 800;
+    font-size: 1.06em;
+    font-variant-numeric: tabular-nums;
   }
 
   .page-home-main .home-review-cta {
@@ -471,13 +574,9 @@ height: 290px;
     left: 0;
     right: 0;
     top: 50%;
-    height: 2px;
-    background: linear-gradient(
-      90deg,
-      rgba(229, 231, 235, 0.4),
-      rgb(118, 163, 252),
-      rgba(229, 231, 235, 0.415)
-    );
+    height: 1px;
+    /* Розділювач — механіка, не акцент: ледь сірий (токен base.css). */
+    background: var(--c-divider);
   }
 
   .page-home-main .home-review-cta__pill {
@@ -485,7 +584,7 @@ height: 290px;
     z-index: 1;
     min-height: 44px;
     padding: 0 26px;
-    border-radius: 999px;
+    border-radius: var(--radius-btn);
     border: 1px solid #d7e3f9;
     background: rgba(255, 255, 255, 0.94);
     box-shadow: 0 8px 18px rgba(18, 50, 122, 0.12);
@@ -493,19 +592,19 @@ height: 290px;
     align-items: center;
     gap: 10px;
     color: #3a4f7f;
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 500;
     transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease, color 160ms ease;
   }
 
   .page-home-main .home-review-cta__pill strong {
-    color: #4978f9;
-    font-weight: 800;
+    color: var(--c-primary);
+    font-weight: 700;
   }
 
   .page-home-main .home-review-cta__pill i {
-    color: #4978f9;
-    font-size: 16px;
+    color: var(--c-primary);
+    font-size: 14px;
   }
 
   .page-home-main .home-intents {
@@ -513,10 +612,10 @@ height: 290px;
   }
 
   .page-home-main .home-intents .container {
-   
+
     border-radius: 24px;
     padding: 22px 22px 16px;
-   
+
   }
 
   .page-home-main .home-intents__head {
@@ -529,13 +628,20 @@ height: 290px;
 
   .page-home-main .home-intents__head h2 {
     margin: 0;
-    color: #20396f;
-    font-size: 24px;
-    letter-spacing: -0.02em;
-    font-weight: 575;
+    color: var(--c-heading);
+    font-size: 28px;
+    line-height: 1.14;
+    letter-spacing: -0.01em;
+    font-weight: 800;
   }
   .page-home-main .home-intents__head h2 span {
-   color: #1f63e8;
+   color: inherit;
+  }
+  .page-home-main .home-section-title {
+    font-size: clamp(15px, 1.15vw, 18px);
+    min-height: 34px;
+    padding-left: 0;
+    letter-spacing: -0.025em;
   }
   .page-home-main .home-intents__actions {
     display: inline-flex;
@@ -548,9 +654,9 @@ height: 290px;
     width: 34px;
     height: 34px;
     border-radius: 999px;
-    border: 1px solid #afc5f6;
+    border: 1px solid var(--c-control-border);
     background: #fff;
-    color: #2f58ba;
+    color: var(--c-control-ink);
     display: inline-grid;
     place-items: center;
     cursor: pointer;
@@ -565,72 +671,132 @@ height: 290px;
     opacity: 0.7;
   }
 
+  /* Текстовий лінк без рамки — третьорядна дія не має виглядати кнопкою
+     (патерн Apple «See all»). */
   .page-home-main .home-intents__more {
     height: 34px;
-    padding: 0 12px;
-    border-radius: 999px;
-    border: 1px solid #90b2f4;
-    color: #2f58ba;
+    padding: 0 4px;
+    border: 0;
+    color: var(--c-primary);
     display: inline-flex;
     align-items: center;
-    font-size: 12px;
-    font-weight: 700;
-    background: #fff;
-    transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease, color 160ms ease;
+    gap: 6px;
+    font-size: 12.5px;
+    font-weight: 600;
+    background: transparent;
+    transition: color 160ms ease;
+  }
+
+  .page-home-main .home-intents__more i {
+    font-size: 10px;
   }
 
   .page-home-main .home-intents__track {
     display: flex;
-    gap: 8px;
+    gap: 15px;
     overflow-x: auto;
     scroll-snap-type: x mandatory;
-    padding: 4px 0 8px;
+    padding: 6px 0 12px;
     scrollbar-width: none;
     -ms-overflow-style: none;
+    /* М'який fade на краю: обрізана картка читається як «є ще»,
+       а не як верстальна помилка. */
+    -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 56px), transparent);
+    mask-image: linear-gradient(to right, #000 calc(100% - 56px), transparent);
   }
 
   .page-home-main .home-intents__track::-webkit-scrollbar {
     display: none;
   }
 
+  /* Формат «м'які тайли»: вертикальна картка — тінт-іконка, назва,
+     топ-підкатегорії чипами. Без лічильників. Синій лише на hover чипів,
+     щоб не розмивати акцент (сині кнопки лишаються головним магнітом). */
   .page-home-main .home-intents__item {
-    min-width: 126px;
+    --intent-accent: #516079;
+    --intent-bg: #eef1f6;
+    --intent-border: #e1e7f0;
+    width: 250px;
+    flex: 0 0 250px;
     scroll-snap-align: start;
-    border: 1px solid #d5e3fb;
+    border: 1px solid #e5ebf8;
     background: #fff;
-    border-radius: 12px;
-   
-    padding: 10px 8px;
-    display: grid;
-    justify-items: center;
-    gap: 6px;
-    color: #26447f;
-    font-size: 14px;
-    font-weight: 700;
-    text-align: center;
-    transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
+    border-radius: 20px;
+    padding: 20px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 13px;
+    text-align: left;
+    position: relative;
+    box-shadow: 0 16px 36px -28px rgba(20, 40, 100, 0.5);
+    transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+  }
+
+  .page-home-main .home-intents__lead {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .page-home-main .home-intents__icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--intent-border);
+    background: var(--intent-bg);
+    flex: 0 0 50px;
   }
 
   .page-home-main .home-intents__item i {
-    color: #4978f9;
-    font-size: 16px;
+    color: var(--intent-accent);
+    font-size: 23px;
   }
 
-  .page-home-main .home-intents__item span {
-    line-height: 1.2;
-  }
+  .page-home-main .home-intents__item--tone-1 { --intent-accent: #516079; --intent-bg: #eef1f6; --intent-border: #e1e7f0; }
+  .page-home-main .home-intents__item--tone-2 { --intent-accent: #4f6f64; --intent-bg: #edf3f0; --intent-border: #dde8e2; }
+  .page-home-main .home-intents__item--tone-3 { --intent-accent: #63607c; --intent-bg: #f1eff5; --intent-border: #e5e1ee; }
+  .page-home-main .home-intents__item--tone-4 { --intent-accent: #7a7057; --intent-bg: #f4f1ea; --intent-border: #eae4d8; }
+  .page-home-main .home-intents__item--tone-5 { --intent-accent: #7d6360; --intent-bg: #f4eeee; --intent-border: #ebe0e0; }
+  .page-home-main .home-intents__item--tone-6 { --intent-accent: #4f6f74; --intent-bg: #ecf2f3; --intent-border: #dce8ea; }
 
   .page-home-main .home-intents__item .home-intents__name {
+    font-size: 15.5px;
     line-height: 1.2;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: #1f2f62;
   }
 
-  .page-home-main .home-intents__item .home-intents__count {
-    display: block;
-    font-size: 11px;
-    font-weight: 600;
-    color: #6f84af;
+  .page-home-main .home-intents__lead:hover .home-intents__name {
+    color: var(--c-primary);
+  }
+
+  .page-home-main .home-intents__subs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+  }
+
+  .page-home-main .home-intents__sub {
+    font-size: 12.5px;
+    font-weight: 500;
+    color: #4a5a78;
+    background: #f1f4fa;
+    border: 1px solid #e6ebf5;
+    padding: 5px 11px;
+    border-radius: 999px;
     line-height: 1.2;
-    white-space: nowrap;
+    transition: color 140ms ease, background-color 140ms ease, border-color 140ms ease;
+  }
+
+  .page-home-main .home-intents__sub:hover {
+    color: var(--c-primary);
+    background: #eaf1ff;
+    border-color: #d3e2ff;
   }
 
   @media (hover: hover) and (pointer: fine) {
@@ -649,23 +815,20 @@ height: 290px;
     .page-home-main .home-intents__nav:hover {
       transform: translateY(-1px);
       border-color: #8fb6ff;
-    
+
       color: #1f63e8;
       box-shadow: 0 8px 16px rgba(34, 88, 187, 0.16);
     }
 
     .page-home-main .home-intents__more:hover {
-      transform: translateY(-1px);
-      border-color: #7ea9fa;
-    
-      color: #1f63e8;
-      box-shadow: 0 8px 16px rgba(34, 88, 187, 0.14);
+      color: var(--c-primary-dark);
+      text-decoration: underline;
     }
 
     .page-home-main .home-intents__item:hover {
       transform: translateY(-2px);
       border-color: #a9c1f6;
-     
+
       box-shadow: 0 8px 16px rgba(34, 88, 187, 0.14);
     }
   }
@@ -751,7 +914,7 @@ height: 290px;
 
 .tp-cats__item {
   background: #fff;
-  border: 1px solid #d8e3f7;
+  border: 1px solid #e3e7ee;
   border-radius: 16px;
   min-height: 68px;
   display: inline-flex;
@@ -776,7 +939,7 @@ height: 290px;
 .latest-reviews__carousel {
   display: grid;
   grid-auto-flow: column;
-  grid-template-rows: repeat(2, minmax(0, 1fr));
+  grid-template-rows: minmax(0, 1fr);
   grid-auto-columns: calc((100% - 42px) / 4);
   gap: 14px;
   overflow-x: auto;
@@ -795,6 +958,7 @@ height: 290px;
   width: 100%;
   min-width: 0;
   scroll-snap-align: start;
+  position: relative;
   border-radius: 16px;
   border: 1px solid #d7e3f7;
   background: #fff;
@@ -818,13 +982,13 @@ height: 290px;
   min-width: 38px;
   max-width: 38px;
   border-radius: 50%;
-  font-size: 0;
+  font-size: 14px;
   font-weight: 800;
   flex: 0 0 auto;
   display: inline-grid;
   place-items: center;
   color: #fff;
-  border: 1px solid #d4e2f8;
+  border: 1px solid #e3e7ee;
   box-shadow: 0 6px 14px rgba(24, 63, 139, 0.14);
   overflow: hidden;
   padding: 0;
@@ -869,6 +1033,21 @@ height: 290px;
   font-size: 12px;
 }
 
+.latest-review-card__stars.rating-stars--excellent,
+.best-lawyer-card__stars.rating-stars--excellent {
+  color: #ffb226;
+}
+
+.latest-review-card__stars.rating-stars--fair,
+.best-lawyer-card__stars.rating-stars--fair {
+  color: #f28c28;
+}
+
+.latest-review-card__stars.rating-stars--poor,
+.best-lawyer-card__stars.rating-stars--poor {
+  color: #dc5a5a;
+}
+
 .latest-review-card__stars span {
   width: auto;
   height: auto;
@@ -882,7 +1061,7 @@ height: 290px;
 
 .latest-review-card__stars strong {
   margin-left: 6px;
-  color: #20396f;
+  color: #1e293b;
   font-size: 13px;
   font-weight: 800;
 }
@@ -890,9 +1069,10 @@ height: 290px;
 .latest-review-card__text {
   margin: 0;
   padding: 0 16px;
-  color: #2d3b59;
-  font-size: 16px;
-  line-height: 1.2;
+  color: #22345f;
+  font-size: 14px;
+  line-height: 1.45;
+  font-weight: 500;
   display: -webkit-box;
   -webkit-line-clamp: 4;
   -webkit-box-orient: vertical;
@@ -908,6 +1088,7 @@ height: 290px;
   display: flex;
   align-items: center;
   gap: 12px;
+  text-decoration: none;
 }
 .latest-review-card__company .latest-review-card__company-logo {
   width: 40px;
@@ -924,7 +1105,7 @@ font-size: 16px;
   width: 64px;
   height: 64px;
   border-radius: 14px;
-  border: 1px solid #d4e2f8;
+  border: 1px solid #e3e7ee;
   font-size: 20px;
   font-weight: 800;
   flex: 0 0 auto;
@@ -941,7 +1122,7 @@ font-size: 16px;
 
 .latest-review-card__avatar.review-list-card__logo.has-random-gradient,
 .latest-review-card__company-logo.review-list-card__logo.has-random-gradient {
-  background: linear-gradient(145deg, var(--av-bg-1, #6ca2ff), var(--av-bg-2, #2f67f4));
+  background: linear-gradient(150deg, var(--av-bg-2, #2f67f4), #10307e);
   color: var(--av-text, #fff);
 }
 
@@ -961,10 +1142,15 @@ white-space: nowrap;
 .latest-review-card__company p {
   margin: 2px 0 0;
   color: #6a7898;
-  font-size: 14px;
+  font-size: 13px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.latest-review-card a.latest-review-card__company:hover h4,
+.latest-review-card a.latest-review-card__company:hover p {
+  color: #2f67f4;
 }
 
 .home-pro-cta {
@@ -974,7 +1160,7 @@ white-space: nowrap;
 .home-pro-cta__card {
   position: relative;
   overflow: hidden;
-  border-radius: 24px;
+  border-radius: var(--radius-btn);
   border: 1px solid #d9e6ff;
   background: radial-gradient(34% 86% at 14% 54%, rgba(26, 90, 255, 0.34), transparent 72%),
 radial-gradient(46% 90% at 84% 34%, rgba(169, 202, 255, 0.14), transparent 74%),
@@ -1003,7 +1189,7 @@ opacity: 0.92;
  content: "";
 position: absolute;
 inset: 6px;
-border-radius: 20px;
+border-radius: var(--radius-btn);
 
 border: 1px solid rgba(255,255,255,0.09);
 box-shadow: inset 0 0 0 1px rgba(120, 154, 255, 0.06),
@@ -1022,7 +1208,7 @@ inset 0 24px 40px rgba(255,255,255,0.02);
   color: #fff;
   font-size: 18px;
   line-height: 1.04;
- 
+
   font-weight: 755;
 }
 
@@ -1030,8 +1216,9 @@ inset 0 24px 40px rgba(255,255,255,0.02);
  margin: 6px 0 0;
   color: #ffffffd6;
   font-size: 16px;
- 
+
   font-weight: 350;
+  overflow-wrap: anywhere;
 }
 
 .home-pro-cta__btn {
@@ -1039,7 +1226,7 @@ inset 0 24px 40px rgba(255,255,255,0.02);
   z-index: 3;
   min-height: 44px;
   padding: 0 16px;
-  border-radius: 999px;
+  border-radius: var(--radius-btn);
   font-size: 16px;
   white-space: nowrap;
 }
@@ -1144,7 +1331,7 @@ background: #95b1fc;
   scroll-snap-align: start;
   position: relative;
   border-radius: 14px;
-  border: 1px solid #d9e4f7;
+  border: 1px solid #e3e7ee;
   background: #fff;
   padding: 16px 18px 16px;
   display: grid;
@@ -1170,7 +1357,7 @@ background: #95b1fc;
   width: 64px;
   height: 64px;
   border-radius: 14px;
-  border: 1px solid #d4e2f8;
+  border: 1px solid #e3e7ee;
   display: grid;
   place-items: center;
   font-size: 20px;
@@ -1227,16 +1414,21 @@ background: #95b1fc;
 }
 
 .best-lawyer-card__logo.review-list-card__logo.has-random-gradient {
-  background: linear-gradient(145deg, var(--av-bg-1, #6ca2ff), var(--av-bg-2, #2f67f4));
+  background: linear-gradient(150deg, var(--av-bg-2, #2f67f4), #10307e);
   color: var(--av-text, #fff);
 }
 
 .best-lawyer-card__name {
   margin: 2px 0 0;
-  color: #20396f;
+  color: #1e293b;
   font-size: clamp(18px, 1.2vw, 24px);
   line-height: 1.22;
   letter-spacing: -0.01em;
+}
+
+.best-lawyer-card__name a {
+  color: inherit;
+  text-decoration: none;
 }
 
 .best-lawyer-card__site {
@@ -1244,7 +1436,7 @@ background: #95b1fc;
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: #5f7196;
+  color: #475569;
   font-size: clamp(14px, 0.9vw, 17px);
   text-decoration: none;
   transition: color .16s ease;
@@ -1252,7 +1444,7 @@ background: #95b1fc;
 
 .best-lawyer-card__site i {
   font-size: 0.85em;
-  color: #7a92bc;
+  color: #64748b;
   transition: color .16s ease;
 }
 
@@ -1268,7 +1460,7 @@ background: #95b1fc;
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: #4f628f;
+  color: #475569;
   font-size: clamp(13px, 0.82vw, 16px);
 }
 
@@ -1281,7 +1473,7 @@ background: #95b1fc;
 }
 
 .best-lawyer-card__rating strong {
-  color: #20396f;
+  color: #1e293b;
   font-weight: 800;
 }
 
@@ -1292,12 +1484,13 @@ background: #95b1fc;
   width: 28px;
   height: 28px;
   border-radius: 999px;
-  border: 1px solid #c8daf9;
+  border: 1px solid #e3e7ee;
   background: #fff;
 color: #2c5ecc;
   display: inline-grid;
   place-items: center;
   font-size: 12px;
+  text-decoration: none;
   box-shadow: 0 6px 14px rgba(38, 78, 170, 0.12);
 }
 
@@ -1327,8 +1520,25 @@ color: #2c5ecc;
 
 .popular-companies__grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-auto-flow: column;
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+  grid-auto-columns: calc((100% - 42px) / 4);
   gap: 14px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 2px 0 4px;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.popular-companies__grid::-webkit-scrollbar {
+  display: none;
+}
+
+.popular-companies__grid .dovira-catalog-card {
+  scroll-snap-align: start;
+  height: 100%;
 }
 
 .popular-companies .popular-company-card {
@@ -1342,7 +1552,7 @@ color: #2c5ecc;
   .best-lawyers__nav:hover {
     transform: translateY(-1px);
     border-color: #8fb6ff;
-    background: #f1f6ff;
+    background: #f4f5f7;
     color: #1f63e8;
     box-shadow: 0 8px 16px rgba(34, 88, 187, 0.14);
   }
@@ -1350,7 +1560,7 @@ color: #2c5ecc;
   .best-lawyers__more:hover {
     transform: translateY(-1px);
     border-color: #7ea9fa;
-    background: #f2f7ff;
+    background: #f4f5f7;
     color: #1f63e8;
     box-shadow: 0 8px 16px rgba(34, 88, 187, 0.12);
   }
@@ -1358,7 +1568,7 @@ color: #2c5ecc;
   .best-lawyer-card:hover {
     transform: translateY(-2px);
     border-color: #bfd0ef;
-   
+
   }
 
   .latest-review-card:hover {
@@ -1370,7 +1580,7 @@ color: #2c5ecc;
 
 .tp-cta__box {
   background: #fff;
-  border: 1px solid #d8e3f7;
+  border: 1px solid #e3e7ee;
   border-radius: 16px;
   padding: 22px;
   display: flex;
@@ -1432,7 +1642,7 @@ color: #2c5ecc;
 
   .home-pro-cta__card {
     padding: 24px;
-    border-radius: 22px;
+    border-radius: var(--radius-btn);
   }
   .home-pro-cta__content h3 {
     font-size: clamp(28px, 4.8vw, 36px);
@@ -1542,6 +1752,301 @@ color: #2c5ecc;
 }
 
 @media (max-width: 680px) {
+  .page-home-main .home-trust-explainer {
+    display: none;
+  }
+
+  .page-home-main .cta-hero-callout--catalog-mobile {
+    display: block;
+    padding-top: 8px;
+    padding-bottom: 24px;
+  }
+
+  .page-home-main .cta-hero-callout__card--catalog-mobile {
+    min-height: 0;
+    padding: 20px 18px;
+    border-radius: var(--radius-btn);
+  }
+
+  .page-home-main .cta-hero-callout__card--catalog-mobile::after {
+    inset: 10px;
+    border-radius: var(--radius-btn);
+  }
+
+  .page-home-main .cta-hero-callout__card--catalog-mobile .cta-hero-callout__orb,
+  .page-home-main .cta-hero-callout__card--catalog-mobile .cta-hero-callout__mockup {
+    display: none;
+  }
+
+  .page-home-main .cta-hero-callout__card--catalog-mobile .cta-hero-callout__content {
+    max-width: none;
+    width: 100%;
+    display: grid;
+    gap: 10px;
+  }
+
+  .page-home-main .cta-hero-callout__card--catalog-mobile .cta-hero-callout__eyebrow {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.72);
+  }
+
+  .page-home-main .cta-hero-callout__card--catalog-mobile .cta-hero-callout__title {
+    margin: 0;
+    font-size: 24px;
+    line-height: 1.08;
+  }
+
+  .page-home-main .cta-hero-callout__card--catalog-mobile .cta-hero-callout__text {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.88);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .page-home-main .cta-hero-callout__card--catalog-mobile .cta-hero-callout__actions {
+    margin-top: 4px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .page-home-main .cta-hero-callout__card--catalog-mobile .home-trust-explainer__btn {
+    width: auto;
+  }
+
+  .page-home-main .home-pro-cta__btn,
+  .page-home-main .cta-hero-callout__card .home-trust-explainer__btn {
+    min-height: 52px;
+    padding: 0 24px;
+    border-radius: var(--radius-btn);
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    width: auto;
+    min-width: 250px;
+    margin-inline: auto;
+    white-space: nowrap;
+  }
+
+  .page-home-main .home-pro-cta__btn i,
+  .page-home-main .cta-hero-callout__card .home-trust-explainer__btn i {
+    font-size: 18px;
+  }
+
+  .page-home-main .latest-reviews__carousel {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 10px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 2px 0 8px;
+    scroll-snap-type: x mandatory;
+    /* Висота кожної картки — по її контенту: інакше картка з коротким
+       відгуком тягнеться до найдовшої і світить 60+px порожнечі. */
+    align-items: flex-start;
+  }
+
+  .page-home-main .latest-review-card {
+    flex: 0 0 100%;
+    min-width: 100%;
+    max-width: 100%;
+  }
+
+  .page-home-main .hero {
+    position: relative;
+    /* home.css has an unscoped `.hero { height: 100vh }` that applies at
+       every width; min-height:0 alone doesn't cancel an explicit height,
+       so on mobile the hero was hard-capped to one screen and clipped
+       whatever content didn't fit — usually the last row, the category
+       icons. height:auto lets it grow to fit its real content. */
+    height: auto;
+    min-height: 0;
+    background:
+      radial-gradient(64% 38% at 82% 16%, rgba(199, 220, 255, 0.56) 0%, rgba(199, 220, 255, 0) 100%),
+      /* Низ = фон секції категорій (--hero-bottom), останні ~12% рівні —
+         стик героя й категорій не читається як лінія і на мобайлі. */
+      linear-gradient(180deg, #f7fbff 0%, #ebf2ff 45%, var(--hero-bottom) 88%, var(--hero-bottom) 100%);
+    overflow: hidden;
+    padding-bottom: 48px;
+  }
+
+  /* Розмиті декоративні кола прибрано (2026-08-02): визирали з-під
+     контенту й читались як баг градієнта. */
+  .page-home-main .hero::before,
+  .page-home-main .hero::after {
+    content: none;
+  }
+
+  .page-home-main .hero > .container.hero__inner {
+    width: 100%;
+    max-width: none;
+    padding-left: 0;
+    padding-right: 0;
+    margin: 0;
+  }
+
+  .page-home-main .hero__inner {
+    min-height: 0;
+    padding: calc(var(--header-h) + 8px) 0 0;
+    align-items: flex-start;
+    width: 100%;
+    max-width: none;
+    margin: 0;
+  }
+
+  .page-home-main .hero__content {
+    display: block;
+    min-height: 0;
+    padding: 0;
+  }
+
+  .page-home-main .hero__top {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+    gap: 0;
+    margin-top: 0;
+    width: 100%;
+    max-width: none;
+    min-height: 0;
+    padding: 28px 16px 20px;
+    text-align: left;
+   
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+    
+  }
+
+  /* Фонове фото прибрано (2026-08-02): просвічувало з-під контенту
+     і псувало читабельність тексту. Градієнта самого hero достатньо. */
+  .page-home-main .hero__top::before {
+    content: none;
+  }
+
+  .page-home-main .hero__intro {
+    width: 100%;
+    z-index: 1;
+    display: grid;
+    gap: 16px;
+    align-items: start;
+  }
+
+  .page-home-main .hero__copy {
+    min-width: 0;
+    width: 100%;
+    display: grid;
+    gap: 14px;
+    align-content: start;
+    padding-top: 0;
+    max-width: none;
+    position: relative;
+    z-index: 1;
+    justify-items: stretch;
+  }
+
+  .page-home-main .hero .badge--soft {
+    display: inline-flex;
+    width: fit-content;
+    align-items: center;
+    gap: 8px;
+    min-height: 34px;
+    padding: 0 14px;
+    border-radius: 999px;
+    border: 1px solid rgba(210, 220, 240, 0.9);
+    background: rgba(248, 250, 254, 0.92);
+    color: #55637f;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    text-transform: none;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Число лишається помітним (графіт, не синій) — колір бережемо для дій. */
+  .page-home-main .hero .badge--soft strong {
+    color: #2b3856;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .page-home-main .hero .badge--soft i {
+    font-size: 13px;
+  }
+
+  .page-home-main .hero__title {
+    margin: 0;
+    width: 100%;
+    color: #0f1f56;
+    font-size: clamp(22px, 8.4vw, 31px);
+    font-weight: 900;
+    line-height: 0.96;
+    letter-spacing: -0.05em;
+    max-width: none;
+    position: relative;
+    z-index: 1;
+    text-wrap: balance;
+    overflow-wrap: normal;
+    word-break: normal;
+  }
+
+  .page-home-main .hero__title .hero__title-accent,
+  .page-home-main .hero__title-accent {
+    color: inherit;
+    background: none;
+    -webkit-text-fill-color: currentColor;
+    display: inline;
+  }
+
+  .page-home-main .hero__lead {
+    margin: 0;
+    color: #5d73a4;
+    font-size: 13px;
+    line-height: 1.45;
+    max-width: none;
+    width: 100%;
+    position: relative;
+    z-index: 1;
+  }
+
+  .page-home-main .hero__visual {
+    width: 100%;
+    margin-top: 2px;
+    min-height: 0;
+    display: block;
+    position: relative;
+    z-index: 1;
+  }
+
+  .page-home-main .hero__illustration {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 24px;
+    box-shadow: 0 14px 28px rgba(33, 77, 167, 0.12);
+  }
+
+  @media (min-width: 520px) and (max-width: 680px) {
+    .page-home-main .hero__top {
+      padding: 54px 32px 32px;
+    }
+
+    .page-home-main .hero__title {
+      font-size: 40px;
+      max-width: 320px;
+    }
+
+    .page-home-main .hero__lead {
+      font-size: 15px;
+      max-width: 340px;
+    }
+  }
+
   .page-home-main .footer .container {
     width: 100%;
     max-width: none;
@@ -1561,40 +2066,83 @@ color: #2c5ecc;
     --home-section-gap: clamp(18px, 6vw, 30px);
   }
 
+  .page-home-main .hero__mobile-utility {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    position: relative;
+    z-index: 1;
+    padding-bottom: 4px;
+  }
+
   .page-home-main .hero__mobile-cta {
     width: 100%;
+    max-width: none;
     margin-top: 14px;
-    
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-top: 0;
+    margin-bottom: 0;
+    position: relative;
+    z-index: 1;
   }
-  .page-home-main .hero__top{
-    padding-right: 0;
+
+  .page-home-main .hero__mobile-search-shell {
+    width: 100%;
   }
 
   .page-home-main .hero__mobile-search {
+    position: relative;
+    width: 100%;
+  }
+
+  .page-home-main .hero__mobile-search-field {
     width: 100%;
     display: grid;
-    grid-template-columns: 1fr auto;
+    grid-template-columns: auto minmax(0, 1fr) auto;
     align-items: center;
-    gap: 8px;
-    border: 1px solid rgba(176, 194, 230, 0.92);
+    gap: 12px;
+    min-height: 68px;
+    border: 1px solid rgba(223, 233, 250, 0.98);
     background: rgba(255, 255, 255, 0.96);
-    border-radius: 999px;
-    padding: 8px 8px 8px 14px;
-    box-shadow: 0 8px 18px rgba(20, 54, 126, 0.12);
+    border-radius: 12px;
+    padding: 7px 7px 7px 18px;
+    box-shadow: 0 10px 22px rgba(20, 54, 126, 0.08);
+    position: relative;
+    overflow: visible;
+  }
+
+  .page-home-main .hero__mobile-search-shell.is-search-active,
+  .page-home-main .hero__mobile-search-shell:focus-within {
+    align-items: flex-start;
+  }
+
+  .page-home-main .hero__mobile-search-icon {
+    color: #94a3b8;
+    font-size: 18px;
+    width: 18px;
+    text-align: center;
+    flex: 0 0 auto;
   }
 
   .page-home-main .hero__mobile-search input {
     min-width: 0;
+    min-height: 42px;
     border: 0;
     outline: none;
     background: transparent;
     color: #29457d;
     font-size: 16px;
-    font-weight: 600;
+    font-weight: 500;
+    -webkit-appearance: none;
+    appearance: none;
   }
 
   .page-home-main .hero__mobile-search input::placeholder {
-    color: #95a5c6;
+    color: #94a3b8;
   }
 
   .home-trust-explainer__wrap {
@@ -1693,22 +2241,134 @@ margin-left: 0;
     line-height: 1.3;
   }
 
-  .page-home-main .hero__mobile-search button {
-    width: 40px;
-    height: 40px;
-    border-radius: 999px;
+  .page-home-main .hero__mobile-search-field button[type="submit"] {
+    width: 46px;
+    height: 46px;
+    min-width: 46px;
+    border-radius: 12px;
     border: 0;
-    display: inline-grid;
+    display: grid;
     place-items: center;
     color: #fff;
-    font-size: 15px;
-    background: linear-gradient(180deg, #1c63e8 0%, #357fff 100%);
-    box-shadow: 0 8px 18px rgba(28, 99, 232, 0.24);
+    background: var(--c-primary);
+    box-shadow: 0 10px 18px rgba(28, 99, 232, 0.2);
+    font-size: 18px;
   }
 
-  .page-home-main .hero__mobile-search:focus-within {
+  .page-home-main .hero__mobile-actions {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .page-home-main .hero__mobile-action {
+    width: 100%;
+    min-height: 52px;
+    border-radius: 12px !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 0 18px;
+    font-size: 14px;
+    font-weight: 700;
+    text-decoration: none;
+    position: relative;
+    z-index: 1;
+    white-space: nowrap;
+  }
+
+  .page-home-main .hero__mobile-action i {
+    font-size: 20px;
+  }
+
+  .page-home-main .hero__mobile-action--primary {
+    color: #ffffff;
+    background: var(--c-primary);
+    border: 0;
+    box-shadow: 0 12px 22px rgba(28, 99, 232, 0.18);
+  }
+
+  .page-home-main .hero__mobile-action--secondary {
+    color: #2f6df6;
+    background: rgba(255, 255, 255, 0.96);
+    border: 1.5px solid #a9c4ff;
+    box-shadow: none;
+  }
+
+  .page-home-main .hero__mobile-categories {
+    width: 100%;
+    display: grid;
+    gap: 10px;
+    position: relative;
+    z-index: 1;
+    margin-top: 30px;
+  }
+
+  .page-home-main .hero__mobile-categories-head .home-section-title {
+    margin: 0;
+  }
+
+  .page-home-main .hero__mobile-categories-track {
+    padding: 0;
+  }
+
+  @media (max-width: 420px) {
+    .page-home-main .hero__mobile-actions {
+      gap: 12px;
+    }
+
+    .page-home-main .hero__mobile-action {
+      min-height: 46px;
+      border-radius: 14px;
+      font-size: 12px;
+      padding-inline: 12px;
+    }
+
+    .page-home-main .hero__mobile-categories-track {
+      gap: 8px;
+    }
+
+    .page-home-main .hero__mobile-category-card {
+      min-width: 142px;
+    }
+  }
+
+  .page-home-main .hero__mobile-note {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 56px minmax(0, 1fr);
+    gap: 14px;
+    align-items: center;
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px solid rgba(214, 224, 244, 0.9);
+  }
+
+  .page-home-main .hero__mobile-note-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(180deg, #f4f5f7 0%, #f4f5f7 100%);
+    border: 1px solid rgba(221, 229, 246, 0.96);
+    color: #2f67f4;
+    display: inline-grid;
+    place-items: center;
+    font-size: 24px;
+  }
+
+  .page-home-main .hero__mobile-note p {
+    margin: 0;
+    color: #5f7198;
+    font-size: 13px;
+    line-height: 1.48;
+  }
+
+  .page-home-main .hero__mobile-search.is-open .hero__mobile-search-field,
+  .page-home-main .hero__mobile-search:focus-within .hero__mobile-search-field {
     border-color: #9bb8f5;
-    box-shadow: 0 10px 24px rgba(28, 99, 232, 0.18);
+    box-shadow: 0 0 0 3px rgba(47, 109, 244, 0.10), 0 18px 32px rgba(28, 99, 232, 0.14);
   }
 
   .page-home-main .hero__search-suggest {
@@ -1717,7 +2377,7 @@ margin-left: 0;
     right: 0;
     top: calc(100% + 10px);
     width: auto;
-    border: 1px solid #d8e3f7;
+    border: 1px solid #e3e7ee;
     border-radius: 18px;
     background: #fff;
     box-shadow: 0 18px 32px rgba(16, 52, 120, 0.18);
@@ -1728,12 +2388,19 @@ margin-left: 0;
 
   .page-home-main .hero__search-suggest-title {
     margin: 0;
-    padding: 0 16px 8px;
-    color: #7588b3;
+    color: #64748b;
     font-size: 12px;
     font-weight: 700;
     letter-spacing: 0.06em;
     text-transform: uppercase;
+  }
+
+  .page-home-main .hero__search-suggest-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 0 16px 8px;
   }
 
   .page-home-main .hero__search-suggest-item {
@@ -1742,64 +2409,120 @@ margin-left: 0;
     align-items: center;
     gap: 10px;
     padding: 0 16px;
-    color: #1d315f;
+    color: #1e293b;
     font-size: 15px;
     font-weight: 600;
   }
 
   .page-home-main .hero__search-suggest-item i {
-    color: #7a8fb9;
+    color: #64748b;
     font-size: 14px;
     width: 16px;
+    flex-shrink: 0;
     text-align: center;
+  }
+
+  .page-home-main .hero__search-suggest-text {
+    min-width: 0;
+    display: grid;
+    flex: 1 1 auto;
+    width: 100%;
+    gap: 2px;
+    line-height: 1.2;
+  }
+
+  .page-home-main .hero__search-suggest-label {
+    display: block;
+    width: 100%;
+    line-height: 1.24;
+  }
+
+  .page-home-main .hero__search-suggest-meta {
+    display: block;
+    color: #64748b;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.25;
+    width: 100%;
+    word-break: break-word;
+  }
+
+  .page-home-main .hero__mobile-search-shell.is-search-active {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .page-home-main .hero__mobile-search-shell.is-search-active .hero__mobile-search {
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .page-home-main .hero__mobile-search-shell.is-search-active .hero__mobile-search-field {
+    flex: 0 0 auto;
+    box-shadow: 0 14px 28px rgba(19, 48, 116, 0.12);
+    transition: opacity .2s ease, transform .2s ease, box-shadow .2s ease;
+  }
+
+  .page-home-main .hero__mobile-search-shell.is-search-active .hero__search-suggest {
+    position: static;
+    inset: auto;
+    width: 100%;
+    flex: 1 1 auto;
+    min-height: 0;
+    margin-top: 0;
+    padding: 14px 0;
+    border-radius: 20px;
+    box-shadow: 0 12px 28px rgba(18, 46, 110, 0.10);
+    transition: opacity .24s ease, transform .24s ease, box-shadow .24s ease;
+  }
+
+  .search-focus-overlay.is-mobile-search-mounted .page-home-main [data-search-mobile-shell].is-search-active .hero__mobile-search-field,
+  .search-focus-overlay.is-mobile-search-closing .page-home-main [data-search-mobile-shell].is-search-active .hero__mobile-search-field {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  .search-focus-overlay.is-mobile-search-mounted .page-home-main [data-search-mobile-shell].is-search-active .hero__search-suggest,
+  .search-focus-overlay.is-mobile-search-closing .page-home-main [data-search-mobile-shell].is-search-active .hero__search-suggest {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+
+  .search-focus-overlay.is-mobile-search-open .page-home-main [data-search-mobile-shell].is-search-active .hero__mobile-search-field,
+  .search-focus-overlay.is-mobile-search-open .page-home-main [data-search-mobile-shell].is-search-active .hero__search-suggest {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .page-home-main .hero__mobile-search-shell.is-search-active .hero__search-suggest-title {
+    padding: 0;
+  }
+
+  .page-home-main .hero__mobile-search-shell.is-search-active .hero__search-suggest-head {
+    padding: 0 18px 10px;
+  }
+
+  .page-home-main .hero__mobile-search-shell.is-search-active .hero__search-suggest-close {
+    display: inline-flex;
+  }
+
+  .page-home-main .hero__mobile-search-shell.is-search-active .hero__search-suggest-item {
+    min-height: 52px;
+    padding: 0 18px;
+  }
+
+  .page-home-main .hero__mobile-search-shell.is-search-active .hero__search-suggest-empty {
+    padding: 8px 18px 12px;
+  }
+
+  .page-home-main .home-intents--mobile-only {
+    display: none;
   }
 
   .page-home-main .home-review-cta--standalone {
     display: none;
-  }
-
-  .page-home-main .hero__bottom .home-review-cta--in-hero {
-    display: block;
-    margin-top: 18px;
-    padding: 0;
-    width: 100%;
-  }
-
-  .page-home-main .hero__bottom .home-review-cta--in-hero .home-review-cta__line {
-   
-    min-height: 50px;
-display: flex;
-align-items: center;
-justify-content: center;
-  }
-
-  .page-home-main .hero__bottom .home-review-cta--in-hero .home-review-cta__line::before {
-    height: 2px;
-  }
-
-  .page-home-main .hero__bottom .home-review-cta--in-hero .home-review-cta__pill {
-    width: auto;
-    min-height: 44px;
-    margin: 0 auto;
-   border: 1px solid #d7e3f9;
-background: rgba(255, 255, 255, 0.94);
-box-shadow: 0 8px 18px rgba(18, 50, 122, 0.12);
-padding: 16px 20px;
-font-size: 14px;
-    gap: 10px;
-   
-    line-height: 1;
-    white-space: nowrap;
-    border-radius: 999px;
-  }
-
-   .page-home-main .hero__bottom .home-review-cta--in-hero .home-review-cta__pill strong{
-    color: #4978f9;
-    font-weight: 500;
-   }
-  .page-home-main .hero__bottom .home-review-cta--in-hero .home-review-cta__pill i {
-    font-size: 14px;
-    color: #4978f9;
   }
 
   .page-home-main .home-intents {
@@ -1807,10 +2530,10 @@ font-size: 14px;
   }
 
   .page-home-main .home-intents .container {
-   
+
     border-radius: 24px;
-    
-  
+
+
   }
   .cta-hero-callout__card > .cta-hero-callout__content .home-trust-explainer__btn {
     width: 100%;
@@ -1821,7 +2544,7 @@ font-size: 14px;
   }
   .page-home-main .cta-hero-callout__card::after{
     inset: 10px;
-    border-radius: 22px;
+    border-radius: var(--radius-btn);
   }
 
   .page-home-main .home-intents__head {
@@ -1835,10 +2558,18 @@ font-size: 14px;
 
   .page-home-main .home-intents__head h2 {
     margin: 0;
-    font-weight: 575;
-    font-size: 20px;
+    font-weight: 800;
+    font-size: 22px;
+    line-height: 1.16;
+    letter-spacing: -0.005em;
+    color: var(--c-heading) !important;
+  }
+  .page-home-main .home-section-title {
+    font-size: 14px;
+    min-height: 30px;
+    padding-left: 0;
+    line-height: 1.08;
     letter-spacing: -0.02em;
-    color: #202630 !important;
   }
 
   .page-home-main .home-intents__actions {
@@ -1849,7 +2580,7 @@ font-size: 14px;
   }
   .best-lawyer-card:hover{
      transform: none;
-    
+
   }
   .page-home-main .home-intents__nav {
     display: none;
@@ -1859,16 +2590,11 @@ font-size: 14px;
 
   .page-home-main .home-intents__more {
     height: 34px;
-    padding: 6px 10px;
+    padding: 6px 4px;
     font-size: 12px;
     font-weight: 600;
-    border-radius: 999px;
-    border: 1px solid #90b2f4;
-    background: #fff;
-
-  }
-  .page-home-main .hero__bottom {
-    margin-top: 0 ;
+    border: 0;
+    background: transparent;
   }
   .page-home-main .home-intents__track {
     display: flex;
@@ -1887,45 +2613,103 @@ font-size: 14px;
   }
 
   .page-home-main .home-intents__item {
-    min-width: 100px;
+    --intent-accent: #4978f9;
+    --intent-bg-top: #f6f9ff;
+    --intent-bg-bottom: #eef4ff;
+    --intent-border: #dce6fb;
+  min-width: 30%;
+max-width: 30%;
     min-height: 0;
-    border: 1px solid #d7e4fb;
-    border-radius: 12px;
+    border: 1px solid #e5ebf8;
+    border-radius: 16px;
     background: #fff;
     box-shadow: none;
-    padding: 10px 8px;
-    font-size: 14px;
+    /* 10px по боках замість 14px: інакше «Нерухомість» (85px) не влазить
+       у текстову зону і ламається на «Нерухоміст / ь». */
+    padding: 12px 10px;
+    font-size: 15px;
     font-weight: 700;
-    text-align: center;
+    text-align: left;
+    position: relative;
+
     color: #26447f;
-    display: grid;
-    justify-items: center;
-    gap: 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
     transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
     flex: 0 0 auto;
     scroll-snap-align: start;
   }
 
-  .page-home-main .home-intents__item i {
-    color: #4978f9;
-    font-size: 16px;
+  .page-home-main .home-intents__icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--intent-border);
+    background: linear-gradient(180deg, var(--intent-bg-top) 0%, var(--intent-bg-bottom) 100%);
+    flex: 0 0 50px;
   }
 
-  .page-home-main .home-intents__item span {
-    line-height: 1.2;
+  .page-home-main .home-intents__item i {
+    color: var(--intent-accent);
+    font-size: 22px;
+  }
+
+  /* Приглушені нейтральні тінти (як на десктопі): без «веселки». */
+  .page-home-main .home-intents__item--tone-1 { --intent-accent: #516079; --intent-bg-top: #eef1f6; --intent-bg-bottom: #eef1f6; --intent-border: #e1e7f0; }
+  .page-home-main .home-intents__item--tone-2 { --intent-accent: #4f6f64; --intent-bg-top: #edf3f0; --intent-bg-bottom: #edf3f0; --intent-border: #dde8e2; }
+  .page-home-main .home-intents__item--tone-3 { --intent-accent: #63607c; --intent-bg-top: #f1eff5; --intent-bg-bottom: #f1eff5; --intent-border: #e5e1ee; }
+  .page-home-main .home-intents__item--tone-4 { --intent-accent: #7a7057; --intent-bg-top: #f4f1ea; --intent-bg-bottom: #f4f1ea; --intent-border: #eae4d8; }
+  .page-home-main .home-intents__item--tone-5 { --intent-accent: #7d6360; --intent-bg-top: #f4eeee; --intent-bg-bottom: #f4eeee; --intent-border: #ebe0e0; }
+  .page-home-main .home-intents__item--tone-6 { --intent-accent: #4f6f74; --intent-bg-top: #ecf2f3; --intent-bg-bottom: #ecf2f3; --intent-border: #dce8ea; }
+
+  .page-home-main .home-intents__text {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+
+  }
+
+  .page-home-main .home-intents__arrow {
+    display: none;
+    position: absolute;
+    right: 10px;
+    bottom: 9px;
+    width: 24px;
+    height: 24px;
+    border-radius: 999px;
+
+    align-items: center;
+    justify-content: center;
+    color: #8aa2d0;
+    border: 1px solid #dbe5fa;
+    background: #f4f5f7;
+    flex: 0 0 24px;
+  }
+
+  .page-home-main .home-intents__arrow i {
+    font-size: 10px;
   }
 
   .page-home-main .home-intents__item .home-intents__name {
     line-height: 1.2;
+    text-align: center;
+    color: #1f2f62;
+    font-size: 13px;
   }
 
   .page-home-main .home-intents__item .home-intents__count {
     display: block;
     font-size: 10px;
     font-weight: 600;
-    color: #6f84af;
+    color: #64748b;
     line-height: 1.2;
     white-space: nowrap;
+    text-align: center;
   }
 
   .home-pro-cta {
@@ -1934,7 +2718,7 @@ font-size: 14px;
 
   .home-pro-cta__card {
     min-height: 212px;
-    border-radius: 20px;
+    border-radius: var(--radius-btn);
     padding: 40px 24px;
     display: grid;
     justify-items: center;
@@ -1991,7 +2775,8 @@ font-size: 14px;
   }
 
   .best-lawyers__head .h2 {
-    font-size: clamp(24px, 8vw, 34px);
+    font-size: 22px;
+    line-height: 1.16;
   }
 
   .best-lawyers__actions {
@@ -2097,9 +2882,11 @@ font-size: 14px;
     display: none;
   }
 
-  .popular-companies .best-lawyer-card {
+  .popular-companies .best-lawyer-card,
+  .popular-companies__grid .dovira-catalog-card {
     min-width: min(84vw, 286px);
     max-width: 288px;
+    height: 128px;
     flex: 0 0 auto;
     scroll-snap-align: start;
   }
@@ -2207,5 +2994,3500 @@ font-size: 14px;
 
   .page-home-main .cta-hero-callout__phone-shadow {
     background: none;
+  }
+}
+
+@media (min-width: 761px) {
+  .page-home-main .best-lawyer-card__name {
+    font-size: 16px;
+  }
+}
+
+/* Final shared section-title override */
+.page-home-main .hero__mobile-categories-head > .home-section-title,
+.page-home-main .home-intents__head > .home-section-title,
+.page-home-main .best-lawyers .home-intents__head > .home-section-title,
+.page-home-main .popular-companies .home-intents__head > .home-section-title,
+.page-home-main .tp-reviews .home-intents__head > .home-section-title {
+  color: rgba(49, 65, 95, 0.78) !important;
+  font-size: 18px !important;
+  line-height: 1.12 !important;
+  letter-spacing: -0.02em !important;
+  font-weight: 800 !important;
+}
+
+.page-home-main .hero__mobile-categories-head > .home-section-title span,
+.page-home-main .home-intents__head > .home-section-title span,
+.page-home-main .best-lawyers .home-intents__head > .home-section-title span,
+.page-home-main .popular-companies .home-intents__head > .home-section-title span,
+.page-home-main .tp-reviews .home-intents__head > .home-section-title span {
+  color: rgba(75, 111, 188, 0.86) !important;
+}
+
+@media (max-width: 680px) {
+  .page-home-main .hero__mobile-categories-head > .home-section-title,
+  .page-home-main .home-intents__head > .home-section-title,
+  .page-home-main .best-lawyers .home-intents__head > .home-section-title,
+  .page-home-main .popular-companies .home-intents__head > .home-section-title,
+  .page-home-main .tp-reviews .home-intents__head > .home-section-title {
+    font-size: 15px !important;
+    line-height: 1.14 !important;
+  }
+}
+
+/* Final shared CTA button override */
+.page-home-main .home-pro-cta__btn,
+.page-home-main .cta-hero-callout__card .home-trust-explainer__btn {
+  min-height: 52px !important;
+  padding: 0 24px !important;
+  border-radius: var(--radius-btn);
+  font-size: 16px !important;
+  font-weight: 700;
+  line-height: 1 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 12px !important;
+  min-width: 250px;
+  white-space: nowrap;
+}
+
+.page-home-main .home-pro-cta__btn i,
+.page-home-main .cta-hero-callout__card .home-trust-explainer__btn i {
+  font-size: 18px !important;
+}
+
+@media (min-width: 681px) {
+  .page-home-main .home-pro-cta__btn,
+  .page-home-main .cta-hero-callout__card .home-trust-explainer__btn {
+    min-width: 280px;
+  }
+}
+
+/* «Розчинну» сітку-текстуру hero прибрано повністю: 36px-патерн
+   був шумом без функції. Збережено лише z-index контенту. */
+.page-home-main .hero__intro {
+  position: relative;
+  isolation: isolate;
+}
+
+.page-home-main .hero__copy,
+.page-home-main .hero__visual,
+.page-home-main .hero__desktop-search,
+.page-home-main .hero__mobile-utility {
+  position: relative;
+  z-index: 1;
+}
+
+
+/* ===== Flat cards on the home page — no drop shadow ===== */
+.page-home-main .home-intents__item,
+.page-home-main .home-intents__item:hover,
+.page-home-main .home-intents__more,
+.page-home-main .home-intents__more:hover,
+.page-home-main .latest-review-card,
+.page-home-main .latest-review-card:hover,
+.page-home-main .latest-review-card__avatar,
+.page-home-main .latest-review-card__company-logo,
+.page-home-main .best-lawyer-card,
+.page-home-main .best-lawyer-card:hover,
+.page-home-main .dovira-home-card,
+.page-home-main .dovira-home-card:hover,
+.page-home-main .dovira-catalog-card.dovira-catalog-card,
+.page-home-main .dovira-catalog-card.dovira-catalog-card:hover {
+  box-shadow: none !important;
+}
+
+
+/* ============================================================
+   «Топ-рейтинги» — лідерборд топ-5 у двох колонках. Замінив дві
+   каруселі каталожних карток, щоб головна не дублювала каталог.
+   ============================================================ */
+.home-top__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.home-top__col {
+  border: 1px solid #dfe8fb;
+  border-radius: 20px;
+  background: #fff;
+  padding: 16px 18px 10px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+}
+
+.home-top__col-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e8effc;
+}
+
+.home-top__col-head h3 {
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #17356b;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.home-top__col-head h3 i {
+  color: #2b62dc;
+  font-size: 14px;
+}
+
+.home-top__col-head a {
+  color: #2b62dc;
+  font-size: 12.5px;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.home-top__col-head a:hover {
+  text-decoration: underline;
+}
+
+/* Зелений приріст у колонці «Набирають популярність». */
+.home-top__score .home-top__growth {
+  color: #1fa563;
+  font-weight: 700;
+}
+
+.home-top__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.home-top__list li + li {
+  border-top: 1px solid #eef3fc;
+}
+
+.home-top__row {
+  display: grid;
+  grid-template-columns: 28px 40px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 4px;
+  border-radius: 12px;
+  text-decoration: none;
+  transition: background 140ms ease;
+}
+
+.home-top__row:hover {
+  background: #f4f5f7;
+}
+
+.home-top__rank {
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: #eef3fc;
+  color: #5a729e;
+  font-size: 12.5px;
+  font-weight: 800;
+}
+
+.home-top__rank--1 {
+  background: #fdf3d7;
+  color: #b47d0a;
+}
+
+.home-top__rank--2 {
+  background: #eef1f6;
+  color: #64748b;
+}
+
+.home-top__rank--3 {
+  background: #f9e9dc;
+  color: #b3652a;
+}
+
+.home-top__logo {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  background: #e9f0fe;
+  color: #2b62dc;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.home-top__logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.home-top__info {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.home-top__info strong {
+  color: #1e293b;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.25;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-top__info > span {
+  color: #64748b;
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-top__score {
+  display: grid;
+  justify-items: end;
+  gap: 2px;
+}
+
+.home-top__stars {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #1e293b;
+  font-size: 13.5px;
+  font-weight: 800;
+}
+
+.home-top__stars i {
+  color: #f2a91d;
+  font-size: 12px;
+}
+
+/* Замало відгуків — цифру не показуємо. */
+.home-top__stars--pending {
+  color: #64748b;
+  font-size: 11.5px;
+  font-weight: 600;
+}
+
+.home-top__score em {
+  font-style: normal;
+  color: #64748b;
+  font-size: 11.5px;
+  white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+  .home-top__grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .home-top__col {
+    padding: 14px 14px 8px;
+  }
+}
+
+/* ============================================================
+   Trust-смужка «Чому нам довіряють»: копі + три міні-плитки
+   зліва, фото користувачки з плаваючим бейджем справа.
+   ============================================================ */
+.home-trust-strip {
+  padding: 10px 0 28px;
+}
+
+.home-trust-strip__wrap {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #dfe8fb;
+  border-radius: 24px;
+  background: linear-gradient(135deg, #ffffff 0%, #f4f5f7 55%, #f4f5f7 100%);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  align-items: stretch;
+}
+
+.home-trust-strip__glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(340px 180px at 8% 0%, rgba(43, 98, 220, 0.07), transparent 70%),
+    radial-gradient(300px 180px at 96% 100%, rgba(48, 186, 115, 0.06), transparent 70%);
+}
+
+.home-trust-strip__main {
+  position: relative;
+  padding: 24px;
+  display: grid;
+  gap: 18px;
+  align-content: center;
+}
+
+.home-trust-strip__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 10px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(43, 98, 220, 0.18);
+  background: rgba(43, 98, 220, 0.07);
+  color: #2b62dc;
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.home-trust-strip__eyebrow i {
+  font-size: 11px;
+}
+
+.home-trust-strip__copy h2 {
+  margin: 0 0 6px;
+  color: #1e293b;
+  font-size: 19px;
+  font-weight: 800;
+  line-height: 1.3;
+}
+
+.home-trust-strip__copy p {
+  margin: 0 0 12px;
+  color: #53668c;
+  font-size: 13.5px;
+  line-height: 1.55;
+}
+
+.home-trust-strip__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #2b62dc;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.home-trust-strip__link i {
+  font-size: 11px;
+  transition: transform 160ms ease;
+}
+
+.home-trust-strip__link:hover i {
+  transform: translateX(3px);
+}
+
+.home-trust-strip__cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.home-trust-strip__card {
+  --trust-card-accent: #2b62dc;
+  --trust-card-soft: #e9f1ff;
+  display: grid;
+  gap: 6px;
+  align-content: start;
+  padding: 14px;
+  border-radius: 16px;
+  border: 1px solid #e4ecfb;
+  background: rgba(255, 255, 255, 0.85);
+  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+}
+
+.home-trust-strip__card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(43, 98, 220, 0.28);
+  box-shadow: 0 10px 24px rgba(23, 55, 116, 0.08);
+}
+
+.home-trust-strip__card--green {
+  --trust-card-accent: #1fa563;
+  --trust-card-soft: #e5f7ee;
+}
+
+.home-trust-strip__card--blue {
+  --trust-card-accent: #2b62dc;
+  --trust-card-soft: #e9f1ff;
+}
+
+.home-trust-strip__card--violet {
+  --trust-card-accent: #6d4fe0;
+  --trust-card-soft: #efebfd;
+}
+
+.home-trust-strip__icon {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 11px;
+  background: var(--trust-card-soft);
+  color: var(--trust-card-accent);
+  font-size: 15px;
+}
+
+.home-trust-strip__card strong {
+  color: #1e293b;
+  font-size: 13.5px;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.home-trust-strip__card > span:last-child {
+  color: #64769b;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.home-trust-strip__photo {
+  position: relative;
+  margin: 0;
+  min-height: 100%;
+}
+
+.home-trust-strip__photo img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* Кадр: обличчя користувачки + телефон із каталогом Dovira. */
+  object-position: 74% 18%;
+}
+
+/* Мʼякий перехід фото у фон блока, щоб панель не виглядала «приклеєною». */
+.home-trust-strip__photo::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(90deg, #f4f5f7 0%, rgba(244, 248, 255, 0) 26%);
+}
+
+.home-trust-strip__photo-badge {
+  position: absolute;
+  z-index: 2;
+  left: 14px;
+  bottom: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  background: rgba(255, 255, 255, 0.86);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  box-shadow: 0 8px 22px rgba(23, 55, 116, 0.16);
+  color: #1e293b;
+  font-size: 12.5px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.home-trust-strip__photo-badge i {
+  color: #f2a91d;
+  font-size: 12px;
+}
+
+@media (max-width: 1100px) {
+  .home-trust-strip__wrap {
+    grid-template-columns: minmax(0, 1fr) 240px;
+  }
+
+  .home-trust-strip__cards {
+    gap: 10px;
+  }
+}
+
+@media (max-width: 900px) {
+  .home-trust-strip__wrap {
+    grid-template-columns: 1fr;
+  }
+
+  /* На мобільному фото стає верхнім банером. */
+  .home-trust-strip__photo {
+    order: -1;
+    min-height: 0;
+    height: 170px;
+  }
+
+  .home-trust-strip__photo::before {
+    background: linear-gradient(180deg, rgba(244, 248, 255, 0) 55%, #f4f5f7 100%);
+  }
+
+  .home-trust-strip__photo-badge {
+    left: 12px;
+    bottom: 12px;
+  }
+
+  .home-trust-strip__main {
+    padding: 18px 16px;
+    gap: 14px;
+  }
+
+  .home-trust-strip__cards {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .home-trust-strip__card {
+    grid-template-columns: 34px minmax(0, 1fr);
+    grid-template-areas: "icon title" "icon text";
+    align-items: center;
+    column-gap: 12px;
+    row-gap: 2px;
+  }
+
+  .home-trust-strip__card .home-trust-strip__icon {
+    grid-area: icon;
+  }
+
+  .home-trust-strip__card strong {
+    grid-area: title;
+  }
+
+  .home-trust-strip__card > span:last-child {
+    grid-area: text;
+  }
+}
+
+/* Компактний PRO CTA внизу сторінки (перед FAQ) — менші відступи
+   й типографіка, ніж у повного банера. */
+.home-pro-cta--compact .home-pro-cta__card {
+  padding: 18px 26px;
+  border-radius: var(--radius-btn);
+  min-height: 0;
+}
+
+.home-pro-cta--compact .home-pro-cta__content h3 {
+  font-size: 16px;
+}
+
+.home-pro-cta--compact .home-pro-cta__content p {
+  font-size: 13.5px;
+  margin-top: 4px;
+}
+
+.home-pro-cta--compact .home-pro-cta__btn {
+  min-height: 38px;
+  font-size: 13px;
+}
+
+/* ============================================================
+   Селектор міста в hero-пошуку: пігулка в правій частині поля
+   (десктоп) або окремий рядок (мобільний) + випадний список.
+   ============================================================ */
+.home-city-picker {
+  position: relative;
+}
+
+.page-home-main .hero__desktop-search .home-city-picker__toggle {
+  width: auto;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 12px 0 14px;
+  border: 0;
+  border-left: 1px solid #dbe4f6;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: #2b62dc;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.page-home-main .hero__desktop-search .home-city-picker__toggle:hover {
+  color: #1c4fc4;
+}
+
+.home-city-picker__toggle > i:first-child {
+  font-size: 13px;
+}
+
+.home-city-picker__chevron {
+  font-size: 10px;
+  opacity: 0.7;
+  transition: transform 160ms ease;
+}
+
+.home-city-picker.is-open .home-city-picker__chevron {
+  transform: rotate(180deg);
+}
+
+.home-city-picker__menu {
+  position: absolute;
+  z-index: 40;
+  top: calc(100% + 12px);
+  right: 0;
+  min-width: 330px;
+  padding: 10px;
+  border: 1px solid #e3e7ee;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 18px 44px rgba(23, 55, 116, 0.16);
+}
+
+.page-home-main .home-city-picker .home-city-picker__option {
+  width: 100%;
+  height: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  box-shadow: none;
+  color: #1e293b;
+  font-size: 13.5px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.page-home-main .home-city-picker .home-city-picker__option:hover {
+  background: #f4f5f7;
+  color: #1c4fc4;
+}
+
+.page-home-main .home-city-picker .home-city-picker__option.is-active {
+  background: #e9f1ff;
+  color: #1c4fc4;
+  font-weight: 800;
+}
+
+.page-home-main .home-city-picker .home-city-picker__option--all {
+  margin-bottom: 6px;
+  border-bottom: 1px solid #edf2fc;
+  border-radius: 10px 10px 0 0;
+}
+
+.page-home-main .home-city-picker .home-city-picker__option--all i {
+  color: #94a3b8;
+  font-size: 13px;
+}
+
+.home-city-picker__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 2px;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+/* Мобільний варіант: пігулка-рядок під полем пошуку. */
+.home-city-picker--mobile {
+  margin-top: 8px;
+}
+
+.page-home-main .home-city-picker--mobile .home-city-picker__toggle {
+  width: 100%;
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 14px;
+  border: 1px solid rgba(176, 194, 230, 0.9);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 4px 12px rgba(26, 52, 110, 0.08);
+  color: #2b62dc;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.home-city-picker--mobile .home-city-picker__menu {
+  left: 0;
+  right: 0;
+  min-width: 0;
+}
+
+/* Форму пошуку тримаємо над пігулкою «Залиште відгук» (z-index: 5),
+   інакше відкрите меню міст перекривається нею. */
+.page-home-main .hero__desktop-search {
+  z-index: 12;
+}
+
+@media (min-width: 681px) {
+  /* Третя колонка в пошуковій пігулці — під селектор міста. */
+  .page-home-main .hero__desktop-search {
+    grid-template-columns: 1fr auto auto;
+  }
+}
+
+/* Мобільний блок пошуку — над категоріями нижче, щоб відкрите меню
+   міст не перекривалось заголовком «Що ви шукаєте?». */
+.page-home-main .hero__mobile-cta {
+  position: relative;
+  z-index: 30;
+}
+
+/* Бейдж обраного міста в заголовках персоналізованих секцій. */
+.home-section-title .home-section-city {
+  color: #2b62dc;
+  font-size: 0.72em;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* ============================================================
+   A/B hero: варіанти C / F / I / J (base = контроль, без змін).
+   Кожен варіант — повноекранна сцена (100svh): контент по центру,
+   категорії заякорені до низу екрана. Мобільний для всіх = base.
+   ============================================================ */
+.page-home-main .hero__wall,
+.page-home-main .hero__wall-veil,
+.page-home-main .hero__aurora,
+.page-home-main .hero__bento,
+.page-home-main .hero__stars-row{
+  display:none;
+}
+
+@media (min-width: 981px){
+
+  /* ---------- спільна повноекранна сцена C/F/I/J ---------- */
+  .page-home-main .hero--v-c,
+  .page-home-main .hero--v-f,
+  .page-home-main .hero--v-i,
+  .page-home-main .hero--v-j{
+    display:flex; flex-direction:column;
+    min-height:100vh; min-height:100svh;
+  }
+  .page-home-main .hero--v-c .hero__inner,
+  .page-home-main .hero--v-f .hero__inner,
+  .page-home-main .hero--v-i .hero__inner,
+  .page-home-main .hero--v-j .hero__inner{
+    flex:1; display:flex; flex-direction:column; align-items:stretch; min-height:0;
+    padding:calc(var(--header-h) + 16px) 0 0;
+  }
+  .page-home-main .hero--v-c .hero__content,
+  .page-home-main .hero--v-f .hero__content,
+  .page-home-main .hero--v-i .hero__content,
+  .page-home-main .hero--v-j .hero__content{
+    width:100%; flex:1; display:flex; flex-direction:column; align-items:stretch; min-height:0;
+  }
+  .page-home-main .hero--v-c .hero__top,
+  .page-home-main .hero--v-f .hero__top,
+  .page-home-main .hero--v-i .hero__top,
+  .page-home-main .hero--v-j .hero__top{
+    flex:1; display:flex; flex-direction:column; justify-content:center; min-height:0;
+  }
+  /* Центр тримається парою auto-маржинів: перший — над intro,
+     другий — перед категоріями (вони і якорять низ). */
+  .page-home-main .hero--v-c .hero__top .hero__intro,
+  .page-home-main .hero--v-f .hero__top .hero__intro,
+  .page-home-main .hero--v-j .hero__top .hero__intro{
+    margin-top:auto;
+  }
+
+  /* Категорії — «підлога» сцени. */
+  .page-home-main .hero--v-c .hero__top .home-intents,
+  .page-home-main .hero--v-f .hero__top .home-intents,
+  .page-home-main .hero--v-j .hero__top .home-intents{
+    margin-top:auto; padding-bottom:30px;
+  }
+  /* Пігулка відгуку — ближче до пошуку, без розпірки. */
+  .page-home-main .hero--v-c .home-review-cta,
+  .page-home-main .hero--v-f .home-review-cta,
+  .page-home-main .hero--v-j .home-review-cta{
+    margin-top:26px; padding-bottom:0;
+  }
+  .page-home-main .hero--v-c .home-review-cta__pill,
+  .page-home-main .hero--v-f .home-review-cta__pill,
+  .page-home-main .hero--v-j .home-review-cta__pill{
+    white-space:nowrap;
+  }
+
+  /* Більший «дорослий» пошук на сценах. */
+  .page-home-main .hero--v-c .hero__desktop-search,
+  .page-home-main .hero--v-f .hero__desktop-search,
+  .page-home-main .hero--v-j .hero__desktop-search{
+    max-width:720px;
+    padding:12px 12px 12px 26px;
+    box-shadow:0 1px 2px rgba(15,23,42,.05), 0 18px 44px rgba(26,52,110,.14), 0 40px 90px rgba(26,52,110,.12);
+  }
+  .page-home-main .hero--v-c .hero__desktop-search input,
+  .page-home-main .hero--v-f .hero__desktop-search input,
+  .page-home-main .hero--v-j .hero__desktop-search input{
+    font-size:16px;
+  }
+  .page-home-main .hero--v-c .hero__title,
+  .page-home-main .hero--v-f .hero__title,
+  .page-home-main .hero--v-j .hero__title{
+    margin-top:0;
+    font-size:clamp(44px, 3.6vw, 62px);
+    letter-spacing:-.04em;
+  }
+
+  /* ---------- C: зірки й маркер ---------- */
+  .page-home-main .hero--v-c .hero__title-accent{
+    box-shadow: inset 0 -0.2em 0 rgba(245, 166, 35, 0.4);
+  }
+  .page-home-main .hero--v-c .hero__lead--desktop-only{ display:none; }
+  .page-home-main .hero--v-c .hero__stars-row{
+    display:flex; align-items:center; justify-content:center; gap:14px;
+    margin:20px 40px 0; font-size:16px; color:#5a6a85;
+  }
+  .page-home-main .hero--v-c .hero__stars-row strong{ color:#1e293b; font-weight:800; }
+  .page-home-main .hero--v-c .hero__stars-row-stars{
+    color:#f2a91d; font-size:23px; letter-spacing:3px; line-height:1;
+    text-shadow:0 1px 0 rgba(242,169,29,.25);
+  }
+
+  /* ---------- F: стіна відгуків ---------- */
+  .page-home-main .hero--v-f{ position:relative; overflow:hidden; }
+  .page-home-main .hero--v-f .hero__inner{ position:relative; z-index:3; }
+  .page-home-main .hero--v-f .hero__wall{
+    display:flex; gap:16px; justify-content:center;
+    position:absolute; inset:-60px 0; z-index:1; pointer-events:none;
+    opacity:.6;
+  }
+  .page-home-main .hero--v-f .hero__wall-col{
+    display:flex; flex-direction:column; gap:16px; width:250px; flex:0 0 auto;
+    animation: hero-wall-drift 52s linear infinite;
+  }
+  .page-home-main .hero--v-f .hero__wall-col:nth-child(2){ animation-duration:66s; animation-direction:reverse; margin-top:-140px; }
+  .page-home-main .hero--v-f .hero__wall-col:nth-child(3){ animation-duration:58s; }
+  .page-home-main .hero--v-f .hero__wall-col:nth-child(4){ animation-duration:72s; animation-direction:reverse; margin-top:-90px; }
+  @keyframes hero-wall-drift{ from{ transform:translateY(0); } to{ transform:translateY(-50%); } }
+  .page-home-main .hero--v-f .hero__wall-card{
+    background:#fff; border:1px solid #e9ecf2; border-radius:16px; padding:14px 16px;
+    font-size:12px; color:#475569; box-shadow:0 10px 24px rgba(15,23,42,.06);
+  }
+  .page-home-main .hero--v-f .hero__wall-card b{ display:block; color:#1e293b; font-size:12.5px; }
+  .page-home-main .hero--v-f .hero__wall-card p{ margin:5px 0 0; line-height:1.5; }
+  .page-home-main .hero--v-f .hero__wall-stars{ color:#f2a91d; font-size:11.5px; letter-spacing:1.5px; }
+  .page-home-main .hero--v-f .hero__wall-veil{
+    display:block; position:absolute; inset:0; z-index:2; pointer-events:none;
+    background:
+      linear-gradient(180deg,
+        rgba(245,248,253,.4) 0%,
+        rgba(245,248,253,0) 24%,
+        rgba(245,248,253,0) 52%,
+        rgba(238,242,249,.9) 76%,
+        #eef2f9 90%),
+      radial-gradient(66% 60% at 50% 42%,
+        rgba(245,248,253,.98) 36%, rgba(245,248,253,.68) 64%, rgba(245,248,253,0) 100%);
+  }
+
+  /* ---------- J: темна сцена ---------- */
+  .page-home-main .hero--v-j{
+    position:relative; overflow:hidden;
+    background:
+      radial-gradient(70% 55% at 50% 0%, rgba(37,99,235,.16), transparent 70%),
+      #0c1322;
+  }
+  .page-home-main .hero--v-j .hero__aurora{
+    display:block; position:absolute; border-radius:50%; filter:blur(90px); pointer-events:none; z-index:1;
+  }
+  .page-home-main .hero--v-j .hero__aurora--1{
+    width:620px; height:460px; background:rgba(37,99,235,.38); top:-180px; left:6%;
+    animation:hero-aurora-a 20s ease-in-out infinite alternate;
+  }
+  .page-home-main .hero--v-j .hero__aurora--2{
+    width:520px; height:400px; background:rgba(124,58,237,.24); top:-120px; right:-90px;
+    animation:hero-aurora-b 26s ease-in-out infinite alternate;
+  }
+  .page-home-main .hero--v-j .hero__aurora--3{
+    width:700px; height:360px; background:rgba(14,165,233,.18); bottom:-220px; left:28%;
+    animation:hero-aurora-a 30s ease-in-out infinite alternate-reverse;
+  }
+  @keyframes hero-aurora-a{ from{ transform:translate(0,0); } to{ transform:translate(52px,30px); } }
+  @keyframes hero-aurora-b{ from{ transform:translate(0,0); } to{ transform:translate(-48px,34px); } }
+  .page-home-main .hero--v-j .hero__inner{ position:relative; z-index:3; }
+  .page-home-main .hero--v-j .hero__title{
+    color:#fff;
+    background:linear-gradient(180deg,#ffffff 32%,#aabef2 100%);
+    -webkit-background-clip:text; background-clip:text;
+    -webkit-text-fill-color:transparent;
+  }
+  .page-home-main .hero--v-j .hero__lead,
+  .page-home-main .hero--v-j .hero__lead--desktop-only{ color:#8fa0c4; }
+  .page-home-main .hero--v-j .hero__lead strong{ color:#8ab0ff; }
+  .page-home-main .hero--v-j .hero__desktop-search{
+    background:rgba(255,255,255,.07);
+    border-color:rgba(255,255,255,.17);
+    box-shadow:0 0 0 1px rgba(59,130,246,.25), 0 34px 90px rgba(4,10,30,.65);
+    -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px);
+  }
+  .page-home-main .hero--v-j .hero__desktop-search input{ color:#e7ecf6; }
+  .page-home-main .hero--v-j .hero__desktop-search input::placeholder{ color:#7f92b8; }
+  .page-home-main .hero--v-j .home-review-cta__line::before{ background:rgba(255,255,255,.10); }
+  .page-home-main .hero--v-j .home-review-cta__pill{
+    background:rgba(255,255,255,.07); border-color:rgba(255,255,255,.16); color:#c7d2e8;
+  }
+  .page-home-main .hero--v-j .home-review-cta__pill strong{ color:#9ec1ff; }
+  .page-home-main .hero--v-j .home-section-title{ color:#fff; }
+  .page-home-main .hero--v-j .home-intents__item{
+    background:rgba(255,255,255,.05); border-color:rgba(255,255,255,.12); box-shadow:none;
+  }
+  .page-home-main .hero--v-j .home-intents__name{ color:#e7ecf6; }
+  .page-home-main .hero--v-j .home-intents__count{ color:#8fa0c4; }
+  .page-home-main .hero--v-j .home-intents__nav{
+    background:rgba(255,255,255,.08); border-color:rgba(255,255,255,.18); color:#e7ecf6;
+  }
+  .page-home-main .hero--v-j .home-intents__more{ color:#9ec1ff; }
+  .page-home-main .hero--v-j .carousel-pagination__dot{ background:rgba(255,255,255,.28); }
+  .page-home-main .hero--v-j .carousel-pagination__dot.is-active{ background:#dbe6ff; }
+
+  /* ---------- I: bento на весь екран ---------- */
+  .page-home-main .hero--v-i .hero__intro,
+  .page-home-main .hero--v-i .hero__desktop-search,
+  .page-home-main .hero--v-i .home-review-cta--standalone,
+  .page-home-main .hero--v-i .home-intents--desktop-only{ display:none; }
+  .page-home-main .hero--v-i .hero__bento{
+    display:grid; grid-template-columns:repeat(12,1fr);
+    grid-template-rows:repeat(4, minmax(0, 1fr));
+    gap:14px; flex:1; min-height:0;
+    max-height:820px; margin:auto 0; padding-bottom:30px;
+  }
+  .page-home-main .hero--v-i .hero__bento-tile{
+    background:#fff; border:1px solid #e7eaf1; border-radius:20px; padding:22px;
+    position:relative; overflow:hidden; min-width:0; min-height:0;
+    box-shadow:0 10px 28px rgba(15,23,42,.05);
+    text-align:left;
+  }
+  .page-home-main .hero--v-i .hero__bento-main{
+    grid-column:1/9; grid-row:1/3; display:flex; flex-direction:column; justify-content:center;
+  }
+  .page-home-main .hero--v-i .hero__bento-main h2{
+    margin:0 0 6px; font-size:clamp(30px, 2.6vw, 42px); font-weight:800;
+    letter-spacing:-.035em; color:#0f172a;
+  }
+  .page-home-main .hero--v-i .hero__bento-main p{ margin:0 0 20px; color:#526079; font-size:15.5px; }
+  .page-home-main .hero--v-i .hero__bento-main p strong{ color:var(--c-primary); }
+  .page-home-main .hero--v-i .hero__bento-search{
+    display:flex; gap:8px; max-width:600px; background:#fff; border:1.5px solid #dfe5ee;
+    border-radius:16px; padding:8px 8px 8px 18px; align-items:center;
+    box-shadow:0 14px 34px rgba(26,52,110,.10);
+  }
+  .page-home-main .hero--v-i .hero__bento-search input{
+    flex:1; border:0; outline:none; background:none; font-size:15.5px; color:#1e293b; min-width:0;
+  }
+  .page-home-main .hero--v-i .hero__bento-search button{
+    display:inline-flex; align-items:center; gap:8px; border:0; cursor:pointer;
+    background:var(--c-primary); color:#fff; border-radius:12px; height:46px; padding:0 22px;
+    font-size:15px; font-weight:700; box-shadow:0 10px 22px rgba(37,99,235,.32);
+  }
+  .page-home-main .hero--v-i .hero__bento-stat{
+    grid-column:9/13; grid-row:1/2; display:flex; flex-direction:column; justify-content:center;
+    background:linear-gradient(135deg,#2563eb,#3b82f6); border:0; color:#fff;
+  }
+  .page-home-main .hero--v-i .hero__bento-stat b{
+    font-size:clamp(24px, 2vw, 32px); font-weight:800; letter-spacing:-.02em;
+    font-variant-numeric:tabular-nums;
+  }
+  .page-home-main .hero--v-i .hero__bento-stat span{ font-size:13px; opacity:.88; }
+  .page-home-main .hero--v-i .hero__bento-review{
+    grid-column:9/13; grid-row:2/4; display:flex; flex-direction:column; justify-content:center; gap:9px;
+  }
+  .page-home-main .hero--v-i .hero__bento-review-badge{
+    position:absolute; top:14px; right:16px; font-size:10px; font-weight:700; color:#0e9f6e;
+    background:#e8f7f0; border-radius:999px; padding:4px 10px;
+  }
+  .page-home-main .hero--v-i .hero__bento-review-who{
+    display:flex; align-items:center; gap:9px; font-size:13.5px; font-weight:700; color:#1e293b;
+  }
+  .page-home-main .hero--v-i .hero__bento-review-who i{
+    width:30px; height:30px; border-radius:50%; background:#dbe7ff; color:#2563eb;
+    display:grid; place-items:center; font-size:12px; font-style:normal; flex:0 0 auto;
+  }
+  .page-home-main .hero--v-i .hero__bento-review-who em{
+    font-style:normal; color:#f2a91d; font-size:12px; letter-spacing:1.5px;
+  }
+  .page-home-main .hero--v-i .hero__bento-review p{
+    margin:0; font-size:13.5px; color:#475569; line-height:1.55;
+  }
+  .page-home-main .hero--v-i .hero__bento-review small{ color:#8a94a6; font-size:11.5px; }
+  .page-home-main .hero--v-i .hero__bento-cat{
+    grid-column:span 2; grid-row:3/4; display:flex; flex-direction:column; justify-content:center;
+    gap:9px; text-decoration:none; color:inherit;
+    transition:transform .15s ease, border-color .15s ease, box-shadow .15s ease;
+  }
+  .page-home-main .hero--v-i .hero__bento-cat:hover{
+    transform:translateY(-2px); border-color:#c9d6ef; box-shadow:0 16px 34px rgba(15,23,42,.09);
+  }
+  .page-home-main .hero--v-i .hero__bento-cat b{ font-size:13px; line-height:1.2; color:#1e293b; }
+  .page-home-main .hero--v-i .hero__bento-cat small{ color:#8a94a6; font-size:11px; }
+  .page-home-main .hero--v-i .hero__bento-cat-ic{
+    width:36px; height:36px; border-radius:10px; display:grid; place-items:center; font-size:15px;
+  }
+  .page-home-main .hero--v-i .hero__bento-cat-ic--1{ background:#e8efff; color:#2563eb; }
+  .page-home-main .hero--v-i .hero__bento-cat-ic--2{ background:#e3f6ea; color:#0e9f6e; }
+  .page-home-main .hero--v-i .hero__bento-cat-ic--3{ background:#f3e9fb; color:#7c3aed; }
+  .page-home-main .hero--v-i .hero__bento-cat-ic--4{ background:#fff1dd; color:#d97706; }
+  .page-home-main .hero--v-i .hero__bento-geo{
+    grid-column:1/5; grid-row:4/5; display:flex; align-items:center; gap:13px;
+  }
+  .page-home-main .hero--v-i .hero__bento-geo-dot{
+    width:10px; height:10px; border-radius:50%; background:#0e9f6e; position:relative; flex:0 0 auto;
+  }
+  .page-home-main .hero--v-i .hero__bento-geo-dot::after{
+    content:""; position:absolute; inset:-6px; border-radius:50%;
+    border:2px solid rgba(14,159,110,.4); animation:hero-geo-pulse 2.4s ease-out infinite;
+  }
+  @keyframes hero-geo-pulse{ 0%{ transform:scale(.5); opacity:1; } 70%{ transform:scale(1.5); opacity:0; } 100%{ opacity:0; } }
+  .page-home-main .hero--v-i .hero__bento-geo b{ font-size:14px; display:block; color:#1e293b; }
+  .page-home-main .hero--v-i .hero__bento-geo small{ color:#8a94a6; font-size:12.5px; display:block; }
+  .page-home-main .hero--v-i .hero__bento-geo small a{ color:var(--c-primary); font-weight:600; text-decoration:none; }
+  .page-home-main .hero--v-i .hero__bento-pro{
+    grid-column:5/13; grid-row:4/5; display:flex; align-items:center; justify-content:space-between;
+    background:#101827; border:0; color:#fff; text-decoration:none;
+  }
+  .page-home-main .hero--v-i .hero__bento-pro b{ font-size:15px; display:block; }
+  .page-home-main .hero--v-i .hero__bento-pro small{ color:#9aa8c2; font-size:12.5px; display:block; }
+  .page-home-main .hero--v-i .hero__bento-pro-btn{
+    background:#fff; color:#101827; border-radius:999px; padding:10px 20px;
+    font-size:13px; font-weight:700; white-space:nowrap;
+  }
+}
+
+@media (prefers-reduced-motion: reduce){
+  .page-home-main .hero--v-f .hero__wall-col,
+  .page-home-main .hero--v-j .hero__aurora,
+  .page-home-main .hero--v-i .hero__bento-geo-dot::after{
+    animation:none;
+  }
+}
+
+/* ============================================================
+   SEO-блок «Категорії відгуків» під hero: внутрішня перелінковка
+   + глибина контенту головної. Кольорові іконки = фірмовий знак.
+   ============================================================ */
+.page-home-main .home-cats{ padding:14px 0 4px; }
+.page-home-main .home-cats__head{ margin-bottom:18px; }
+.page-home-main .home-cats__sub{ margin:6px 0 0; color:#64748b; font-size:14.5px; max-width:60ch; }
+.page-home-main .home-cats__grid{
+  display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:14px;
+  align-items:start;
+}
+.page-home-main .home-cats__col{
+  background:#fff; border:1px solid #e7eaf1; border-radius:16px; padding:16px 18px;
+  box-shadow:0 6px 16px rgba(15,23,42,.04);
+}
+.page-home-main .home-cats__lead{
+  display:flex; align-items:center; gap:11px; text-decoration:none; color:inherit;
+}
+.page-home-main .home-cats__ic{
+  width:38px; height:38px; border-radius:10px; display:grid; place-items:center;
+  font-size:16px; flex:0 0 auto;
+}
+.page-home-main .home-cats__ic--1{ background:#e8efff; color:#2563eb; }
+.page-home-main .home-cats__ic--2{ background:#e6f6ec; color:#0f9d63; }
+.page-home-main .home-cats__ic--3{ background:#f2e9fb; color:#7c3aed; }
+.page-home-main .home-cats__ic--4{ background:#fff2dd; color:#d78500; }
+.page-home-main .home-cats__ic--5{ background:#ffe9e6; color:#e5533d; }
+.page-home-main .home-cats__ic--6{ background:#e6f7fb; color:#0e93b0; }
+.page-home-main .home-cats__lead-text b{ display:block; font-size:14.5px; color:#1e293b; letter-spacing:-.01em; }
+.page-home-main .home-cats__lead-text small{ color:#94a3b8; font-size:12px; }
+.page-home-main .home-cats__lead:hover b{ color:#2563eb; }
+.page-home-main .home-cats__subs{
+  list-style:none; margin:13px 0 0; padding:12px 0 0; border-top:1px solid #f1f3f7;
+  display:grid; gap:7px;
+}
+.page-home-main .home-cats__subs a{
+  color:#475569; font-size:13px; text-decoration:none; display:inline-block;
+}
+.page-home-main .home-cats__subs a:hover{ color:#2563eb; text-decoration:underline; text-underline-offset:2px; }
+.page-home-main .home-cats__all{
+  display:inline-flex; align-items:center; gap:8px; margin-top:18px;
+  color:#2563eb; font-weight:600; font-size:14px; text-decoration:none;
+}
+.page-home-main .home-cats__all i{ font-size:11px; }
+.page-home-main .home-cats__all:hover{ text-decoration:underline; text-underline-offset:2px; }
+
+@media (max-width: 900px){
+  .page-home-main .home-cats__grid{ grid-template-columns:1fr 1fr; }
+}
+@media (max-width: 600px){
+  .page-home-main .home-cats__grid{ grid-template-columns:1fr; }
+}
+
+/* ============================================================
+   Hero головної — «Світанок · Мій ідеал» (десктоп ≥681px):
+   світлий mesh-градієнт, Avenir Next, тихий badge з live-крапкою,
+   синій акцент у H1, ширший sub, чипи 4 + «Інші», дві світлі
+   картки-відгуки по краях + курсор-світло (halo). Рух — у app.js,
+   з повагою до prefers-reduced-motion.
+   ============================================================ */
+@media (min-width: 681px) {
+  /* Світлий градієнт «Світанку». Hero майже на екран, але лишає низ,
+     щоб «Що ви шукаєте?» визирало (сигнал скролу + більше контенту). */
+  .page-home-main .hero {
+    /* Фіксована висота замість vh: без «дірки» на 1080p і без стиску на 13".
+       Хедер fixed (не забирає висоту), тож віднімати його не треба. */
+    min-height: 560px;
+    /* Фон «Світанку» — як у затвердженому мокапі: насичений блакитний mesh
+       (дві радіальні плями по верхніх кутах + перехід до #dfe8f9). Низ
+       СВІДОМО темніший за фон секції — hero читається окремою сценою. */
+    background:
+      radial-gradient(52% 44% at 84% 6%, rgba(167, 199, 255, 0.55) 0%, rgba(167, 199, 255, 0) 100%),
+      radial-gradient(46% 40% at 10% 18%, rgba(190, 212, 255, 0.42) 0%, rgba(190, 212, 255, 0) 100%),
+      linear-gradient(180deg, #f2f6fe 0%, #e9effb 52%, #dfe8f9 100%);
+  }
+
+  /* Контент над декором (картки), центрований. Відступи як у мокапі:
+     44px під фіксованим хедером, 56px знизу (повітря над бейджем дає
+     його власний margin-top). */
+  .page-home-main .hero__inner {
+    position: relative;
+    z-index: 3;
+    min-height: 560px;
+    padding: calc(var(--header-h) + 44px) 0 56px;
+  }
+
+  /* Єдиний ЩІЛЬНИЙ центрований кластер — щоб не було провалу між
+     заголовком і пошуком (повітря має бути навколо, не всередині). */
+  .page-home-main .hero__top {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .page-home-main .hero__intro {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+  }
+  .page-home-main .hero__copy {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    margin: 0;
+  }
+
+  /* Великий заголовок — головний акцент екрана (було замало: 2.55vw).
+     Явний Avenir Next — інакше h1 бере базовий --font-heading (Inter).
+     ОДИН рядок (рішення 2026-08-01): дворядковий варіант садив пошук
+     занизько, і відкритий сагест тікав за фолд. */
+  .page-home-main .hero__title {
+    font-family: "Avenir Next", "Avenir", var(--font-heading);
+    margin: 0;
+    margin-inline: auto;
+    max-width: none;
+    font-size: clamp(38px, 4.7vw, 68px);
+    line-height: 1.02;
+    letter-spacing: -0.03em;
+    white-space: nowrap;
+  }
+
+  .page-home-main .hero__lead--desktop-only {
+    margin: 0;
+    max-width: 44ch;
+  }
+
+  /* Поле пошуку — основний шрифт сайту (Onest); input не успадковує шрифт. */
+  .page-home-main .hero__desktop-search input {
+    font-family: var(--font-body);
+  }
+
+  /* Кнопка пошуку — пілюля з текстом «Знайти» (було лише коло з іконкою). */
+  .page-home-main .hero__desktop-search button {
+    width: auto;
+    height: 46px;
+    padding: 0 24px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-body);
+    font-size: 15px;
+    font-weight: 700;
+  }
+
+  .page-home-main .hero__desktop-search button i {
+    font-size: 14px;
+  }
+
+
+  /* Курсор-світло: м'яка радіальна пляма йде за вказівником (координати
+     ставить інлайн-JS у home.blade). Під контентом, поверх фону. */
+  .page-home-main .hero__halo {
+    display: block;
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background: radial-gradient(340px 340px at var(--hx, 50%) var(--hy, 30%), rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0) 70%);
+    opacity: 0;
+    transition: opacity 400ms ease;
+  }
+
+  .page-home-main .hero--halo .hero__halo {
+    opacity: 1;
+  }
+
+  /* Дві світлі картки-відгуки по краях (айдентика). Малі, коротка думка. */
+  .page-home-main .hero__cards {
+    display: block;
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  /* Обгортка картки — позиція/нахил/паралакс + «привидність»: за
+     замовчуванням картка сильно прозора і не конкурує з пошуком, а коли
+     курсор поруч — JS піднімає --near (0..1) і вона проявляється. */
+  .page-home-main .hero__card {
+    position: absolute;
+    width: 280px;
+    will-change: transform, opacity;
+    /* Читабельні за замовчуванням (не «привид»), ще чіткіші біля курсора. */
+    opacity: calc(0.82 + 0.18 * var(--near, 0));
+    transition: opacity 300ms ease;
+  }
+
+  /* «Стос позаду»: дві картки-силуети визирають з-під основної й віялом
+     ідуть углиб — картка читається як верх колоди, а не самотній привид. */
+  .page-home-main .hero__card::before,
+  .page-home-main .hero__card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.55);
+    box-shadow: 0 16px 34px rgba(16, 62, 156, 0.09);
+  }
+
+  .page-home-main .hero__card::before {
+    transform: translate(11px, 13px) rotate(3.5deg) scale(0.985);
+    opacity: 0.75;
+  }
+
+  .page-home-main .hero__card::after {
+    transform: translate(20px, 24px) rotate(7deg) scale(0.97);
+    opacity: 0.5;
+  }
+
+  /* Права картка — віяло дзеркалимо, щоб стос ішов усередину до центру. */
+  .page-home-main .hero__card--r::before {
+    transform: translate(-11px, 13px) rotate(-3.5deg) scale(0.985);
+  }
+
+  .page-home-main .hero__card--r::after {
+    transform: translate(-20px, 24px) rotate(-7deg) scale(0.97);
+  }
+
+  /* Картка як на «Про нас» (.platform-review-card, скоуплена там під
+     body.page-platform) — компактніша під hero і скляна: просвічує
+     градієнт і не сперечається з контентом за увагу. */
+  .page-home-main .hero .platform-review-card {
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    padding: 16px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.62);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    box-shadow: 0 16px 34px rgba(16, 62, 156, 0.12);
+  }
+
+  /* Делікатний скляний відблиск: вузька світла смуга зрідка пропливає
+     по діагоналі — «живе скло», але надто повільне, щоб красти увагу. */
+  .page-home-main .hero .platform-review-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background: linear-gradient(115deg, transparent 42%, rgba(255, 255, 255, 0.5) 50%, transparent 58%);
+    background-size: 260% 100%;
+    background-position: 130% 0;
+    background-repeat: no-repeat;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .page-home-main .hero .platform-review-card::before {
+      animation: heroCardSheen 9s ease-in-out infinite;
+    }
+    .page-home-main .hero__card--r .platform-review-card::before {
+      animation-delay: 4.5s;
+    }
+  }
+
+  @keyframes heroCardSheen {
+    0% { background-position: 130% 0; }
+    18% { background-position: -130% 0; }
+    100% { background-position: -130% 0; }
+  }
+
+  .page-home-main .hero .platform-review-card__head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .page-home-main .hero .platform-review-card__avatar {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    overflow: hidden;
+    display: grid;
+    place-items: center;
+    color: #fff;
+    background: linear-gradient(135deg, #175cf0, #4c9aff);
+    flex-shrink: 0;
+  }
+
+  .page-home-main .hero .platform-review-card__avatar img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 1;
+  }
+
+  .page-home-main .hero .platform-review-card__avatar i {
+    font-size: 17px;
+    line-height: 1;
+  }
+
+  .page-home-main .hero .platform-review-card__meta {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+  }
+
+  .page-home-main .hero .platform-review-card__meta strong {
+    font-size: 14px;
+    color: var(--c-heading);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .page-home-main .hero .platform-review-card__stars {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 11px;
+    color: #f5a623;
+  }
+
+  .page-home-main .hero .platform-review-card__stars b {
+    margin-left: 5px;
+    font-size: 11px;
+    color: #223962;
+  }
+
+  .page-home-main .hero .platform-review-card__text {
+    margin: 0 0 12px;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--user-text);
+    overflow-wrap: anywhere;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .page-home-main .hero .platform-review-card__profile {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: auto;
+    padding: 9px 11px;
+    border-radius: 12px;
+    background: rgba(238, 244, 255, 0.4);
+    border: 1px solid rgba(207, 221, 247, 0.35);
+  }
+
+  .page-home-main .hero .platform-review-card__logo {
+    position: relative;
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+    overflow: hidden;
+    display: grid;
+    place-items: center;
+    font-weight: 700;
+    font-size: 11px;
+    color: #fff;
+    background: linear-gradient(135deg, #3c5a9c, #6a8bd4);
+    flex-shrink: 0;
+  }
+
+  .page-home-main .hero .platform-review-card__logo img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 1;
+  }
+
+  .page-home-main .hero .platform-review-card__profile-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+    flex: 1;
+  }
+
+  .page-home-main .hero .platform-review-card__profile-meta strong {
+    font-size: 12.5px;
+    color: var(--c-heading);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .page-home-main .hero .platform-review-card__profile-meta span {
+    font-size: 11.5px;
+    color: var(--c-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .page-home-main .hero .platform-review-card__profile > i {
+    color: var(--c-primary);
+    font-size: 12px;
+    flex-shrink: 0;
+  }
+
+  /* Паралакс: --phx/--phy ставить JS за позицією курсора; в спокої 0. */
+  .page-home-main .hero__card--l {
+    left: 2.5%;
+    top: 45%;
+    transform: rotate(-3deg) translate(var(--phx, 0px), var(--phy, 0px));
+  }
+
+  .page-home-main .hero__card--r {
+    right: 2.5%;
+    top: 55%;
+    transform: rotate(3deg) translate(var(--phx, 0px), var(--phy, 0px));
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .page-home-main .hero__card {
+      animation: heroFloat 7s ease-in-out infinite;
+    }
+    .page-home-main .hero__card--r {
+      animation-delay: 1.6s;
+    }
+  }
+
+  @keyframes heroFloat {
+    0%, 100% { translate: 0 0; }
+    50% { translate: 0 -10px; }
+  }
+
+  /* Тихий badge з live-крапкою — не перетягує увагу. margin-top дає
+     повітря НАД кластером (не всередині); 20px — кластер трохи вище,
+     ніж у мокапі (56px садив контент занизько на реальному екрані). */
+  .page-home-main .hero .badge--soft {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 32px;
+    margin-top: 20px;
+    margin-bottom: 4px;
+    padding: 0 14px;
+    border-radius: 999px;
+    border: 1px solid rgba(200, 212, 238, 0.6);
+    background: rgba(255, 255, 255, 0.42);
+    color: #5c6b8c;
+    font-size: 12.5px;
+    font-weight: 500;
+    letter-spacing: 0;
+    box-shadow: none;
+    opacity: 1;
+    -webkit-backdrop-filter: blur(2px);
+    backdrop-filter: blur(2px);
+  }
+
+  .page-home-main .hero .badge--soft strong {
+    color: #3f4d6b;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .page-home-main .hero .badge__live {
+      animation: heroLive 2.8s ease-in-out infinite;
+    }
+  }
+
+  @keyframes heroLive {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.35); }
+    55% { box-shadow: 0 0 0 5px rgba(34, 197, 94, 0); }
+  }
+
+  /* Колірна дисципліна: синій = інтерактив (кнопка пошуку), заголовок —
+     графіт на всіх екранах. nowrap тримає «кому довіряти» цілим, тож
+     дворядковий злам завжди «Знайдіть,» / «кому довіряти». */
+  .page-home-main .hero__title .hero__title-accent {
+    color: inherit;
+    -webkit-text-fill-color: currentColor;
+    white-space: nowrap;
+  }
+
+  /* Ширший сабтайтл. */
+  .page-home-main .hero__lead--desktop-only {
+    max-width: 44ch;
+  }
+
+  /* Чипи + посилання «Інші». */
+  .page-home-main .hero__chips {
+    margin: 16px auto 0;
+    max-width: 620px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    position: relative;
+    z-index: 2;
+  }
+
+  .page-home-main .hero__chip {
+    display: inline-flex;
+    align-items: center;
+    min-height: 34px;
+    padding: 0 15px;
+    border-radius: 999px;
+    border: 1px solid rgba(176, 194, 230, 0.7);
+    background: rgba(255, 255, 255, 0.7);
+    color: #3a4f7f;
+    font-size: 13px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: border-color 160ms ease, background-color 160ms ease, color 160ms ease, transform 160ms ease;
+  }
+
+  .page-home-main .hero__chip:hover {
+    border-color: #7da6f8;
+    background: #fff;
+    color: #1648ac;
+    transform: translateY(-1px);
+  }
+
+  .page-home-main .hero__chips-more {
+    font-size: 13px;
+    font-weight: 600;
+    color: #2f6df6;
+    text-decoration: none;
+    padding: 8px 6px;
+  }
+}
+
+/* ==========================================================================
+   Секція «Категорії відгуків» (.categories) — статична сітка з реальними
+   агрегатами, розподілом оцінок і стрічкою активності. Замінила карусель.
+   ========================================================================== */
+.page-home-main .categories {
+  background: var(--section-bg);
+  padding: 0 0 48px;
+}
+
+/* Hero тепер закінчується кольором (#dfe8f9), стик видимий — секції
+   потрібне власне повітря зверху, інакше заголовок липне до шва. */
+@media (min-width: 681px) {
+  .page-home-main .categories {
+    padding-top: 44px;
+  }
+}
+
+.page-home-main .categories > .container {
+  max-width: 1280px;
+}
+
+/* --- Шапка --- */
+.page-home-main .categories__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px 24px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.page-home-main .categories__head-text {
+  min-width: 0;
+}
+
+/* Правий стовпчик шапки: стрічка активності над «Весь каталог». */
+.page-home-main .categories__head-aside {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* Ідентичний до інших секцій головної («Dovira рекомендує» / «Топ-рейтинги»):
+   18px/800, приглушений графіт — щоб не читався як «нова сторінка». */
+.page-home-main .categories__title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+  color: rgba(49, 65, 95, 0.78);
+}
+
+.page-home-main .categories__sub {
+  margin: 5px 0 0;
+  font-size: 13.5px;
+  color: var(--c-muted);
+}
+
+.page-home-main .categories__all {
+  flex: none;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--c-primary);
+  white-space: nowrap;
+}
+
+.page-home-main .categories__all:hover {
+  text-decoration: underline;
+}
+
+/* --- Стрічка активності (живе в правому стовпчику шапки) --- */
+.page-home-main .categories__ticker {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  max-width: 100%;
+  padding: 8px 12px;
+  background: #fff;
+  border: 0.5px solid rgba(0, 0, 0, 0.08);
+  border-radius: 8px;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.page-home-main .categories__ticker-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #22c55e;
+  flex: none;
+}
+
+.page-home-main .categories__ticker-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: opacity 220ms ease;
+}
+
+.page-home-main .categories__ticker.is-fading .categories__ticker-text {
+  opacity: 0;
+}
+
+/* --- Сітка --- */
+.page-home-main .categories__grid {
+  display: grid;
+  /* ТЗ просить 3 колонки на десктопі; при контейнері 1280 це дає minmax ~340px
+     (280px за буквою ТЗ давало б 4). 3 / 2 / 1 — десктоп / планшет / мобайл. */
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 20px;
+  align-items: stretch;
+}
+
+/* --- Картка --- */
+.page-home-main .cat-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 18px 18px 16px;
+  background: #fff;
+  border: 1px solid var(--c-border);
+  border-radius: 16px;
+  transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.page-home-main .cat-card--extra {
+  display: none;
+}
+
+.page-home-main .categories__grid.is-expanded .cat-card--extra {
+  display: flex;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .page-home-main .cat-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  }
+}
+
+/* Заголовок картки — зона кліку всієї картки через ::after. */
+.page-home-main .cat-card__lead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.page-home-main .cat-card__lead::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+}
+
+.page-home-main .cat-card__lead:focus-visible {
+  outline: 2px solid var(--c-primary);
+  outline-offset: 2px;
+}
+
+.page-home-main .cat-card__icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+
+.page-home-main .cat-card__icon-svg {
+  width: 19px;
+  height: 19px;
+}
+
+.page-home-main .cat-card__name {
+  font-size: 15.5px;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  color: #111827;
+}
+
+/* Смуга розподілу оцінок — яскраві семантичні кольори (як у мокапі В1). */
+.page-home-main .cat-card__bar {
+  display: flex;
+  height: 6px;
+  margin: 12px 0 0;
+  border-radius: 999px;
+  overflow: hidden;
+  background: #eceff3;
+}
+
+.page-home-main .cat-card__seg {
+  height: 100%;
+}
+
+.page-home-main .cat-card__seg--pos { background: #22c55e; }
+.page-home-main .cat-card__seg--neu { background: #facc15; }
+.page-home-main .cat-card__seg--neg { background: #ef4444; }
+
+.page-home-main .cat-card__forming {
+  margin: 12px 0 0;
+  font-size: 12.5px;
+  color: #9ca3af;
+}
+
+/* Метрики: жирна оцінка + бурштинова зірка (як у мокапі). */
+.page-home-main .cat-card__metrics {
+  font-size: 13px;
+  color: #6b7280;
+  font-variant-numeric: tabular-nums;
+}
+
+.page-home-main .cat-card__metrics b {
+  color: var(--c-text);
+  font-weight: 700;
+}
+
+.page-home-main .cat-card__star {
+  color: #f5a623;
+}
+
+/* Підкатегорії — сірі чипи у 2 рядки (В1 «Чипи»): стабільна щільність
+   замість 1-2 вертикальних лінків, сірий = механіка, синій лишається
+   тільки «Усі напрями». */
+.page-home-main .cat-card__subs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 12px;
+}
+
+.page-home-main .cat-card__sub {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 11px;
+  border-radius: 999px;
+  background: #f4f5f7;
+  border: 1px solid transparent;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: #475569;
+  text-decoration: none;
+  transition: border-color 140ms ease, color 140ms ease, background-color 140ms ease;
+}
+
+.page-home-main .cat-card__sub:hover {
+  border-color: #b6c8ea;
+  background: #fff;
+  color: #1648ac;
+  text-decoration: none;
+}
+
+.page-home-main .cat-card__sub:focus-visible {
+  outline: 2px solid var(--c-primary);
+  outline-offset: 2px;
+  border-radius: 999px;
+}
+
+/* Футер картки: метрики + «Усі напрями» одним рядком під тонкою межею —
+   притиснутий донизу, вирівнює висоти карток. */
+.page-home-main .cat-card__foot {
+  margin-top: auto;
+  padding-top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+  flex-wrap: wrap;
+  border-top: 1px solid rgba(15, 23, 42, 0.06);
+}
+
+/* Простір між чипами і межею футера (auto тисне футер донизу). */
+.page-home-main .cat-card__subs {
+  margin-bottom: 12px;
+}
+
+.page-home-main .cat-card__all-dirs {
+  position: relative;
+  z-index: 1;
+  width: fit-content;
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--c-primary);
+  transition: color 150ms ease;
+}
+
+.page-home-main .cat-card__all-dirs:hover {
+  color: var(--c-primary);
+}
+
+.page-home-main .cat-card__all-dirs:focus-visible {
+  outline: 2px solid var(--c-primary);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+/* Кнопка «Показати ще» */
+.page-home-main .categories__more {
+  display: block;
+  margin: 24px auto 0;
+  padding: 11px 22px;
+  background: #fff;
+  border: 0.5px solid rgba(0, 0, 0, 0.12);
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+  cursor: pointer;
+  transition: border-color 160ms ease, background-color 160ms ease;
+}
+
+.page-home-main .categories__more:hover {
+  border-color: rgba(0, 0, 0, 0.25);
+  background: #fafbfc;
+}
+
+/* Планшет: minmax(340px) при вужчому контейнері природно дає 2 колонки. */
+
+/* Мобільний перемикач категорій — на десктопі схований. */
+.page-home-main .categories__switch {
+  display: none;
+}
+
+/* Мобайл: app-like перемикач — горизонтальний ряд пігулок + ОДНА активна
+   картка-панель замість стосу з усіх категорій. */
+@media (max-width: 680px) {
+  .page-home-main .categories {
+    padding: 0 0 48px; /* верх — 0, стик віддано герою */
+  }
+
+  .page-home-main .categories__title {
+    font-size: 15px; /* як інші секційні заголовки на мобайлі */
+  }
+
+  /* Правий стовпчик шапки на мобайлі стає повнорядковим і лівим. */
+  .page-home-main .categories__head-aside {
+    flex-basis: 100%;
+    align-items: flex-start;
+  }
+
+  /* Стрічку «N хв тому · новий відгук…» на мобільному не показуємо. */
+  .page-home-main .categories__ticker {
+    display: none;
+  }
+
+  .page-home-main .categories__switch {
+    display: flex;
+    gap: 8px;
+    margin: 0 -20px 12px;
+    padding: 2px 20px 6px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .page-home-main .categories__switch::-webkit-scrollbar {
+    display: none;
+  }
+
+  .page-home-main .categories__switch-pill {
+    flex: none;
+    min-height: 36px;
+    padding: 0 14px;
+    border-radius: 999px;
+    background: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 600;
+    color: #374151;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease;
+  }
+
+  /* Активна пігулка — графітова (механіка як у крапок пагінації). */
+  .page-home-main .categories__switch-pill.is-active {
+    background: #1e293b;
+    border-color: #1e293b;
+    color: #fff;
+  }
+
+  .page-home-main .categories__grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  /* Видима лише активна панель (перекриває і .cat-card--extra). */
+  .page-home-main .categories__grid .cat-card {
+    display: none;
+  }
+
+  .page-home-main .categories__grid .cat-card.is-active {
+    display: flex;
+  }
+
+  /* «Показати ще» не потрібна: перемикач покриває всі категорії. */
+  .page-home-main .categories__more {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-home-main .cat-card,
+  .page-home-main .categories__ticker-text {
+    transition: none;
+  }
+}
+
+/* ==========================================================================
+   Секція «Як працює DOVIRA» — 4 кроки на горизонтальному таймлайні.
+   Крок 4 — дія (акцентна крапка з кільцем + «Залишити відгук»).
+   ========================================================================== */
+.page-home-main .hiw {
+  background: var(--section-bg);
+  padding: 26px 0 48px;
+}
+
+/* Шапка — ідентична іншим секціям головної («Категорії відгуків» тощо):
+   тихий графітовий 18px/800 + 13.5px сабтайтл, синій текстовий лінк. */
+.page-home-main .hiw__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px 24px;
+  flex-wrap: wrap;
+  margin-bottom: 26px;
+}
+
+.page-home-main .hiw__title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+  color: rgba(49, 65, 95, 0.78);
+}
+
+.page-home-main .hiw__sub {
+  margin: 5px 0 0;
+  font-size: 13.5px;
+  color: var(--c-muted);
+}
+
+.page-home-main .hiw__rules {
+  flex: none;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--c-primary);
+  white-space: nowrap;
+}
+
+.page-home-main .hiw__rules:hover {
+  text-decoration: underline;
+}
+
+.page-home-main .hiw__steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+}
+
+/* Лінія таймлайна — по сегменту в кожній колонці, зливаються в одну. */
+.page-home-main .hiw__dot-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 14px;
+  margin-bottom: 22px;
+}
+
+.page-home-main .hiw__dot-row::before {
+  content: '';
+  position: absolute;
+  inset: 50% 0 auto;
+  height: 1px;
+  background: var(--c-control-border);
+}
+
+.page-home-main .hiw__dot {
+  position: relative;
+  z-index: 1;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #2f6df6;
+}
+
+/* Акцент дії: більша крапка з кільцем — єдиний крок, що наповнює базу. */
+.page-home-main .hiw__dot--action {
+  width: 16px;
+  height: 16px;
+  box-shadow: 0 0 0 4px rgba(47, 109, 244, 0.18);
+}
+
+.page-home-main .hiw__step {
+  padding-right: 36px;
+  min-width: 0;
+}
+
+/* Підписи кроків — моноширинні, з реальними цифрами (доказ, не декор). */
+.page-home-main .hiw__label {
+  display: block;
+  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #9ca3af;
+  font-variant-numeric: tabular-nums;
+}
+
+.page-home-main .hiw__step-title {
+  margin: 12px 0 0;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #111827;
+}
+
+.page-home-main .hiw__step-text {
+  margin: 10px 0 0;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--c-muted);
+  max-width: 34ch;
+}
+
+.page-home-main .hiw__cta {
+  display: inline-block;
+  margin-top: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--c-primary);
+}
+
+.page-home-main .hiw__cta:hover {
+  text-decoration: underline;
+}
+
+/* Послідовна поява при скролі: колонки й крапки зліва направо, крок 80мс.
+   Клас is-revealed ставить IntersectionObserver (інлайн-скрипт partial);
+   при reduced-motion клас ставиться одразу, а transition вимкнено. */
+/* Контент видимий за замовчуванням — анімація появи це прогресивне
+   покращення. Прихований стартовий стан вмикається лише коли JS ставить
+   .hiw--armed; якщо скрипт не спрацює, кроки просто на місці. */
+.page-home-main .hiw__step {
+  opacity: 1;
+  translate: 0 0;
+  transition: opacity 500ms ease, translate 500ms ease;
+}
+
+.page-home-main .hiw--armed:not(.is-revealed) .hiw__step {
+  opacity: 0;
+  translate: 0 14px;
+}
+
+.page-home-main .hiw__step .hiw__dot {
+  scale: 1;
+  transition: scale 360ms cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+
+.page-home-main .hiw--armed:not(.is-revealed) .hiw__step .hiw__dot {
+  scale: 0;
+}
+
+.page-home-main .hiw__step:nth-child(1) { transition-delay: 0ms; }
+.page-home-main .hiw__step:nth-child(2) { transition-delay: 80ms; }
+.page-home-main .hiw__step:nth-child(3) { transition-delay: 160ms; }
+.page-home-main .hiw__step:nth-child(4) { transition-delay: 240ms; }
+.page-home-main .hiw__step:nth-child(1) .hiw__dot { transition-delay: 120ms; }
+.page-home-main .hiw__step:nth-child(2) .hiw__dot { transition-delay: 200ms; }
+.page-home-main .hiw__step:nth-child(3) .hiw__dot { transition-delay: 280ms; }
+.page-home-main .hiw__step:nth-child(4) .hiw__dot { transition-delay: 360ms; }
+
+.page-home-main .hiw.is-revealed .hiw__step {
+  opacity: 1;
+  translate: 0 0;
+}
+
+.page-home-main .hiw.is-revealed .hiw__dot {
+  scale: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-home-main .hiw__step,
+  .page-home-main .hiw__step .hiw__dot {
+    transition: none;
+    opacity: 1;
+    translate: 0 0;
+    scale: 1;
+  }
+}
+
+/* ==========================================================================
+   Секція «Свіжі відгуки» — 3 картки в стилі «Про нас» + CTA-плитка.
+   Дати, гарантований негатив, текст рівно 3 рядки, чип «категорія · місто».
+   ========================================================================== */
+.page-home-main .fresh-reviews {
+  background: var(--section-bg);
+  padding: 0 0 48px;
+}
+
+.page-home-main .fresh-reviews__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px 24px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.page-home-main .fresh-reviews__title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+  color: rgba(49, 65, 95, 0.78);
+}
+
+.page-home-main .fresh-reviews__sub {
+  margin: 5px 0 0;
+  font-size: 13.5px;
+  color: var(--c-muted);
+}
+
+.page-home-main .fresh-reviews__all {
+  flex: none;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--c-primary);
+  white-space: nowrap;
+}
+
+.page-home-main .fresh-reviews__all:hover {
+  text-decoration: underline;
+}
+
+.page-home-main .fresh-reviews__grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  align-items: stretch;
+}
+
+.page-home-main .fresh-reviews .platform-review-card {
+  display: flex;
+  flex-direction: column;
+  /* min-width: 0 — довгі nowrap-назви профілів не розпирають grid-трек. */
+  min-width: 0;
+  padding: 16px;
+  border-radius: 16px;
+  background: #fff;
+  border: 1px solid var(--c-border);
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.page-home-main .fresh-reviews .platform-review-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(16, 62, 156, 0.10);
+}
+
+.page-home-main .fresh-reviews .platform-review-card__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.page-home-main .fresh-reviews .platform-review-card__avatar {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: linear-gradient(135deg, #175cf0, #4c9aff);
+  flex-shrink: 0;
+}
+
+.page-home-main .fresh-reviews .platform-review-card__avatar img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 1;
+}
+
+.page-home-main .fresh-reviews .platform-review-card__avatar i {
+  font-size: 17px;
+  line-height: 1;
+}
+
+.page-home-main .fresh-reviews .platform-review-card__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.page-home-main .fresh-reviews .platform-review-card__meta strong {
+  font-size: 14px;
+  color: var(--c-heading);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.page-home-main .fresh-reviews .platform-review-card__stars {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  color: #f5a623;
+}
+
+/* Дата — головний сигнал свіжості. */
+.page-home-main .fresh-reviews__time {
+  margin-left: auto;
+  align-self: flex-start;
+  flex-shrink: 0;
+  font-size: 12px;
+  color: var(--c-muted);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Текст — РІВНО 3 рядки: clamp зверху, min-height знизу (низи збігаються). */
+.page-home-main .fresh-reviews .platform-review-card__text {
+  margin: 0 0 12px;
+  font-size: 14px;
+  line-height: 1.5;
+  min-height: calc(3 * 1.5em);
+  color: var(--user-text);
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.page-home-main .fresh-reviews .platform-review-card__profile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: auto;
+  padding: 9px 11px;
+  border-radius: 12px;
+  background: rgba(238, 244, 255, 0.75);
+  border: 1px solid rgba(207, 221, 247, 0.7);
+  text-decoration: none;
+  transition: background-color 160ms ease, border-color 160ms ease;
+}
+
+.page-home-main .fresh-reviews .platform-review-card__profile:hover {
+  background: rgba(224, 236, 255, 0.9);
+  border-color: rgba(37, 99, 235, 0.3);
+}
+
+.page-home-main .fresh-reviews .platform-review-card__logo {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 11px;
+  color: #fff;
+  background: linear-gradient(135deg, #3c5a9c, #6a8bd4);
+  flex-shrink: 0;
+}
+
+.page-home-main .fresh-reviews .platform-review-card__logo img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 1;
+}
+
+.page-home-main .fresh-reviews .platform-review-card__profile-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  flex: 1;
+}
+
+.page-home-main .fresh-reviews .platform-review-card__profile-meta strong {
+  font-size: 12.5px;
+  color: var(--c-heading);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.page-home-main .fresh-reviews .platform-review-card__profile-meta span {
+  font-size: 11.5px;
+  color: var(--c-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.page-home-main .fresh-reviews .platform-review-card__profile > i {
+  color: var(--c-primary);
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+/* CTA-плитка: момент після читання чужих відгуків — написати свій.
+   Єдина кольорова плитка секції — синя сцена з інтерактивними зірками. */
+.page-home-main .fresh-reviews__cta {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 20px 18px;
+  border-radius: 16px;
+  background: linear-gradient(150deg, #2f6df6 0%, #1d4ed8 55%, #1a3fae 100%);
+  color: #fff;
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.page-home-main .fresh-reviews__cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 34px rgba(29, 78, 216, 0.35);
+}
+
+.page-home-main .fresh-reviews__cta-glow {
+  position: absolute;
+  inset: -40% -30% auto auto;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0) 70%);
+  pointer-events: none;
+}
+
+.page-home-main .fresh-reviews__cta-mark {
+  position: absolute;
+  right: -14px;
+  bottom: -18px;
+  font-size: 110px;
+  color: rgba(255, 255, 255, 0.07);
+  pointer-events: none;
+}
+
+/* Інтерактивні зірки: хвиля-шимер тягне око, ховер заповнює «оцінку»,
+   клік по будь-якій зірці відкриває форму відгуку. */
+.page-home-main .fresh-reviews__cta-stars {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 2px;
+}
+
+.page-home-main .fresh-reviews__cta-star {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  background: rgba(255, 255, 255, 0.14);
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 14px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  padding: 0;
+  transition: background-color 160ms ease, color 160ms ease, transform 160ms ease;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .page-home-main .fresh-reviews__cta-star {
+    animation: freshCtaStarWave 3.8s ease-in-out infinite;
+  }
+  .page-home-main .fresh-reviews__cta-star:nth-child(2) { animation-delay: 130ms; }
+  .page-home-main .fresh-reviews__cta-star:nth-child(3) { animation-delay: 260ms; }
+  .page-home-main .fresh-reviews__cta-star:nth-child(4) { animation-delay: 390ms; }
+  .page-home-main .fresh-reviews__cta-star:nth-child(5) { animation-delay: 520ms; }
+}
+
+@keyframes freshCtaStarWave {
+  0%, 18%, 100% { background: rgba(255, 255, 255, 0.14); color: rgba(255, 255, 255, 0.75); transform: translateY(0); }
+  8% { background: #ffb020; color: #fff; transform: translateY(-3px); }
+}
+
+/* Ховер: заповнюються всі зірки до наведеної — афорданс «постав оцінку». */
+.page-home-main .fresh-reviews__cta-star:hover,
+.page-home-main .fresh-reviews__cta-star:has(~ .fresh-reviews__cta-star:hover) {
+  animation: none;
+  background: #ffb020;
+  border-color: #ffb020;
+  color: #fff;
+  transform: translateY(-2px);
+}
+
+.page-home-main .fresh-reviews__cta strong {
+  position: relative;
+  font-size: 16.5px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.page-home-main .fresh-reviews__cta p {
+  position: relative;
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.page-home-main .fresh-reviews__cta-proof {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  font-variant-numeric: tabular-nums;
+}
+
+.page-home-main .fresh-reviews__cta-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #4ade80;
+  flex: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .page-home-main .fresh-reviews__cta-dot {
+    animation: freshCtaDot 2.8s ease-in-out infinite;
+  }
+}
+
+@keyframes freshCtaDot {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.4); }
+  55% { box-shadow: 0 0 0 5px rgba(74, 222, 128, 0); }
+}
+
+.page-home-main .fresh-reviews__cta-btn {
+  position: relative;
+  margin-top: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 18px;
+  border-radius: 999px;
+  background: #fff;
+  color: #1d4ed8;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.page-home-main .fresh-reviews__cta-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(10, 30, 90, 0.3);
+}
+
+.page-home-main .fresh-reviews__cta-btn i {
+  font-size: 12px;
+}
+
+/* ==========================================================================
+   Лідерборд «Хто найкращий у своїй справі»: таби-підкатегорії + топ-5
+   рядками. Топ-3 — з вагою (вищі рядки, кольорові номери), без медалей.
+   ========================================================================== */
+.page-home-main .leaderboard {
+  background: var(--section-bg);
+  padding: 0 0 48px;
+}
+
+.page-home-main .leaderboard__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px 24px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.page-home-main .leaderboard__title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+  color: rgba(49, 65, 95, 0.78);
+}
+
+.page-home-main .leaderboard__sub {
+  margin: 5px 0 0;
+  font-size: 13.5px;
+  color: var(--c-muted);
+}
+
+.page-home-main .leaderboard__how {
+  flex: none;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--c-primary);
+  white-space: nowrap;
+}
+
+.page-home-main .leaderboard__how:hover {
+  text-decoration: underline;
+}
+
+/* Таби — той самий app-like патерн, що перемикач категорій на мобайлі. */
+.page-home-main .leaderboard__tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.page-home-main .leaderboard__tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.page-home-main .leaderboard__tab {
+  flex: none;
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease;
+}
+
+.page-home-main .leaderboard__tab.is-active {
+  background: #1e293b;
+  border-color: #1e293b;
+  color: #fff;
+}
+
+.page-home-main .leaderboard__board {
+  display: none;
+  background: #fff;
+  border: 1px solid var(--c-border);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.page-home-main .leaderboard__board.is-active {
+  display: block;
+}
+
+.page-home-main .leaderboard__row {
+  display: grid;
+  grid-template-columns: auto auto 1fr auto auto;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 18px;
+  min-width: 0;
+  text-decoration: none;
+  color: inherit;
+  border-top: 1px solid rgba(15, 23, 42, 0.06);
+  transition: background-color 140ms ease;
+}
+
+.page-home-main .leaderboard__row:first-child {
+  border-top: 0;
+}
+
+.page-home-main .leaderboard__row:hover {
+  background: #f8fafc;
+}
+
+/* Номер — моноширинний, як «КРОК 01» у таймлайні. */
+.page-home-main .leaderboard__rank {
+  width: 30px;
+  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  font-size: 15px;
+  font-weight: 600;
+  color: #b6bfce;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Топ-3: вищі рядки, номер з вагою; перший — бурштиновий (рима з зірками). */
+.page-home-main .leaderboard__row--top {
+  padding-top: 16px;
+  padding-bottom: 16px;
+}
+
+.page-home-main .leaderboard__row--top .leaderboard__rank {
+  font-size: 19px;
+  font-weight: 700;
+  color: #475569;
+}
+
+.page-home-main .leaderboard__row--first .leaderboard__rank {
+  color: #f5a623;
+}
+
+.page-home-main .leaderboard__logo {
+  position: relative;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(135deg, #3c5a9c, #6a8bd4);
+  flex-shrink: 0;
+}
+
+.page-home-main .leaderboard__row--top .leaderboard__logo {
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+}
+
+.page-home-main .leaderboard__logo img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 1;
+}
+
+.page-home-main .leaderboard__main {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.page-home-main .leaderboard__name {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+
+.page-home-main .leaderboard__name strong {
+  font-size: 14.5px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--c-heading);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.page-home-main .leaderboard__row--top .leaderboard__name strong {
+  font-size: 15.5px;
+}
+
+.page-home-main .leaderboard__check {
+  flex: none;
+  font-size: 13px;
+  color: var(--c-success);
+}
+
+.page-home-main .leaderboard__badge {
+  flex: none;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #e8effc;
+  font-size: 11px;
+  font-weight: 600;
+  color: #1d4ed8;
+  white-space: nowrap;
+}
+
+.page-home-main .leaderboard__meta {
+  font-size: 12.5px;
+  color: var(--c-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.page-home-main .leaderboard__score {
+  display: grid;
+  gap: 2px;
+  justify-items: end;
+  text-align: right;
+}
+
+.page-home-main .leaderboard__score-rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 14.5px;
+  font-weight: 800;
+  color: var(--c-heading);
+  font-variant-numeric: tabular-nums;
+}
+
+.page-home-main .leaderboard__score-rating i {
+  font-size: 12px;
+  color: #f5a623;
+}
+
+.page-home-main .leaderboard__score-count {
+  font-size: 12px;
+  color: var(--c-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.page-home-main .leaderboard__go {
+  font-size: 13px;
+  color: #94a3b8;
+  transition: color 140ms ease, transform 140ms ease;
+}
+
+.page-home-main .leaderboard__row:hover .leaderboard__go {
+  color: var(--c-primary);
+  transform: translateX(2px);
+}
+
+/* Футер борда — вихід у повний рейтинг категорії. */
+.page-home-main .leaderboard__all {
+  display: block;
+  padding: 12px 18px;
+  border-top: 1px solid rgba(15, 23, 42, 0.06);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--c-primary);
+  text-decoration: none;
+}
+
+.page-home-main .leaderboard__all:hover {
+  background: #f8fafc;
+}
+
+@media (max-width: 680px) {
+  .page-home-main .leaderboard__title {
+    font-size: 15px;
+  }
+
+  .page-home-main .leaderboard__tabs {
+    margin-inline: -20px;
+    padding-inline: 20px;
+  }
+
+  .page-home-main .leaderboard__row {
+    gap: 10px;
+    padding: 12px 14px;
+  }
+
+  /* На вузьких — без стрілки і бейджа, лишаємо суть. */
+  .page-home-main .leaderboard__go,
+  .page-home-main .leaderboard__badge {
+    display: none;
+  }
+
+  .page-home-main .leaderboard__score-count {
+    font-size: 11px;
+  }
+}
+
+/* ==========================================================================
+   Бізнес-CTA після лідерборда: графітова сцена «а де тут я?» —
+   примарний рядок рейтингу + живий claim-пошук свого бізнесу.
+   ========================================================================== */
+.page-home-main .business-cta {
+  background: var(--section-bg);
+  padding: 0 0 48px;
+  /* Дропдаун claim-сагеста виходить за межі смуги — секція має малюватися
+     поверх наступної. */
+  position: relative;
+  z-index: 4;
+}
+
+.page-home-main .business-cta__band {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+  padding: 30px 34px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #0f1a3b 0%, #1e293b 70%, #24334d 100%);
+  color: #fff;
+  /* Без overflow: hidden — він обрізав дропдаун сагеста по краю смуги. */
+  position: relative;
+}
+
+/* Примарний «ваш» рядок рейтингу — продовження борда вище. */
+.page-home-main .business-cta__ghost {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 300px;
+  padding: 16px;
+  border: 1px dashed rgba(255, 255, 255, 0.3);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.page-home-main .business-cta__ghost-rank {
+  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  font-size: 19px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.45);
+  font-variant-numeric: tabular-nums;
+}
+
+.page-home-main .business-cta__ghost-logo {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  border: 1px dashed rgba(255, 255, 255, 0.35);
+  display: grid;
+  place-items: center;
+  font-size: 17px;
+  color: rgba(255, 255, 255, 0.55);
+  flex: none;
+}
+
+.page-home-main .business-cta__ghost-text {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.page-home-main .business-cta__ghost-text b {
+  font-size: 14px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.page-home-main .business-cta__ghost-text span {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.page-home-main .business-cta__main {
+  flex: 1;
+  min-width: 0;
+}
+
+.page-home-main .business-cta__title {
+  margin: 0;
+  font-size: clamp(19px, 1.8vw, 24px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  /* Явно білий: глобальний колір заголовків — графіт, на темній смузі зникає. */
+  color: #fff;
+}
+
+.page-home-main .business-cta__sub {
+  margin: 8px 0 0;
+  max-width: 62ch;
+  font-size: 14px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+/* Живий claim-пошук: біле поле, синя кнопка — єдиний кольоровий акцент. */
+.page-home-main .business-cta__search {
+  position: relative;
+  margin-top: 16px;
+  max-width: 520px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 6px 6px 16px;
+  border-radius: 999px;
+  background: #fff;
+}
+
+.page-home-main .business-cta__search-icon {
+  color: #95a5c6;
+  font-size: 14px;
+  flex: none;
+}
+
+.page-home-main .business-cta__search input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  font-family: var(--font-body);
+  font-size: 14.5px;
+  font-weight: 500;
+  color: var(--c-text);
+}
+
+.page-home-main .business-cta__search input::placeholder {
+  color: #95a5c6;
+}
+
+.page-home-main .business-cta__search button {
+  flex: none;
+  min-height: 38px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--c-primary);
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 140ms ease;
+}
+
+.page-home-main .business-cta__search button:hover {
+  background: var(--c-primary-dark);
+}
+
+/* Дропдаун сагеста в білому полі — поверх темної смуги. */
+.page-home-main .business-cta__search .hero__search-suggest {
+  top: calc(100% + 8px);
+  z-index: 40;
+}
+
+.page-home-main .business-cta__proofs {
+  list-style: none;
+  margin: 14px 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 22px;
+}
+
+.page-home-main .business-cta__proofs li {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.page-home-main .business-cta__proofs i {
+  font-size: 12px;
+  color: #7da6f8;
+}
+
+.page-home-main .business-cta__alt {
+  margin: 12px 0 0;
+  font-size: 12.5px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.page-home-main .business-cta__alt a {
+  color: #9db9f8;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.page-home-main .business-cta__alt a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 1080px) {
+  .page-home-main .business-cta__ghost {
+    display: none;
+  }
+}
+
+@media (max-width: 680px) {
+  .page-home-main .business-cta__band {
+    padding: 22px 18px;
+  }
+
+  .page-home-main .business-cta__search {
+    flex-wrap: wrap;
+    border-radius: 18px;
+    padding: 8px;
+  }
+
+  .page-home-main .business-cta__search-icon {
+    margin-left: 8px;
+  }
+
+  .page-home-main .business-cta__search input {
+    min-height: 38px;
+  }
+
+  .page-home-main .business-cta__search button {
+    width: 100%;
+  }
+}
+
+/* ==========================================================================
+   «Чому нам довіряти» — принципи з доказами (замінила home-trust-strip).
+   ========================================================================== */
+.page-home-main .trust-principles {
+  background: var(--section-bg);
+  padding: 0 0 48px;
+}
+
+.page-home-main .trust-principles__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px 24px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.page-home-main .trust-principles__title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+  color: rgba(49, 65, 95, 0.78);
+}
+
+.page-home-main .trust-principles__sub {
+  margin: 5px 0 0;
+  font-size: 13.5px;
+  color: var(--c-muted);
+}
+
+.page-home-main .trust-principles__all {
+  flex: none;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--c-primary);
+  white-space: nowrap;
+}
+
+.page-home-main .trust-principles__all:hover {
+  text-decoration: underline;
+}
+
+.page-home-main .trust-principles__grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  align-items: stretch;
+}
+
+.page-home-main .trust-principles__card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  min-width: 0;
+  padding: 18px;
+  border-radius: 16px;
+  background: #fff;
+  border: 1px solid var(--c-border);
+}
+
+.page-home-main .trust-principles__icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  font-size: 16px;
+  flex: none;
+}
+
+.page-home-main .trust-principles__card strong {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--c-heading);
+}
+
+.page-home-main .trust-principles__card p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--c-muted);
+}
+
+/* Цифра-доказ — жирний графіт, табличні цифри. */
+.page-home-main .trust-principles__card p b {
+  color: var(--c-text);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.page-home-main .trust-principles__link {
+  margin-top: auto;
+  padding-top: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--c-primary);
+  text-decoration: none;
+}
+
+.page-home-main .trust-principles__link:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 1080px) {
+  .page-home-main .trust-principles__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .page-home-main .trust-principles__grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .page-home-main .trust-principles__title {
+    font-size: 15px;
+  }
+}
+
+@media (max-width: 1080px) {
+  .page-home-main .fresh-reviews__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .page-home-main .fresh-reviews__grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .page-home-main .fresh-reviews__title {
+    font-size: 15px;
+  }
+
+  .page-home-main .fresh-reviews__cta {
+    align-items: center;
+    text-align: center;
+  }
+
+  .page-home-main .fresh-reviews__cta-stars {
+    justify-content: center;
+  }
+
+  .page-home-main .fresh-reviews__cta-proof {
+    justify-content: center;
+  }
+
+  .page-home-main .fresh-reviews__cta-btn {
+    align-self: stretch;
+    justify-content: center;
+  }
+}
+
+/* Мобайл: вертикальний таймлайн — крапки на лівій рейці, контент праворуч. */
+@media (max-width: 800px) {
+  .page-home-main .hiw {
+    padding: 8px 0 40px;
+  }
+
+  .page-home-main .hiw__head {
+    margin-bottom: 20px;
+  }
+
+  .page-home-main .hiw__title {
+    font-size: 15px; /* як інші секційні заголовки на мобайлі */
+  }
+
+  .page-home-main .hiw__steps {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .page-home-main .hiw__step {
+    position: relative;
+    padding: 0 0 26px 30px;
+  }
+
+  /* Вертикальна рейка між крапками (в останнього кроку не малюємо). */
+  .page-home-main .hiw__step:not(:last-child)::before {
+    content: '';
+    position: absolute;
+    left: 6.5px;
+    top: 16px;
+    bottom: -2px;
+    width: 1px;
+    background: var(--c-control-border);
+  }
+
+  .page-home-main .hiw__step:last-child {
+    padding-bottom: 0;
+  }
+
+  .page-home-main .hiw__dot-row {
+    position: absolute;
+    left: 0;
+    top: 1px;
+    height: auto;
+    margin: 0;
+  }
+
+  .page-home-main .hiw__dot-row::before {
+    content: none;
+  }
+
+  .page-home-main .hiw__step-title {
+    margin-top: 8px;
+    font-size: 17px;
+  }
+
+  .page-home-main .hiw__step-text {
+    margin-top: 6px;
+    font-size: 14px;
+    max-width: none;
+  }
+}
+
+/* Плаваючі картки-відгуки — лише на широких екранах (≥1280px): нижче вони
+   налазять на поле пошуку. Вища специфічність (.hero .hero__cards) б'є
+   display:block з десктопної медіа незалежно від порядку. */
+@media (max-width: 1279px) {
+  .page-home-main .hero .hero__cards {
+    display: none;
+  }
+}
+
+/* ==========================================================================
+   Глави головної (варіант A): єдиний укрупнений патерн заголовків для ВСІХ
+   секцій + зебра фонів (сірий/білий по черзі), щоб сторінка читалась
+   послідовністю розділів. Блок в кінці файлу — свідомо перекриває
+   ранні «тихі» стилі заголовків.
+   ========================================================================== */
+
+/* --- Заголовки-глави --- */
+.page-home-main .categories__title,
+.page-home-main .hiw__title,
+.page-home-main .fresh-reviews__title,
+.page-home-main .leaderboard__title,
+.page-home-main .trust-principles__title,
+.page-home-main .home-section-title,
+.page-home-main .faq__title {
+  margin: 0;
+  min-height: 0;
+  font-size: clamp(20px, 2vw, 26px);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--c-heading);
+}
+
+.page-home-main .categories__sub,
+.page-home-main .hiw__sub,
+.page-home-main .fresh-reviews__sub,
+.page-home-main .leaderboard__sub,
+.page-home-main .trust-principles__sub,
+.page-home-main .faq__lead {
+  margin: 6px 0 0;
+  font-size: 14px;
+  color: var(--c-muted);
+}
+
+/* FAQ-шапка: з центрованої з бейджем — у лівий «главний» патерн. */
+.page-home-main .faq__head--chapter {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px 24px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+  text-align: left;
+}
+
+.page-home-main .faq__head--chapter .faq__head-text {
+  min-width: 0;
+}
+
+.page-home-main .faq__head--chapter .faq__lead {
+  max-width: 62ch;
+}
+
+.page-home-main .faq__all {
+  flex: none;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--c-primary);
+  white-space: nowrap;
+}
+
+.page-home-main .faq__all:hover {
+  text-decoration: underline;
+}
+
+/* --- Зебра фонів: сірий → білий → сірий → ... --- */
+.page-home-main .hiw,
+.page-home-main .leaderboard,
+.page-home-main .trust-principles,
+.page-home-main .faq {
+  background: #fff;
+}
+
+.page-home-main .home-blog {
+  background: var(--section-bg);
+}
+
+/* Межі фонів тепер видимі — кожній секції власне повітря зверху. */
+.page-home-main .hiw,
+.page-home-main .fresh-reviews,
+.page-home-main .leaderboard,
+.page-home-main .business-cta,
+.page-home-main .trust-principles,
+.page-home-main .home-blog {
+  padding: 44px 0 52px;
+}
+
+.page-home-main .faq {
+  padding: 44px 0 56px;
+}
+
+/* «Чому довіряти» на білому: карткам — сіра заливка (не біле-на-білому). */
+.page-home-main .trust-principles__card {
+  background: var(--section-bg);
+  border-color: rgba(15, 23, 42, 0.05);
+}
+
+@media (max-width: 680px) {
+  .page-home-main .categories__title,
+  .page-home-main .hiw__title,
+  .page-home-main .fresh-reviews__title,
+  .page-home-main .leaderboard__title,
+  .page-home-main .trust-principles__title,
+  .page-home-main .home-section-title,
+  .page-home-main .faq__title {
+    font-size: 17px;
+  }
+
+  .page-home-main .hiw,
+  .page-home-main .fresh-reviews,
+  .page-home-main .leaderboard,
+  .page-home-main .business-cta,
+  .page-home-main .trust-principles,
+  .page-home-main .home-blog {
+    padding: 30px 0 38px;
+  }
+
+  .page-home-main .faq {
+    padding: 30px 0 44px;
+  }
+}
+
+/* Сагест hero-пошуку: не вище ~60% екрана — довгий список скролиться
+   всередині, а не тікає за фолд. */
+@media (min-width: 681px) {
+  .page-home-main .hero__desktop-search .hero__search-suggest {
+    max-height: min(56vh, 480px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
   }
 }

@@ -37,9 +37,21 @@ return [
             'database' => env('DB_DATABASE', database_path('database.sqlite')),
             'prefix' => '',
             'foreign_key_constraints' => env('DB_FOREIGN_KEYS', true),
-            'busy_timeout' => null,
-            'journal_mode' => null,
-            'synchronous' => null,
+            'busy_timeout' => (int) env('DB_SQLITE_BUSY_TIMEOUT', 10000),
+            'journal_mode' => env('DB_SQLITE_JOURNAL_MODE', 'WAL'),
+            'synchronous' => env('DB_SQLITE_SYNCHRONOUS', 'NORMAL'),
+            'transaction_mode' => 'DEFERRED',
+        ],
+
+        'queue_sqlite' => [
+            'driver' => 'sqlite',
+            'url' => null,
+            'database' => env('DB_QUEUE_DATABASE', database_path('queue.sqlite')),
+            'prefix' => '',
+            'foreign_key_constraints' => false,
+            'busy_timeout' => (int) env('DB_QUEUE_SQLITE_BUSY_TIMEOUT', 15000),
+            'journal_mode' => env('DB_QUEUE_SQLITE_JOURNAL_MODE', 'WAL'),
+            'synchronous' => env('DB_QUEUE_SQLITE_SYNCHRONOUS', 'NORMAL'),
             'transaction_mode' => 'DEFERRED',
         ],
 
@@ -56,7 +68,7 @@ return [
             'collation' => env('DB_COLLATION', 'utf8mb4_unicode_ci'),
             'prefix' => '',
             'prefix_indexes' => true,
-            'strict' => true,
+            'strict' => env('DB_STRICT_MODE', true),
             'engine' => null,
             'options' => extension_loaded('pdo_mysql') ? array_filter([
                 (PHP_VERSION_ID >= 80500 ? \Pdo\Mysql::ATTR_SSL_CA : \PDO::MYSQL_ATTR_SSL_CA) => env('MYSQL_ATTR_SSL_CA'),
@@ -76,7 +88,7 @@ return [
             'collation' => env('DB_COLLATION', 'utf8mb4_unicode_ci'),
             'prefix' => '',
             'prefix_indexes' => true,
-            'strict' => true,
+            'strict' => env('DB_STRICT_MODE', true),
             'engine' => null,
             'options' => extension_loaded('pdo_mysql') ? array_filter([
                 (PHP_VERSION_ID >= 80500 ? \Pdo\Mysql::ATTR_SSL_CA : \PDO::MYSQL_ATTR_SSL_CA) => env('MYSQL_ATTR_SSL_CA'),

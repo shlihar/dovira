@@ -19,6 +19,11 @@ class RegisteredUserController extends Controller
      */
     public function create(): View
     {
+        $next = request()->query('next');
+        if (is_string($next) && $next !== '' && str_starts_with($next, url('/'))) {
+            request()->session()->put('url.intended', $next);
+        }
+
         return view('auth.register');
     }
 
@@ -29,6 +34,11 @@ class RegisteredUserController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
+        $next = $request->input('next');
+        if (is_string($next) && $next !== '' && str_starts_with($next, url('/'))) {
+            $request->session()->put('url.intended', $next);
+        }
+
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
@@ -43,8 +53,8 @@ class RegisteredUserController extends Controller
 
         event(new Registered($user));
 
-        Auth::login($user);
+        Auth::login($user, remember: true);
 
-        return redirect(route('dashboard', absolute: false));
+        return redirect()->intended(route('home', absolute: false));
     }
 }

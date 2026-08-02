@@ -1,0 +1,77 @@
+<svg width="760" height="520" viewBox="0 0 760 520" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="40" y1="60" x2="720" y2="460" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#B99972"/>
+      <stop offset="0.4" stop-color="#D6C2AE"/>
+      <stop offset="1" stop-color="#EDE7E1"/>
+    </linearGradient>
+    <linearGradient id="glass" x1="60" y1="120" x2="330" y2="440" gradientUnits="userSpaceOnUse">
+      <stop stop-color="white"/>
+      <stop offset="1" stop-color="#F7FAFF"/>
+    </linearGradient>
+    <linearGradient id="badge" x1="96" y1="374" x2="290" y2="430" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#EEF4FF"/>
+      <stop offset="1" stop-color="#E2ECFF"/>
+    </linearGradient>
+    <filter id="shadow" x="22" y="82" width="330" height="360" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="18" stdDeviation="16" flood-color="#274B9A" flood-opacity="0.18"/>
+    </filter>
+    <filter id="shadowSmall" x="410" y="330" width="320" height="170" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="16" stdDeviation="14" flood-color="#274B9A" flood-opacity="0.18"/>
+    </filter>
+  </defs>
+
+  <rect x="4" y="4" width="752" height="512" rx="34" fill="url(#bg)" stroke="white" stroke-width="8"/>
+  <rect x="4" y="4" width="190" height="512" rx="34" fill="#9D7A53" fill-opacity="0.32"/>
+  <rect x="4" y="4" width="156" height="512" rx="34" fill="url(#bg)" fill-opacity="0.18"/>
+  <circle cx="660" cy="308" r="86" fill="#8BB37A" fill-opacity="0.18"/>
+  <rect x="74" y="52" width="174" height="20" rx="10" fill="#8B6E4C" fill-opacity="0.32"/>
+  <rect x="274" y="52" width="44" height="20" rx="10" fill="#8B6E4C" fill-opacity="0.22"/>
+  <rect x="338" y="52" width="44" height="20" rx="10" fill="#8B6E4C" fill-opacity="0.22"/>
+
+  <ellipse cx="476" cy="178" rx="110" ry="118" fill="#714B39"/>
+  <ellipse cx="494" cy="168" rx="118" ry="118" fill="#5B372B"/>
+  <ellipse cx="486" cy="188" rx="84" ry="96" fill="#EAC7AE"/>
+  <path d="M392 510C404 420 438 372 492 370C546 368 584 420 598 510H392Z" fill="#E7D7C7"/>
+  <path d="M468 336C448 392 434 474 430 510H344C360 432 386 376 430 334L468 336Z" fill="#D8C8B8"/>
+  <path d="M520 336C548 378 572 434 586 510H510C504 474 488 390 468 336H520Z" fill="#D8C8B8"/>
+  <rect x="450" y="314" width="74" height="94" rx="18" fill="#F7F7F4"/>
+
+  <g filter="url(#shadow)">
+    <rect x="36" y="170" width="294" height="270" rx="26" fill="url(#glass)"/>
+  </g>
+  <text x="66" y="244" fill="#172454" font-size="32" font-weight="800" font-family="Arial, Helvetica, sans-serif">Анастасія Коваль</text>
+  <text x="66" y="298" fill="#4E6496" font-size="24" font-weight="500" font-family="Arial, Helvetica, sans-serif">Адвокат</text>
+  <g fill="#FFB100">
+    <path d="M84 340L90 354H106L93 363L98 378L84 369L70 378L75 363L62 354H78L84 340Z"/>
+    <path d="M116 340L122 354H138L125 363L130 378L116 369L102 378L107 363L94 354H110L116 340Z"/>
+    <path d="M148 340L154 354H170L157 363L162 378L148 369L134 378L139 363L126 354H142L148 340Z"/>
+    <path d="M180 340L186 354H202L189 363L194 378L180 369L166 378L171 363L158 354H174L180 340Z"/>
+    <path d="M212 340L218 354H234L221 363L226 378L212 369L198 378L203 363L190 354H206L212 340Z"/>
+  </g>
+  <text x="62" y="414" fill="#172454" font-size="32" font-weight="800" font-family="Arial, Helvetica, sans-serif">5.0</text>
+  <text x="122" y="414" fill="#4E6496" font-size="22" font-weight="500" font-family="Arial, Helvetica, sans-serif">(128 відгуків)</text>
+  <rect x="60" y="450" width="206" height="56" rx="18" fill="url(#badge)"/>
+  <path d="M92 468C99 471 105 471 112 468V482C112 492 105 499 92 506C79 499 72 492 72 482V468C79 471 85 471 92 468Z" fill="#1F63E8"/>
+  <text x="116" y="489" fill="#4E6496" font-size="20" font-weight="500" font-family="Arial, Helvetica, sans-serif">Профіль перевірено</text>
+  <circle cx="288" cy="226" r="22" fill="#1F63E8"/>
+  <path d="M277 226L286 235L301 217" stroke="white" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <g filter="url(#shadowSmall)">
+    <rect x="418" y="352" width="310" height="126" rx="28" fill="url(#glass)"/>
+  </g>
+  <circle cx="470" cy="402" r="28" fill="#D3E0F4"/>
+  <circle cx="470" cy="394" r="15" fill="#E9C5AB"/>
+  <path d="M454 392C457 377 482 377 486 392" stroke="#5B372B" stroke-width="8" stroke-linecap="round"/>
+  <text x="524" y="404" fill="#172454" font-size="22" font-weight="800" font-family="Arial, Helvetica, sans-serif">Ігор М.</text>
+  <g fill="#FFB100">
+    <path d="M622 380L626 390H638L628 396L632 406L622 400L612 406L616 396L606 390H618L622 380Z"/>
+    <path d="M646 380L650 390H662L652 396L656 406L646 400L636 406L640 396L630 390H642L646 380Z"/>
+    <path d="M670 380L674 390H686L676 396L680 406L670 400L660 406L664 396L654 390H666L670 380Z"/>
+    <path d="M694 380L698 390H710L700 396L704 406L694 400L684 406L688 396L678 390H690L694 380Z"/>
+    <path d="M718 380L722 390H734L724 396L728 406L718 400L708 406L712 396L702 390H714L718 380Z"/>
+  </g>
+  <text x="524" y="438" fill="#304A84" font-size="18" font-weight="500" font-family="Arial, Helvetica, sans-serif">Професійний підхід та чіткі</text>
+  <text x="524" y="462" fill="#304A84" font-size="18" font-weight="500" font-family="Arial, Helvetica, sans-serif">рекомендації. Допомогла</text>
+  <text x="524" y="486" fill="#304A84" font-size="18" font-weight="500" font-family="Arial, Helvetica, sans-serif">вирішити складне питання.</text>
+</svg>

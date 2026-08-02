@@ -1,52 +1,80 @@
-<x-guest-layout>
-    <form method="POST" action="{{ route('register') }}">
-        @csrf
+@extends('static.layout')
 
-        <!-- Name -->
-        <div>
-            <x-input-label for="name" :value="__('Name')" />
-            <x-text-input id="name" class="block mt-1 w-full" type="text" name="name" :value="old('name')" required autofocus autocomplete="name" />
-            <x-input-error :messages="$errors->get('name')" class="mt-2" />
+@section('title', 'Реєстрація | DOVIRA')
+@section('body_class', 'page-auth')
+
+@push('head')
+    <link rel="stylesheet" href="{{ asset('static/css/pages/auth.css') }}">
+@endpush
+
+@section('content')
+    <section class="auth-shell">
+        <div class="container">
+            <div class="auth-wrap">
+                <div class="auth-card">
+                    <div class="auth-head">
+                        <h1 class="auth-title">Реєстрація</h1>
+                        <p class="auth-subtitle">
+                            Вже маєте акаунт?
+                            <a href="{{ route('login', request()->query('next') ? ['next' => request()->query('next')] : []) }}" data-auth-transition-link>Увійти</a>
+                        </p>
+                    </div>
+
+                    @if ($errors->any())
+                        <div class="auth-global-errors">
+                            <ul>
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
+                    @include('auth.partials.social-auth', ['actionLabel' => 'Зареєструватися'])
+
+                    <div class="auth-divider">Або</div>
+
+                    <form method="POST" action="{{ route('register') }}" class="auth-form">
+                        @csrf
+                        @if (request()->query('next'))
+                            <input type="hidden" name="next" value="{{ request()->query('next') }}">
+                        @endif
+
+                        <div class="auth-group">
+                            <label for="name" class="auth-label">Ім’я</label>
+                            <input id="name" name="name" type="text" class="auth-input" value="{{ old('name') }}" required autocomplete="name">
+                            @error('name')<p class="auth-error">{{ $message }}</p>@enderror
+                        </div>
+
+                        <div class="auth-group">
+                            <label for="email" class="auth-label">Email</label>
+                            <input id="email" name="email" type="email" class="auth-input" value="{{ old('email') }}" required autocomplete="username">
+                            @error('email')<p class="auth-error">{{ $message }}</p>@enderror
+                        </div>
+
+                        <div class="auth-group">
+                            <label for="password" class="auth-label">Пароль</label>
+                            <input id="password" name="password" type="password" class="auth-input" required autocomplete="new-password">
+                            @error('password')<p class="auth-error">{{ $message }}</p>@enderror
+                        </div>
+
+                        <div class="auth-group">
+                            <label for="password_confirmation" class="auth-label">Підтвердіть пароль</label>
+                            <input id="password_confirmation" name="password_confirmation" type="password" class="auth-input" required autocomplete="new-password">
+                            @error('password_confirmation')<p class="auth-error">{{ $message }}</p>@enderror
+                        </div>
+
+                        <label class="auth-checkbox" for="terms">
+                            <input id="terms" type="checkbox" required>
+                            <span>Я приймаю умови використання платформи</span>
+                        </label>
+
+                        <button type="submit" class="auth-submit">Створити акаунт</button>
+                    </form>
+                </div>
+            </div>
         </div>
+    </section>
+@endsection
 
-        <!-- Email Address -->
-        <div class="mt-4">
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autocomplete="username" />
-            <x-input-error :messages="$errors->get('email')" class="mt-2" />
-        </div>
-
-        <!-- Password -->
-        <div class="mt-4">
-            <x-input-label for="password" :value="__('Password')" />
-
-            <x-text-input id="password" class="block mt-1 w-full"
-                            type="password"
-                            name="password"
-                            required autocomplete="new-password" />
-
-            <x-input-error :messages="$errors->get('password')" class="mt-2" />
-        </div>
-
-        <!-- Confirm Password -->
-        <div class="mt-4">
-            <x-input-label for="password_confirmation" :value="__('Confirm Password')" />
-
-            <x-text-input id="password_confirmation" class="block mt-1 w-full"
-                            type="password"
-                            name="password_confirmation" required autocomplete="new-password" />
-
-            <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
-        </div>
-
-        <div class="flex items-center justify-end mt-4">
-            <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" href="{{ route('login') }}">
-                {{ __('Already registered?') }}
-            </a>
-
-            <x-primary-button class="ms-4">
-                {{ __('Register') }}
-            </x-primary-button>
-        </div>
-    </form>
-</x-guest-layout>
+@include('auth.partials.interactions')
