@@ -325,6 +325,19 @@
                         ])
                     </div>
 
+                    @php $topRatingUrl = $topRatingUrl ?? null; @endphp
+                    @if ($pathCategory && $topRatingUrl)
+                        <div class="catalog-top-rating">
+                            <a class="catalog-top-rating__link" href="{{ $topRatingUrl }}">
+                                <span class="catalog-top-rating__icon"><i class="fa-solid fa-ranking-star" aria-hidden="true"></i></span>
+                                <span class="catalog-top-rating__text">
+                                    <span class="catalog-top-rating__label">🏆 Дивіться також</span>
+                                    <span class="catalog-top-rating__title">ТОП-10 {{ mb_strtolower((string) $pathCategory->name) }}</span>
+                                </span>
+                            </a>
+                        </div>
+                    @endif
+
                     @if (!empty($seoLandingCategories))
                         {{-- SEO-лінки на посадкові категорій: усі посилання завжди в HTML
                              (для краулера), візуально згорнуто до перших 10 з кнопкою

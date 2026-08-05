@@ -4854,6 +4854,75 @@ background: none;
 
 /* Картка статистики в сайдбарі hero каталогу (десктоп >1280px):
    вузький контейнер колапсив auto-fit колонки — рядки злипались, а
+.catalog-top-rating {
+  margin: 32px 0;
+}
+
+.catalog-top-rating__link {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 24px;
+  background: linear-gradient(135deg, #f5f8ff 0%, #e8eefb 100%);
+  border: 1px solid var(--c-border);
+  border-radius: 12px;
+  text-decoration: none;
+  color: inherit;
+  transition: transform .15s ease, box-shadow .15s ease, background-color .15s ease;
+}
+
+.catalog-top-rating__link:hover,
+.catalog-top-rating__link:focus-visible {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-soft);
+  background: linear-gradient(135deg, #eff3ff 0%, #dce5f5 100%);
+}
+
+.catalog-top-rating__icon {
+  flex-shrink: 0;
+  font-size: 24px;
+  color: var(--c-primary);
+}
+
+.catalog-top-rating__text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.catalog-top-rating__label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.catalog-top-rating__title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--c-primary-dark);
+}
+
+@media (max-width: 640px) {
+  .catalog-top-rating {
+    margin: 24px 0;
+  }
+
+  .catalog-top-rating__link {
+    padding: 16px 16px;
+    gap: 12px;
+  }
+
+  .catalog-top-rating__icon {
+    font-size: 20px;
+  }
+
+  .catalog-top-rating__title {
+    font-size: 14px;
+  }
+}
+
    роздільник висів окремою рискою. Фіксуємо стати в один ряд:
    по колонці на кожен, картка розтягується під вміст. */
 @media (min-width: 1281px) {

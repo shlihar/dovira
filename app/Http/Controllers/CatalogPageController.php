@@ -47,6 +47,8 @@ class CatalogPageController extends Controller
 
     private ?bool $officialReplyReactionsAvailable = null;
 
+    private const TOP_RATING_MIN_PROFILES = 3;
+
     public function index(Request $request, ?array $pathContext = null)
     {
         // Консолідація: прямий захід на старий /catalog?category=X (одна чиста
@@ -185,6 +187,7 @@ class CatalogPageController extends Controller
         $pathCanonical = $pathContext['canonical'] ?? null;
         $pathIndexable = false;
         $pathRelated = [];
+        $topRatingUrl = null;
 
         if ($pathCategory !== null) {
             $regionsCount = count(array_filter((array) $request->query('regions', [])));
@@ -214,6 +217,8 @@ class CatalogPageController extends Controller
                 ->limit(6)
                 ->get(['id', 'name', 'slug'])
                 ->all(), []);
+
+            $topRatingUrl = $this->getTopRatingUrlForCategory($pathCategory, $pathCityName, $pathCitySlug);
         }
 
         return view('static.catalog', [
@@ -232,6 +237,7 @@ class CatalogPageController extends Controller
             'pathCanonical' => $pathCanonical,
             'pathIndexable' => $pathIndexable,
             'pathRelated' => $pathRelated,
+            'topRatingUrl' => $topRatingUrl,
         ]);
     }
 
@@ -2280,5 +2286,51 @@ class CatalogPageController extends Controller
         return $this->officialReplyReactionsAvailable =
             Schema::hasTable('official_reply_reactions')
             && Schema::hasColumns('official_replies', ['like_count', 'dislike_count']);
+    }
+
+    private function getTopRatingUrlForCategory(?Category $category, ?string $cityName, ?string $citySlug): ?string
+    {
+        if ($category === null || ! $category->is_indexable) {
+            return null;
+        }
+
+        if (Category::where('parent_id', $category->id)->where('is_active', true)->where('is_indexable', true)->exists()) {
+            return null;
+        }
+
+        $categoryIds = CategoryHierarchy::categoryIdsFromNames([$category->name]);
+        if (empty($categoryIds)) {
+            return null;
+        }
+
+        $base = Profile::query()
+            ->where('status', 'active')
+            ->where('is_published', true)
+            ->where('show_in_catalog', true)
+            ->where('reviews_count', '>=', 1)
+            ->where(function ($q): void {
+                $q->whereNull('rating_placement')->orWhere('rating_placement', '!=', 'hide');
+            })
+            ->whereHas('categories', fn ($q) => $q->whereIn('categories.id', $categoryIds));
+
+        if ($cityName !== null && $citySlug !== null) {
+            $variants = collect(RegionCityDirectory::variantsForCity($cityName))
+                ->push($cityName)
+                ->map(fn (string $v) => mb_strtolower(trim($v)))
+                ->unique()
+                ->values()
+                ->all();
+            $count = (clone $base)->whereIn(DB::raw('lower(trim(city))'), $variants)->count();
+            if ($count >= self::TOP_RATING_MIN_PROFILES) {
+                return route('top.rating.city', ['category' => $category->slug, 'city' => $citySlug]);
+            }
+        } else {
+            $count = (clone $base)->count();
+            if ($count >= self::TOP_RATING_MIN_PROFILES) {
+                return route('top.rating', ['category' => $category->slug]);
+            }
+        }
+
+        return null;
     }
 }
