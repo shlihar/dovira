@@ -1005,27 +1005,6 @@
                                      показує AI-аналіз відгуків, підтверджений клієнтами. --}}
 
                                 @if ($proGallery->isNotEmpty())
-                                    <div class="profile-pro-block">
-                                        <div class="profile-pro-section-head">
-                                            <h3><i class="fa-regular fa-image" aria-hidden="true"></i><span>Фото / галерея</span></h3>
-                                            <button type="button" class="profile-pro-section-head__more profile-pro-section-head__more--button" data-open-profile-gallery>
-                                                Переглянути всі фото
-                                                <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
-                                            </button>
-                                        </div>
-                                        <div class="profile-pro-gallery">
-                                            @foreach ($proGallery as $imageIndex => $image)
-                                                <button type="button" class="profile-pro-gallery__item" data-open-profile-gallery data-gallery-index="{{ $imageIndex }}">
-                                                    <span class="profile-pro-gallery__media">
-                                                        <img src="{{ $image['thumb'] }}" width="400" height="300" alt="{{ $image['title'] }}" loading="lazy">
-                                                    </span>
-                                                </button>
-                                            @endforeach
-                                        </div>
-                                    </div>
-                                @endif
-
-                                @if ($proGallery->isNotEmpty())
                                     <div class="profile-gallery-popup" data-profile-gallery-popup hidden>
                                         <div class="profile-gallery-popup__backdrop" data-profile-gallery-close></div>
                                         <div class="profile-gallery-popup__dialog" role="dialog" aria-modal="true" aria-label="Галерея фото профілю">
@@ -1194,6 +1173,28 @@
                                         </div>
                                     </div>
                                 @endif
+
+                                @if ($proGallery->isNotEmpty())
+                                    <div class="profile-pro-block">
+                                        <div class="profile-pro-section-head">
+                                            <h3><i class="fa-regular fa-image" aria-hidden="true"></i><span>Фото / галерея</span></h3>
+                                            <button type="button" class="profile-pro-section-head__more profile-pro-section-head__more--button" data-open-profile-gallery>
+                                                Переглянути всі фото
+                                                <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                                            </button>
+                                        </div>
+                                        <div class="profile-pro-gallery">
+                                            @foreach ($proGallery as $imageIndex => $image)
+                                                <button type="button" class="profile-pro-gallery__item" data-open-profile-gallery data-gallery-index="{{ $imageIndex }}">
+                                                    <span class="profile-pro-gallery__media">
+                                                        <img src="{{ $image['thumb'] }}" width="400" height="300" alt="{{ $image['title'] }}" loading="lazy">
+                                                    </span>
+                                                </button>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                @endif
+
 
                             @endif
                             {{-- «Базовий блок довіри» для не-PRO профілів прибрано:
