@@ -7985,3 +7985,176 @@ body.is-lead-popup-open {
 .profile-seo-links__sep { margin: 0 6px; color: #c3cbe0; }
 .profile-seo-links a { color: #4b5f8a; text-decoration: none; }
 .profile-seo-links a:hover { color: #2f6df4; text-decoration: underline; }
+
+/* ── Кейси PRO ────────────────────────────────────────────────────────────
+   Нумерований список «запит → результат». Свідомо без карток-плиток:
+   кейси читають підряд, і колонка з великим номером тримає ритм краще за
+   сітку, яка на мобільному все одно розсипається в один стовпець. */
+.profile-pro-section-head__note {
+  margin: 0;
+  color: #6b7a99;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: right;
+}
+
+.profile-cases__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 10px;
+  counter-reset: profile-case;
+}
+
+.profile-cases__item {
+  display: flex;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid #e4ebf7;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #fbfcff 0%, #f6f9ff 100%);
+}
+
+.profile-cases__num {
+  flex: 0 0 26px;
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: #2f6ef9;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.profile-cases__body {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.profile-cases__title {
+  margin: 2px 0 8px;
+  color: #17376f;
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.profile-cases__line {
+  margin: 0 0 6px;
+  color: #3d4d6b;
+  font-size: 13.5px;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.profile-cases__label {
+  display: block;
+  margin-bottom: 1px;
+  color: #8493ad;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.profile-cases__line--result {
+  margin-bottom: 8px;
+  color: #17376f;
+  font-weight: 650;
+}
+
+.profile-cases__line--result .profile-cases__label {
+  color: #1f9254;
+}
+
+.profile-cases__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.profile-cases__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1px solid #e0e8f6;
+  background: #fff;
+  color: #5b6b8a;
+  font-size: 11.5px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.profile-cases__chip--link:hover {
+  border-color: #2f6ef9;
+  color: #2f6ef9;
+}
+
+/* Підтвердження кейсу: текст реального відгуку розкривається на місці.
+   Колір довіри (зелений), а не брендовий синій — це не дія, а доказ. */
+.profile-cases__proof {
+  margin-top: 8px;
+}
+
+.profile-cases__proof-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid #cfead9;
+  background: #f1faf4;
+  color: #1f7a48;
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  list-style: none;
+}
+
+.profile-cases__proof-toggle::-webkit-details-marker { display: none; }
+
+.profile-cases__proof-toggle:hover {
+  border-color: #1f9254;
+  background: #e6f6ec;
+}
+
+.profile-cases__proof[open] .profile-cases__proof-toggle {
+  border-color: #1f9254;
+}
+
+.profile-cases__quote {
+  margin: 8px 0 0;
+  padding: 10px 12px;
+  border-left: 3px solid #cfead9;
+  border-radius: 0 10px 10px 0;
+  background: #f7fbf8;
+}
+
+.profile-cases__quote p {
+  margin: 0;
+  color: #3d4d6b;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.profile-cases__quote cite {
+  display: block;
+  margin-top: 6px;
+  color: #6b7a99;
+  font-size: 11.5px;
+  font-style: normal;
+  font-weight: 700;
+}
+
+@media (max-width: 560px) {
+  .profile-pro-section-head__note { text-align: left; }
+  .profile-cases__item { padding: 12px; gap: 10px; }
+  .profile-cases__title { font-size: 14.5px; }
+}

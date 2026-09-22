@@ -12,9 +12,9 @@ import './js/modules/profile-ui.js?v=2';
 import './js/modules/carousels.js?v=2';
 // pro.js (~140 KB) потрібен лише на сторінці тарифів /pro та в кабінеті
 // /pro/account — вантажимо його динамічно, а не на кожній публічній сторінці.
-// ?v=18: редактор цін послуг у профілі.
+// ?v=19: редактор кейсів PRO (репітер із власним підписом елемента).
 if (document.body.classList.contains('page-pro') || document.body.classList.contains('page-pro-account')) {
-    import('./js/modules/pro.js?v=18');
+    import('./js/modules/pro.js?v=19');
 }
 // ?v=3: business-cta делегує пошук у повноекранний мобільний модал (scope/action форми).
 import './js/modules/search.js?v=3';

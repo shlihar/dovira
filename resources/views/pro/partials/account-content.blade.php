@@ -136,6 +136,16 @@
             'owner_profile_faq_json',
             json_encode($ownerProfileFaq->all(), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
         );
+        // Кейси PRO: «з чим прийшов клієнт → що зробили → результат».
+        $ownerProfileCases = collect(
+            old('owner_profile_cases_json')
+                ? (json_decode((string) old('owner_profile_cases_json'), true) ?: [])
+                : \App\Support\ProfileCases::normalize($proProfileData->get('cases', []))
+        )->filter(fn ($item) => is_array($item))->values();
+        $ownerProfileCasesJson = old(
+            'owner_profile_cases_json',
+            json_encode($ownerProfileCases->all(), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
+        );
         $claimAlreadyOwnedByUser = $selectedClaimProfile && (int) $selectedClaimProfile->owner_user_id === (int) $user->id;
         $claimManagedByAnotherOwner = $selectedClaimProfile
             && ! $claimAlreadyOwnedByUser
@@ -2095,6 +2105,97 @@
                                                                 <label class="pro-profile-json-fields__wide">
                                                                     <span>Відповідь</span>
                                                                     <textarea rows="4" maxlength="1200" data-repeater-key="a" placeholder="Опишіть відповідь простою мовою."></textarea>
+                                                                </label>
+                                                            </div>
+                                                        </article>
+                                                    </template>
+                                                </div>
+                                            </div>
+
+                                            <div class="pro-profile-summary-card pro-profile-summary-card--wide pro-profile-json-card">
+                                                <div class="pro-profile-summary-card__top">
+                                                    <span>Кейси</span>
+                                                    <small>До 10 історій «з чим прийшов клієнт → що зробили → результат». Пишіть конкретно і без обіцянок, яких не можете підтвердити.</small>
+                                                </div>
+                                                <div class="pro-profile-json-editor" data-pro-json-repeater data-target-name="owner_profile_cases_json" data-max-items="10" data-item-label="Кейс">
+                                                    <input type="hidden" name="owner_profile_cases_json" value="{{ $ownerProfileCasesJson }}">
+                                                    <div class="pro-profile-json-list" data-repeater-list>
+                                                        @foreach ($ownerProfileCases as $caseItem)
+                                                            <article class="pro-profile-json-item" data-repeater-item>
+                                                                <div class="pro-profile-json-item__head">
+                                                                    <strong>Кейс {{ $loop->iteration }}</strong>
+                                                                    <button type="button" class="pro-profile-json-remove" data-repeater-remove aria-label="Видалити кейс">
+                                                                        <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+                                                                    </button>
+                                                                </div>
+                                                                <div class="pro-profile-json-fields">
+                                                                    <label class="pro-profile-json-fields__wide">
+                                                                        <span>Назва кейсу</span>
+                                                                        <input type="text" value="{{ $caseItem['title'] ?? '' }}" maxlength="120" data-repeater-key="title" placeholder="Стягнення боргу за договором підряду">
+                                                                    </label>
+                                                                    <label class="pro-profile-json-fields__wide">
+                                                                        <span>З чим прийшов клієнт</span>
+                                                                        <textarea rows="3" maxlength="400" data-repeater-key="task" placeholder="Коротко опишіть ситуацію клієнта на старті.">{{ $caseItem['task'] ?? '' }}</textarea>
+                                                                    </label>
+                                                                    <label class="pro-profile-json-fields__wide">
+                                                                        <span>Результат</span>
+                                                                        <textarea rows="3" maxlength="400" data-repeater-key="result" placeholder="Чим закінчилось. Конкретика переконує більше за емоції.">{{ $caseItem['result'] ?? '' }}</textarea>
+                                                                    </label>
+                                                                    <label>
+                                                                        <span>Напрям</span>
+                                                                        <input type="text" value="{{ $caseItem['tag'] ?? '' }}" maxlength="60" data-repeater-key="tag" placeholder="Господарські спори">
+                                                                    </label>
+                                                                    <label>
+                                                                        <span>Скільки тривало</span>
+                                                                        <input type="text" value="{{ $caseItem['period'] ?? '' }}" maxlength="40" data-repeater-key="period" placeholder="3 місяці">
+                                                                    </label>
+                                                                    <label class="pro-profile-json-fields__wide">
+                                                                        <span>Посилання (необовʼязково)</span>
+                                                                        <input type="url" value="{{ $caseItem['url'] ?? '' }}" maxlength="300" data-repeater-key="url" placeholder="https://...">
+                                                                    </label>
+                                                                    <input type="hidden" value="{{ $caseItem['review_id'] ?? '' }}" data-repeater-key="review_id">
+                                                                    <input type="hidden" value="{{ $caseItem['review_date'] ?? '' }}" data-repeater-key="review_date">
+                                                                </div>
+                                                            </article>
+                                                        @endforeach
+                                                    </div>
+                                                    <div class="pro-profile-json-empty" data-repeater-empty @if ($ownerProfileCases->isNotEmpty()) hidden @endif>Ще немає жодного кейсу.</div>
+                                                    <button type="button" class="pro-profile-json-add" data-repeater-add>
+                                                        <i class="fa-solid fa-plus" aria-hidden="true"></i>
+                                                        <span>Додати кейс</span>
+                                                    </button>
+                                                    <template data-repeater-template>
+                                                        <article class="pro-profile-json-item" data-repeater-item>
+                                                            <div class="pro-profile-json-item__head">
+                                                                <strong>Новий кейс</strong>
+                                                                <button type="button" class="pro-profile-json-remove" data-repeater-remove aria-label="Видалити кейс">
+                                                                    <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+                                                                </button>
+                                                            </div>
+                                                            <div class="pro-profile-json-fields">
+                                                                <label class="pro-profile-json-fields__wide">
+                                                                    <span>Назва кейсу</span>
+                                                                    <input type="text" value="" maxlength="120" data-repeater-key="title" placeholder="Стягнення боргу за договором підряду">
+                                                                </label>
+                                                                <label class="pro-profile-json-fields__wide">
+                                                                    <span>З чим прийшов клієнт</span>
+                                                                    <textarea rows="3" maxlength="400" data-repeater-key="task" placeholder="Коротко опишіть ситуацію клієнта на старті."></textarea>
+                                                                </label>
+                                                                <label class="pro-profile-json-fields__wide">
+                                                                    <span>Результат</span>
+                                                                    <textarea rows="3" maxlength="400" data-repeater-key="result" placeholder="Чим закінчилось. Конкретика переконує більше за емоції."></textarea>
+                                                                </label>
+                                                                <label>
+                                                                    <span>Напрям</span>
+                                                                    <input type="text" value="" maxlength="60" data-repeater-key="tag" placeholder="Господарські спори">
+                                                                </label>
+                                                                <label>
+                                                                    <span>Скільки тривало</span>
+                                                                    <input type="text" value="" maxlength="40" data-repeater-key="period" placeholder="3 місяці">
+                                                                </label>
+                                                                <label class="pro-profile-json-fields__wide">
+                                                                    <span>Посилання (необовʼязково)</span>
+                                                                    <input type="url" value="" maxlength="300" data-repeater-key="url" placeholder="https://...">
                                                                 </label>
                                                             </div>
                                                         </article>

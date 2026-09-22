@@ -195,6 +195,14 @@
                             </article>
 
                             <article class="prol-feature">
+                                <span class="prol-feature__icon prol-feature__icon--amber"><i class="fa-solid fa-briefcase" aria-hidden="true"></i></span>
+                                <div>
+                                    <h3>Кейси з підтвердженням</h3>
+                                    <p>До 10 історій «з чим прийшов клієнт → що зробили → результат» на вашій сторінці. Кейс можна привʼязати до реального відгуку, і відвідувач розгорне його текст прямо в картці — це доказ, а не обіцянка.</p>
+                                </div>
+                            </article>
+
+                            <article class="prol-feature">
                                 <span class="prol-feature__icon prol-feature__icon--green"><i class="fa-solid fa-inbox" aria-hidden="true"></i></span>
                                 <div>
                                     <h3>Контакти клієнтів із заявок</h3>
@@ -423,6 +431,7 @@
                                     <li><i class="fa-solid fa-circle-check"></i> Позначка PRO на картці й лічильник показів на платних позиціях</li>
                                     <li><i class="fa-solid fa-circle-check"></i> Офіційні відповіді на відгуки від імені компанії</li>
                                     <li><i class="fa-solid fa-circle-check"></i> Повне керування сторінкою: послуги, ціни, фото, FAQ, досьє</li>
+                                    <li><i class="fa-solid fa-circle-check"></i> Блок кейсів (до 10) із підтвердженням відгуком клієнта</li>
                                     <li><i class="fa-solid fa-circle-check"></i> Контакти клієнтів із заявок — телефон та email тих, хто звернувся</li>
                                     <li><i class="fa-solid fa-circle-check"></i> Email і соцмережі на сторінці профілю</li>
                                     <li><i class="fa-solid fa-circle-check"></i> Без блоку конкурентів на вашій сторінці</li>

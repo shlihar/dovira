@@ -731,6 +731,15 @@
                 $proFaq = collect((array) ($profile['faq'] ?? []))
                     ->filter(fn ($item) => is_array($item) && filled($item['q'] ?? null) && filled($item['a'] ?? null))
                     ->values();
+
+                // Кейси PRO: показуємо лише ті, де є і назва, і результат —
+                //напів порожня картка гірша за відсутність блоку.
+                // Дані вже нормалізовані в контролері (mapProfile → attachCaseProofs),
+                // тому тут лише відсіюємо неповні кейси. Повторний виклик
+                // normalize() зрізав би підтвердження: воно не є полем власника.
+                $proCases = collect((array) ($profile['cases'] ?? []))
+                    ->filter(fn ($item) => is_array($item) && filled($item['title'] ?? null) && filled($item['result'] ?? null))
+                    ->values();
             @endphp
 
             <div class="profile-layout">
@@ -1057,6 +1066,75 @@
                                                 @endforeach
                                             </div>
                                         </div>
+                                    </div>
+                                @endif
+
+                                @if ($proCases->isNotEmpty())
+                                    <div class="profile-pro-block profile-cases" id="profile-cases">
+                                        <div class="profile-pro-section-head">
+                                            <h3><i class="fa-solid fa-briefcase" aria-hidden="true"></i><span>Кейси</span></h3>
+                                            <p class="profile-pro-section-head__note">Що робили для клієнтів і чим це закінчилось.</p>
+                                        </div>
+
+                                        <ol class="profile-cases__list">
+                                            @foreach ($proCases as $case)
+                                                <li class="profile-cases__item">
+                                                    <span class="profile-cases__num" aria-hidden="true">{{ $loop->iteration }}</span>
+                                                    <div class="profile-cases__body">
+                                                        <h4 class="profile-cases__title">{{ $case['title'] }}</h4>
+
+                                                        @if (filled($case['task'] ?? null))
+                                                            <p class="profile-cases__line">
+                                                                <span class="profile-cases__label">Запит клієнта</span>
+                                                                <span>{{ $case['task'] }}</span>
+                                                            </p>
+                                                        @endif
+
+                                                        <p class="profile-cases__line profile-cases__line--result">
+                                                            <span class="profile-cases__label">Результат</span>
+                                                            <span>{{ $case['result'] }}</span>
+                                                        </p>
+
+                                                        @if (filled($case['tag'] ?? null) || filled($case['period'] ?? null) || filled($case['url'] ?? null))
+                                                            <div class="profile-cases__meta">
+                                                                @if (filled($case['tag'] ?? null))
+                                                                    <span class="profile-cases__chip">{{ $case['tag'] }}</span>
+                                                                @endif
+                                                                @if (filled($case['period'] ?? null))
+                                                                    <span class="profile-cases__chip"><i class="fa-regular fa-clock" aria-hidden="true"></i>{{ $case['period'] }}</span>
+                                                                @endif
+                                                                @if (filled($case['url'] ?? null))
+                                                                    <a class="profile-cases__chip profile-cases__chip--link" href="{{ $case['url'] }}" target="_blank" rel="nofollow noopener">
+                                                                        <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+                                                                        Деталі
+                                                                    </a>
+                                                                @endif
+                                                            </div>
+                                                        @endif
+
+                                                        @if (!empty($case['proof']['text']))
+                                                            {{-- Головне в блоці: кейс можна перевірити тут же, за текстом
+                                                                 реального опублікованого відгуку, а не вірити на слово. --}}
+                                                            <details class="profile-cases__proof">
+                                                                <summary class="profile-cases__proof-toggle">
+                                                                    <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+                                                                    <span>Відгук клієнта@if (filled($case['proof']['date'] ?? null)), {{ $case['proof']['date'] }}@endif</span>
+                                                                </summary>
+                                                                <blockquote class="profile-cases__quote">
+                                                                    <p>{{ $case['proof']['text'] }}</p>
+                                                                    <cite>
+                                                                        {{ $case['proof']['author'] }}
+                                                                        @if (!empty($case['proof']['rating']))
+                                                                            · {{ rtrim(rtrim(number_format((float) $case['proof']['rating'], 1, ',', ''), '0'), ',') }}★
+                                                                        @endif
+                                                                    </cite>
+                                                                </blockquote>
+                                                            </details>
+                                                        @endif
+                                                    </div>
+                                                </li>
+                                            @endforeach
+                                        </ol>
                                     </div>
                                 @endif
 

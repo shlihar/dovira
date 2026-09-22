@@ -1921,6 +1921,7 @@ class CatalogPageController extends Controller
             'response_speed' => $ownerProfile['response_speed'] ?? null,
             'experience' => $ownerProfile['experience'] ?? null,
             'faq' => $ownerProfile['faq'] ?? [],
+            'cases' => $this->attachCaseProofs($profile, (array) ($ownerProfile['cases'] ?? [])),
             'specializations_title' => data_get($profile->ai_suggested_data, 'specializations_title'),
             'created_at' => optional($profile->created_at)?->toDateTimeString(),
             'updated_at' => optional($profile->updated_at)?->toDateTimeString(),
@@ -1998,6 +1999,63 @@ class CatalogPageController extends Controller
     }
 
     /**
+     * Додає до кейсів текст відгуку, з якого кейс складено.
+     *
+     * Чому не просто посилання на відгук у списку: у профілів із сотнями
+     * відгуків потрібний запис лежить на 20-й «сторінці» підвантаження, і
+     * перехід за якорем нічого не знаходить (перевірено на профілі з 590
+     * відгуками). Тому підтвердження показуємо на місці — один запит на
+     * сторінку, розкривається за кліком.
+     *
+     * @param  array<int, array<string, mixed>>  $cases
+     * @return array<int, array<string, mixed>>
+     */
+    private function attachCaseProofs(Profile $profile, array $cases): array
+    {
+        $cases = \App\Support\ProfileCases::normalize($cases);
+        if ($cases === []) {
+            return [];
+        }
+
+        $ids = array_values(array_filter(array_map(
+            static fn (array $case): int => (int) ($case['review_id'] ?? 0),
+            $cases
+        )));
+
+        if ($ids === []) {
+            return $cases;
+        }
+
+        $reviews = ProfileReview::query()
+            ->where('profile_id', $profile->id)
+            ->where('status', 'published')
+            ->whereIn('id', $ids)
+            ->get(['id', 'author_name', 'body', 'rating', 'published_at', 'created_at'])
+            ->keyBy('id');
+
+        foreach ($cases as $index => $case) {
+            $review = $reviews->get((int) ($case['review_id'] ?? 0));
+            if (! $review) {
+                // Відгук зник або знятий з публікації — знімаємо й підтвердження,
+                // щоб не лишалося порожнього посилання на «доказ».
+                unset($cases[$index]['review_id'], $cases[$index]['review_date']);
+
+                continue;
+            }
+
+            $date = $review->published_at ?? $review->created_at;
+            $cases[$index]['proof'] = [
+                'author' => trim((string) $review->author_name) ?: 'Клієнт',
+                'rating' => (float) $review->rating,
+                'date' => $date?->translatedFormat('d F Y'),
+                'text' => mb_substr(trim(preg_replace('/\s+/u', ' ', (string) $review->body) ?? ''), 0, 600),
+            ];
+        }
+
+        return array_values($cases);
+    }
+
+    /**
      * @param  array<string, mixed>  $aiSuggestedData
      * @return array<string, mixed>
      */
@@ -2011,6 +2069,7 @@ class CatalogPageController extends Controller
             'response_speed',
             'experience',
             'faq',
+            'cases',
         ];
 
         foreach ($keys as $key) {
@@ -2029,6 +2088,7 @@ class CatalogPageController extends Controller
             'response_speed' => $this->nullableString($ownerProfile['response_speed'] ?? null),
             'experience' => $this->nullableString($ownerProfile['experience'] ?? null),
             'faq' => $this->normalizeOwnerProfileFaq($ownerProfile['faq'] ?? []),
+            'cases' => \App\Support\ProfileCases::normalize($ownerProfile['cases'] ?? []),
         ];
     }
 

@@ -2762,9 +2762,18 @@ const initProAccountWorkspace = (shell) => {
                 .filter((item) => Object.values(item).some((value) => String(value || '').trim() !== ''));
 
             const syncHeadings = () => {
+                // Підпис елемента можна задати розміткою (data-item-label="Кейс"),
+                // інакше лишається стара поведінка за іменем поля.
+                const itemLabel = (repeater.dataset.itemLabel || '').trim();
+
                 getItems().forEach((item, index) => {
                     const heading = item.querySelector('.pro-profile-json-item__head strong');
                     if (!heading) return;
+
+                    if (itemLabel) {
+                        heading.textContent = `${itemLabel} ${index + 1}`;
+                        return;
+                    }
 
                     if (hiddenInput.name === 'owner_profile_advantages_json') {
                         heading.textContent = `Перевага ${index + 1}`;

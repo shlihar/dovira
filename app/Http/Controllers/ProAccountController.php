@@ -478,6 +478,7 @@ class ProAccountController extends Controller
             'owner_profile_response_speed' => ['nullable', 'string', 'max:60'],
             'owner_profile_experience' => ['nullable', 'string', 'max:5000'],
             'owner_profile_faq_json' => ['nullable', 'string', 'max:40000'],
+            'owner_profile_cases_json' => ['nullable', 'string', 'max:40000'],
             'seo_title' => ['nullable', 'string', 'max:255'],
             'seo_description' => ['nullable', 'string', 'max:500'],
             'status' => ['required', Rule::in(['active', 'hidden', 'draft'])],
@@ -1933,6 +1934,7 @@ class ProAccountController extends Controller
         $ownerProfile['response_speed'] = $this->nullableString($validated['owner_profile_response_speed'] ?? null);
         $ownerProfile['experience'] = $this->nullableString($validated['owner_profile_experience'] ?? null);
         $ownerProfile['faq'] = $this->normalizeOwnerProfileFaq($validated['owner_profile_faq_json'] ?? null);
+        $ownerProfile['cases'] = \App\Support\ProfileCases::normalize($validated['owner_profile_cases_json'] ?? null);
 
         $ownerProfile = collect($ownerProfile)
             ->reject(fn ($value) => $this->isBlankOwnerProfileValue($value))
@@ -1963,6 +1965,7 @@ class ProAccountController extends Controller
             'response_speed',
             'experience',
             'faq',
+            'cases',
         ];
 
         foreach ($keys as $key) {
@@ -1981,6 +1984,7 @@ class ProAccountController extends Controller
             'response_speed' => $this->nullableString(is_string($ownerProfile['response_speed'] ?? null) ? $ownerProfile['response_speed'] : null),
             'experience' => $this->nullableString(is_string($ownerProfile['experience'] ?? null) ? $ownerProfile['experience'] : null),
             'faq' => $this->normalizeOwnerProfileFaq($ownerProfile['faq'] ?? []),
+            'cases' => \App\Support\ProfileCases::normalize($ownerProfile['cases'] ?? []),
         ];
     }
 
