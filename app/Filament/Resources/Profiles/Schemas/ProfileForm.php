@@ -118,8 +118,11 @@ class ProfileForm
                         Tab::make('Кейси')
                             ->schema([
                                 Section::make('Кейси профілю')
-                                    ->description('Історії «запит клієнта → результат» на публічній сторінці. Показуються лише для профілів з активною PRO-підпискою, максимум 10.')
+                                    ->description('Показуються на публічній сторінці профілів з активною PRO-підпискою, максимум 10.')
                                     ->schema([
+                                        // Підказка зі зразком — перше, що бачить людина у вкладці.
+                                        View::make('filament.resources.profiles.cases-hint')
+                                            ->columnSpanFull(),
                                         Repeater::make('owner_cases')
                                             // hiddenLabel: інакше Filament малює службове «Owner cases».
                                             ->hiddenLabel()

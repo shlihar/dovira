@@ -2115,7 +2115,29 @@
                                             <div class="pro-profile-summary-card pro-profile-summary-card--wide pro-profile-json-card">
                                                 <div class="pro-profile-summary-card__top">
                                                     <span>Кейси</span>
-                                                    <small>До 10 історій «з чим прийшов клієнт → що зробили → результат». Пишіть конкретно і без обіцянок, яких не можете підтвердити.</small>
+                                                </div>
+                                                {{-- Підказка зі зразком: без неї поле «Назва кейсу» власник
+                                                     заповнює загальними фразами, і блок втрачає сенс. --}}
+                                                <div class="pro-cases-hint">
+                                                    <p class="pro-cases-hint__title">Кейс — це одна історія клієнта в трьох рядках</p>
+                                                    <ol class="pro-cases-hint__steps">
+                                                        <li><b>Назва</b> — що саме зробили: «Виплата 15 млн: суд скасував відмову через алкоголь у крові загиблого»</li>
+                                                        <li><b>З чим прийшов клієнт</b> — ситуація на старті: «Родині відмовили у виплаті за загиблого військового»</li>
+                                                        <li><b>Результат</b> — чим закінчилось, із цифрою або строком: «Суд зобовʼязав виплатити 15 мільйонів гривень»</li>
+                                                    </ol>
+                                                    <p class="pro-cases-hint__note">
+                                                        Найсильніше працює коротке відео на 30–60 секунд, зняте на телефон: вставте посилання на файл або на YouTube.
+                                                        Живий приклад — кейси <a href="{{ route('profile.show', ['slug' => 'smirnov-andrii-igorovic']) }}?tab=info#profile-cases" target="_blank" rel="noopener">Андрія Смирнова</a>.
+                                                    </p>
+                                                    <details class="pro-cases-hint__more">
+                                                        <summary>Ще дві поради</summary>
+                                                        <p class="pro-cases-hint__note">
+                                                            Якщо про цю справу є відгук клієнта — попросіть нас привʼязати його до кейсу: під кейсом зʼявиться цитата, і його можна буде перевірити.
+                                                        </p>
+                                                        <p class="pro-cases-hint__note pro-cases-hint__note--muted">
+                                                            Не пишіть «професійний підхід» та обіцянки результату наперед і не вказуйте персональні дані клієнта.
+                                                        </p>
+                                                    </details>
                                                 </div>
                                                 <div class="pro-profile-json-editor" data-pro-json-repeater data-target-name="owner_profile_cases_json" data-max-items="10" data-item-label="Кейс">
                                                     <input type="hidden" name="owner_profile_cases_json" value="{{ $ownerProfileCasesJson }}">

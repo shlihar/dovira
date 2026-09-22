@@ -13080,3 +13080,66 @@ body.is-pro-upgrade-popup-open {
     opacity: 0.6;
   }
 }
+
+/* Підказка над редактором кейсів: зразок важливіший за правила, тому
+   приклади в рядках кроків, а не окремим блоком. */
+.pro-cases-hint {
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  border: 1px solid #e3ebf8;
+  border-radius: 12px;
+  background: #f7faff;
+}
+
+.pro-cases-hint__title {
+  margin: 0 0 8px;
+  color: #17376f;
+  font-size: 13.5px;
+  font-weight: 800;
+}
+
+.pro-cases-hint__steps {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 5px;
+  color: #4a5c7d;
+  font-size: 12.8px;
+  line-height: 1.5;
+}
+
+.pro-cases-hint__steps b {
+  color: #17376f;
+}
+
+.pro-cases-hint__note {
+  margin: 9px 0 0;
+  color: #4a5c7d;
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.pro-cases-hint__note--muted {
+  color: #7a89a3;
+}
+
+.pro-cases-hint__note a {
+  color: #2f6ef9;
+  font-weight: 700;
+}
+
+.pro-cases-hint__more {
+  margin-top: 8px;
+}
+
+.pro-cases-hint__more > summary {
+  cursor: pointer;
+  color: #2f6ef9;
+  font-size: 12.5px;
+  font-weight: 700;
+  list-style: none;
+}
+
+.pro-cases-hint__more > summary::-webkit-details-marker {
+  display: none;
+}
