@@ -1122,7 +1122,9 @@
                                                         @if ($caseImage || $caseVideo)
                                                             <div class="profile-cases__media">
                                                                 @if ($caseVideo && $caseVideo['kind'] === 'file')
-                                                                    <video class="profile-cases__video" controls preload="none" playsinline
+                                                                    {{-- preload=metadata: показує перший кадр як превʼю, але
+                                                                         не тягне весь файл, поки не натиснули play. --}}
+                                                                    <video class="profile-cases__video" controls preload="metadata" playsinline
                                                                         @if ($caseImage) poster="{{ $caseImage }}" @endif>
                                                                         <source src="{{ $caseVideo['href'] }}">
                                                                     </video>
@@ -2400,6 +2402,17 @@
 
     triggers.forEach((btn) => {
         btn.addEventListener('click', () => setTab(btn.dataset.profileTabTrigger || 'info'));
+    });
+
+    // Точні пропорції відео відомі лише з метаданих — до того тримаємо
+    // вертикальну заглушку, після завантаження підганяємо кадр під ролик.
+    root.querySelectorAll('.profile-cases__video').forEach((video) => {
+        const applyRatio = () => {
+            if (!video.videoWidth || !video.videoHeight) return;
+            video.style.aspectRatio = `${video.videoWidth} / ${video.videoHeight}`;
+        };
+        if (video.readyState >= 1) applyRatio();
+        video.addEventListener('loadedmetadata', applyRatio, { once: true });
     });
 
     // Відео в кейсі: превʼю замінюється плеєром лише після кліку, щоб сторінка

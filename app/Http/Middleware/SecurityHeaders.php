@@ -38,8 +38,9 @@ class SecurityHeaders
         }
 
         // CSP — defense-in-depth проти XSS. Дозволяємо власні скрипти + inline
-        // (сайт має чимало inline-скриптів/стилів), Google Fonts, Turnstile та
-        // data:-картинки. frame-ancestors керує вбудовуванням (widget — окремо).
+        // (сайт має чимало inline-скриптів/стилів), Google Fonts, Turnstile,
+        // Microsoft Clarity та data:-картинки. frame-ancestors керує
+        // вбудовуванням (widget — окремо).
         //
         // Адмінку (Filament) НЕ чіпаємо: вона на Alpine/Livewire, яким потрібен
         // 'unsafe-eval', а bunny.net-шрифти й свої asset-домени вимагали б окремих
@@ -50,12 +51,17 @@ class SecurityHeaders
             && ! $response->headers->has('Content-Security-Policy')) {
             $response->headers->set('Content-Security-Policy', implode('; ', [
                 "default-src 'self'",
-                "script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com",
+                "script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com https://*.clarity.ms",
                 "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
                 "font-src 'self' https://fonts.gstatic.com data:",
                 "img-src 'self' data: https:",
-                "frame-src 'self' https://challenges.cloudflare.com",
-                "connect-src 'self'",
+                // Відео в кейсах PRO лежать на сайтах самих компаній, тому
+                // media-src мусить дозволяти будь-який https-хост: без цього
+                // браузер навіть не робить запит (NETWORK_NO_SOURCE) і плеєр
+                // мовчки лишається порожнім.
+                "media-src 'self' https: blob:",
+                "frame-src 'self' https://challenges.cloudflare.com https://www.youtube-nocookie.com https://www.youtube.com https://player.vimeo.com",
+                "connect-src 'self' https://*.clarity.ms",
                 "frame-ancestors 'self'",
                 "base-uri 'self'",
                 "form-action 'self'",
