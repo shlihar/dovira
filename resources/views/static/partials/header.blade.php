@@ -168,7 +168,7 @@
 
                             <div class="user-menu__pro">
                                 <p class="user-menu__pro-title">Отримайте більше з PRO</p>
-                                <p class="user-menu__pro-text">Пріоритет у каталозі, публічні відповіді та інструменти репутації.</p>
+                                <p class="user-menu__pro-text">Верхні позиції у видачі категорії, публічні відповіді та керування сторінкою.</p>
                                 <a class="user-menu__pro-btn" href="{{ $proWorkspaceUrl }}">
                                     <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
                                     <span>Відкрити PRO кабінет</span>

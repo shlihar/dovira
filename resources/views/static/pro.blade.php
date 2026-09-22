@@ -10,8 +10,8 @@
     $proPrimaryLabel = $isAuthed ? 'Відкрити PRO кабінет' : 'Підключити PRO';
 @endphp
 
-@section('title', 'Для бізнесу — DOVIRA PRO: відповідайте на відгуки й керуйте репутацією')
-@section('description', 'Клієнти гуглять вас перед зверненням. DOVIRA PRO — офіційні відповіді на відгуки, керування сторінкою профілю та аналітика того, хто і як вас перевіряє.')
+@section('title', 'Для бізнесу — DOVIRA PRO: ваша картка вище за всі безплатні')
+@section('description', 'DOVIRA PRO ставить вашу картку на верхні позиції категорії — у каталозі, у пошуку та в результатах за послугою. Плюс офіційні відповіді на відгуки, керування сторінкою й контакти клієнтів із заявок.')
 @section('canonical', route('pro'))
 @section('body_class', 'page-pro')
 
@@ -22,7 +22,7 @@
             '@context' => 'https://schema.org',
             '@type' => 'Product',
             'name' => 'DOVIRA PRO',
-            'description' => 'PRO-підписка для компаній і спеціалістів на платформі DOVIRA: офіційні відповіді на відгуки, керування сторінкою профілю, аналітика та пріоритет у каталозі.',
+            'description' => 'PRO-підписка для компаній і спеціалістів на платформі DOVIRA: верхні позиції у видачі каталогу й пошуку, офіційні відповіді на відгуки, керування сторінкою профілю та контакти клієнтів із заявок.',
             'brand' => ['@type' => 'Brand', 'name' => 'DOVIRA'],
             'url' => route('pro'),
             'offers' => [
@@ -37,7 +37,7 @@
                 [
                     '@type' => 'Offer',
                     'name' => 'PRO — стартова пропозиція',
-                    'description' => 'Повний PRO-доступ на 6 місяців за стартовою ціною: офіційні відповіді на відгуки, керування сторінкою, аналітика та пріоритет у каталозі.',
+                    'description' => 'Повний PRO-доступ на 6 місяців за стартовою ціною: верхні позиції у видачі, офіційні відповіді на відгуки, керування сторінкою та контакти клієнтів із заявок.',
                     'price' => (string) \App\Support\ProPricing::DISPLAY_CURRENT,
                     'priceCurrency' => \App\Support\ProPricing::DISPLAY_CURRENCY,
                     'url' => route('pro') . '#pro-pricing',
@@ -57,13 +57,18 @@
                     <div class="pro-hero__content">
                         <span class="pro-hero__badge">Для компаній і спеціалістів</span>
                         <h1 class="pro-hero__title" id="pro-hero-title">
-                            Що бачить клієнт, коли гуглить вас?
+                            Ваша картка — вище за всі безплатні
                         </h1>
                         <p class="pro-hero__subtitle">
-                            Сторінка вашого бізнесу на DOVIRA публічна: рейтинг, відгуки, висновки клієнтів.
-                            Її бачать у каталозі та знаходять у Google й AI-пошуку — незалежно від того, чи керуєте ви нею.
-                            PRO дає вам голос на цій сторінці: офіційні відповіді на відгуки, керування інформацією
-                            та цифри про те, скільки людей вас перевіряють.
+                            Клієнт відкриває категорію і дивиться перших. PRO ставить вашу картку на верхні
+                            позиції — у каталозі, у пошуку й у добірках за послугою, з позначкою PRO.
+                            Разом із місцем ви отримуєте офіційні відповіді на відгуки, керування сторінкою
+                            та контакти клієнтів із заявок.
+                        </p>
+                        <p class="pro-hero__note muted">
+                            Чесно про чергу: якщо в категорії кілька платних профілів, верхні місця
+                            щодня чергуються між ними — першим буває кожен. Рейтинги /top це не зачіпає:
+                            там порядок визначає тільки оцінка.
                         </p>
                         <p class="pro-pricing__promo">
                             <i class="fa-solid fa-bolt" aria-hidden="true"></i>
@@ -82,21 +87,26 @@
 
                     <div class="pro-hero__cards" aria-hidden="true">
                         <article class="pro-hero-card">
-                            <span class="pro-hero-card__icon"><i class="fa-solid fa-comments"></i></span>
-                            <h3 class="pro-hero-card__title">Ваш голос у кожному відгуку</h3>
-                            <p class="pro-hero-card__text">Офіційна відповідь компанії — поруч із відгуком. Її бачить кожен наступний відвідувач.</p>
+                            <span class="pro-hero-card__icon"><i class="fa-solid fa-arrow-trend-up"></i></span>
+                            <h3 class="pro-hero-card__title">Перші позиції категорії</h3>
+                            <p class="pro-hero-card__text">Вас бачать до того, як клієнт дійде до конкурентів.</p>
                             <div class="pro-hero-card__visual">
-                                <div class="pro-rank-row pro-rank-row--reply">
-                                    <span class="pro-rank-row__reply-icon"><i class="fa-solid fa-reply"></i></span>
-                                    <span class="pro-rank-row__name">Офіційна відповідь<em>від представника компанії</em></span>
+                                <div class="pro-rank-row pro-rank-row--you">
+                                    <span class="pro-rank-row__pos">1</span>
+                                    <span class="pro-rank-row__name">Ваша компанія</span>
+                                    <span class="pro-rank-row__pro">PRO</span>
+                                </div>
+                                <div class="pro-rank-row">
+                                    <span class="pro-rank-row__pos">2</span>
+                                    <span class="pro-rank-row__name">Профіль без підписки</span>
                                 </div>
                             </div>
                         </article>
 
                         <article class="pro-hero-card">
                             <span class="pro-hero-card__icon"><i class="fa-solid fa-sliders"></i></span>
-                            <h3 class="pro-hero-card__title">Сторінка під вашим контролем</h3>
-                            <p class="pro-hero-card__text">Послуги, ціни, фото і досьє — ви вирішуєте, що бачить клієнт.</p>
+                            <h3 class="pro-hero-card__title">Ваш голос і ваша сторінка</h3>
+                            <p class="pro-hero-card__text">Офіційні відповіді на відгуки, послуги, ціни й фото — під вашим контролем.</p>
                             <div class="pro-hero-card__visual">
                                 <div class="pro-rank-row pro-rank-row--you">
                                     <span class="pro-rank-row__pos"><i class="fa-solid fa-check"></i></span>
@@ -108,11 +118,11 @@
 
                         <article class="pro-hero-card">
                             <span class="pro-hero-card__icon"><i class="fa-solid fa-chart-line"></i></span>
-                            <h3 class="pro-hero-card__title">Видно, хто вас перевіряє</h3>
-                            <p class="pro-hero-card__text">Перегляди сторінки, кліки на контакти і джерела — в кабінеті.</p>
+                            <h3 class="pro-hero-card__title">Видно, що дала оплата</h3>
+                            <p class="pro-hero-card__text">Окремий лічильник показів на платних позиціях — у кабінеті.</p>
                             <div class="pro-hero-card__visual">
                                 <div class="pro-rank-row pro-rank-row--stat">
-                                    <span class="pro-rank-row__name">Переглядів за 30 днів</span>
+                                    <span class="pro-rank-row__name">Показів на платних позиціях</span>
                                     <b class="pro-rank-row__value"><i class="fa-solid fa-eye"></i> 214</b>
                                 </div>
                             </div>
@@ -122,7 +132,7 @@
 
                 <section class="prol-steps" aria-labelledby="prol-steps-title" id="pro-features">
                     <div class="prol-section-head">
-                        <h2 id="prol-steps-title">Три кроки — і у вас є голос</h2>
+                        <h2 id="prol-steps-title">Три кроки — і ви вгорі категорії</h2>
                         <p>Старт безкоштовний — PRO вмикається, коли будете готові.</p>
                     </div>
 
@@ -142,7 +152,7 @@
                         <article class="prol-step">
                             <span class="prol-step__num">3</span>
                             <h3>Увімкніть PRO</h3>
-                            <p>Відповідайте на відгуки від імені компанії, оформіть сторінку, відкрийте контакти — і дивіться в цифрах, як люди на це реагують.</p>
+                            <p>Картка одразу піднімається на верхні позиції категорії з позначкою PRO. Разом із нею відкриваються офіційні відповіді на відгуки, керування сторінкою й контакти клієнтів із заявок.</p>
                         </article>
                     </div>
                 </section>
@@ -151,7 +161,7 @@
                     <div class="prol-features__panel">
                         <div class="prol-section-head">
                             <h2 id="prol-features-title">Що дає PRO</h2>
-                            <p>Головне — ваш голос там, де клієнт ухвалює рішення. Решта це підсилює.</p>
+                            <p>Головне — місце у видачі. Решта працює на те саме рішення клієнта.</p>
                         </div>
 
                         {{-- Порядок переваг = позиціонування (спільне зі сторінкою оплати):
@@ -159,6 +169,14 @@
                              Телефон і сайт видимі всім безкоштовно; аналітика відкривається
                              безкоштовно після підтвердження прав — не продаємо їх як PRO. --}}
                         <div class="prol-features__grid">
+                            <article class="prol-feature">
+                                <span class="prol-feature__icon prol-feature__icon--blue"><i class="fa-solid fa-arrow-trend-up" aria-hidden="true"></i></span>
+                                <div>
+                                    <h3>Верхні позиції у видачі</h3>
+                                    <p>Картка стоїть вище за всі безплатні профілі категорії — у каталозі, у пошуку й у добірках за послугою, з позначкою PRO. Між платними профілями верхні місця чергуються щодня. На рейтинги /top підписка не впливає — там порядок визначає лише оцінка.</p>
+                                </div>
+                            </article>
+
                             <article class="prol-feature">
                                 <span class="prol-feature__icon prol-feature__icon--violet"><i class="fa-solid fa-comments" aria-hidden="true"></i></span>
                                 <div>
@@ -192,10 +210,10 @@
                             </article>
 
                             <article class="prol-feature">
-                                <span class="prol-feature__icon prol-feature__icon--blue"><i class="fa-solid fa-arrow-trend-up" aria-hidden="true"></i></span>
+                                <span class="prol-feature__icon prol-feature__icon--blue"><i class="fa-solid fa-chart-line" aria-hidden="true"></i></span>
                                 <div>
-                                    <h3>Пріоритет у каталозі</h3>
-                                    <p>Вище серед релевантних профілів у видачі й пошуку, показ у «Схожих профілях» на сторінках конкурентів. Сторінка індексується Google і видима для AI-пошуку.</p>
+                                    <h3>Видно результат оплати</h3>
+                                    <p>У кабінеті — окремий лічильник: скільки разів картку показали саме на платних позиціях. Поруч перегляди сторінки, кліки на контакти й джерела переходів.</p>
                                 </div>
                             </article>
 
@@ -346,7 +364,7 @@
                             </h2>
                             <div class="section-divider pro-pricing__divider"></div>
                             <p class="pro-pricing__sub muted">
-                                Профіль може вже бути публічним у каталозі й Google. Підтвердження прав — безкоштовне й одразу відкриває аналітику переглядів. Голос — офіційні відповіді, керування сторінкою та контакти клієнтів із заявок — відкриває PRO.
+                                Профіль може вже бути публічним у каталозі й Google, а підтвердження прав — безкоштовне й одразу відкриває аналітику переглядів. PRO додає головне: місце вгорі категорії, офіційні відповіді на відгуки, керування сторінкою та контакти клієнтів із заявок.
                             </p>
 
                             <p class="pro-pricing__promo">
@@ -400,12 +418,13 @@
                                 <p class="pro-price-card__text">{{ \App\Support\ProPricing::formatDisplay(\App\Support\ProPricing::DISPLAY_CURRENT) }} раз на 6 місяців, підписка з автопродовженням — вимкнути можна будь-коли. Далі тариф — {{ \App\Support\ProPricing::formatDisplay(\App\Support\ProPricing::DISPLAY_FUTURE) }}.</p>
                                 <ul class="pro-price-card__list">
                                     <li><i class="fa-solid fa-circle-check"></i> <b>Усе зі START</b>, плюс:</li>
+                                    <li><i class="fa-solid fa-circle-check"></i> <b>Верхні позиції у видачі категорії</b> — вище за всі безплатні профілі</li>
+                                    <li><i class="fa-solid fa-circle-check"></i> Позначка PRO на картці й лічильник показів на платних позиціях</li>
                                     <li><i class="fa-solid fa-circle-check"></i> Офіційні відповіді на відгуки від імені компанії</li>
                                     <li><i class="fa-solid fa-circle-check"></i> Повне керування сторінкою: послуги, ціни, фото, FAQ, досьє</li>
                                     <li><i class="fa-solid fa-circle-check"></i> Контакти клієнтів із заявок — телефон та email тих, хто звернувся</li>
                                     <li><i class="fa-solid fa-circle-check"></i> Email і соцмережі на сторінці профілю</li>
                                     <li><i class="fa-solid fa-circle-check"></i> Без блоку конкурентів на вашій сторінці</li>
-                                    <li><i class="fa-solid fa-circle-check"></i> Пріоритет у каталозі й пошуку</li>
                                     <li><i class="fa-solid fa-circle-check"></i> −20% за розміщення бейджа DOVIRA на сайті або в соцмережах</li>
                                 </ul>
                                 <a class="btn pro-price-card__btn pro-price-card__btn--primary" href="{{ $proPrimaryUrl }}">
@@ -545,9 +564,9 @@
                                 <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
                                 DOVIRA PRO
                             </span>
-                            <h2 id="prol-final-title">Негативний відгук зʼявляється без попередження</h2>
+                            <h2 id="prol-final-title">Верхні місця у вашій категорії вже зайняті</h2>
                             <p>
-                                З PRO ви дізнаєтеся про нього першим — і поруч стоятиме ваша відповідь.
+                                Їх щодня ділять між собою ті, хто платить. Підписка ставить вашу картку в цю ж чергу — вище за всі безплатні профілі.
                                 {{ \App\Support\ProPricing::launchCohortPriceLine() }}
                             </p>
                             <div class="prol-final__actions">
@@ -564,10 +583,10 @@
 
                         <div class="prol-final__visual" aria-hidden="true">
                             <div class="prol-final__mini prol-final__mini--rating">
-                                <span class="prol-final__mini-icon"><i class="fa-solid fa-bell"></i></span>
+                                <span class="prol-final__mini-icon"><i class="fa-solid fa-arrow-trend-up"></i></span>
                                 <div>
-                                    <strong>Новий відгук</strong>
-                                    <span>сповіщення — одразу на email</span>
+                                    <strong>1 місце в категорії</strong>
+                                    <span>вище за всі безплатні профілі</span>
                                 </div>
                             </div>
                             <div class="prol-final__mini prol-final__mini--review">

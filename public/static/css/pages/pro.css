@@ -87,6 +87,17 @@ body.page-pro {
   font-weight: 500;
 }
 
+/* Чесне уточнення під обіцянкою першого місця: платних у категорії може
+   бути кілька, і черга між ними щоденна. Тон — спокійний, дрібніший текст. */
+.pro-hero__note {
+  max-width: 52ch;
+  margin: 12px auto 0;
+  color: rgba(233, 242, 255, 0.72);
+  font-size: 13.5px;
+  line-height: 1.45;
+  font-weight: 500;
+}
+
 .pro-hero__actions {
   margin-top: 28px;
   display: grid;

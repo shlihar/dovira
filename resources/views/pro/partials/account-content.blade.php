@@ -256,7 +256,7 @@
                 'trend' => $trendDisplays['impressions'] ?? null,
             ],
             [
-                'icon' => 'fa-solid fa-arrow-up-wide-short',
+                'icon' => 'fa-solid fa-arrow-trend-up',
                 'tone' => 'gold',
                 'value' => number_format($promotedImpressions, 0, '.', ' '),
                 'label' => 'Показів на платних позиціях',
@@ -1614,7 +1614,7 @@
                                             {{ $currentProPriceDisplay }} раз на 6 місяців · підписка з автопродовженням, вимкнути можна будь-коли. Стартова ціна діє для першої когорти.
                                         </p>
                                         <ul class="pro-billing-plan__features">
-                                            <li>Пріоритет у каталозі й пошуку</li>
+                                            <li>Верхні позиції у видачі категорії</li>
                                             <li>Публічні відповіді на відгуки</li>
                                             <li>Аналітика переглядів і контактних кліків</li>
                                             <li>Оскарження несправедливих відгуків</li>
