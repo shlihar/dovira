@@ -30,9 +30,15 @@ class EditProfile extends EditRecord
      */
     protected array $serviceIds = [];
 
+    /**
+     * Кнопка «Зберегти» ще й під формою: на телефоні після правки кейсів
+     * інакше треба мотати всю сторінку вгору до шапки.
+     */
     protected function getFormActions(): array
     {
-        return [];
+        return [
+            $this->getSaveFormAction()->label('Зберегти'),
+        ];
     }
 
     protected function getHeaderActions(): array
@@ -108,6 +114,9 @@ class EditProfile extends EditRecord
                         'profile' => $this->record,
                     ]);
                 }),
+            // Рідковживані дії — під «Ще»: у шапці на телефоні сім кнопок
+            // займали цілий екран до початку форми.
+            \Filament\Actions\ActionGroup::make([
             Action::make('refresh_ai_review_analysis')
                 ->label('Оновити AI-аналіз відгуків')
                 ->icon('heroicon-o-sparkles')
@@ -234,6 +243,11 @@ class EditProfile extends EditRecord
             DeleteAction::make()
                 ->label('Видалити')
                 ->requiresConfirmation(),
+            ])
+                ->label('Ще')
+                ->icon('heroicon-o-ellipsis-horizontal')
+                ->button()
+                ->color('gray'),
         ];
     }
 
