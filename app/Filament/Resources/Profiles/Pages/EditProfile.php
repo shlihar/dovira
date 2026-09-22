@@ -245,6 +245,21 @@ class EditProfile extends EditRecord
 
         $data['service_ids'] = $this->record->services()->pluck('category_services.id')->map(fn ($id) => (int) $id)->all();
 
+        // Кейси лежать у JSON (ai_suggested_data.owner_profile.cases), тож
+        // підставляємо їх у власне поле форми, а не редагуємо колонку напряму:
+        // інакше збереження затерло б решту ключів ai_suggested_data.
+        $data['owner_cases'] = collect(\App\Support\ProfileCases::normalize(
+            data_get($this->record->ai_suggested_data, 'owner_profile.cases', [])
+        ))->map(function (array $case): array {
+            // Завантажений файл і зовнішнє посилання живуть в одному полі
+            // `image`, але в формі це різні контроли.
+            $image = (string) ($case['image'] ?? '');
+            $case['image'] = str_starts_with($image, 'http') ? null : ($image ?: null);
+            $case['image_url'] = str_starts_with($image, 'http') ? $image : null;
+
+            return $case;
+        })->all();
+
         return $data;
     }
 
@@ -293,6 +308,29 @@ class EditProfile extends EditRecord
         }
         if (array_key_exists('og_image_url', $data) && blank($data['og_image_url'])) {
             $data['og_image_url'] = $this->record->og_image_url;
+        }
+
+        // Кейси: складаємо назад у JSON, не чіпаючи інші ключі ai_suggested_data.
+        if (array_key_exists('owner_cases', $data)) {
+            $cases = collect((array) $data['owner_cases'])
+                ->map(function ($case): array {
+                    $case = (array) $case;
+                    $case['image'] = filled($case['image'] ?? null)
+                        ? (string) $case['image']
+                        : (string) ($case['image_url'] ?? '');
+                    unset($case['image_url']);
+
+                    return $case;
+                })
+                ->all();
+
+            $aiData = (array) ($this->record->ai_suggested_data ?? []);
+            $ownerProfile = is_array($aiData['owner_profile'] ?? null) ? $aiData['owner_profile'] : [];
+            $ownerProfile['cases'] = \App\Support\ProfileCases::normalize($cases);
+            $aiData['owner_profile'] = $ownerProfile;
+            $data['ai_suggested_data'] = $aiData;
+
+            unset($data['owner_cases']);
         }
 
         $data['updated_by_user_id'] = Auth::id();

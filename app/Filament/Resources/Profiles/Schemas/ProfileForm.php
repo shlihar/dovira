@@ -345,6 +345,97 @@ class ProfileForm
                                     ->columns(2),
                             ]),
 
+                        Tab::make('Кейси')
+                            ->schema([
+                                Section::make('Кейси профілю')
+                                    ->description('Історії «запит клієнта → результат» на публічній сторінці. Показуються лише для профілів з активною PRO-підпискою, максимум 10.')
+                                    ->schema([
+                                        Repeater::make('owner_cases')
+                                            ->label('')
+                                            ->addActionLabel('Додати кейс')
+                                            ->maxItems(\App\Support\ProfileCases::MAX_ITEMS)
+                                            ->reorderable()
+                                            ->collapsible()
+                                            ->itemLabel(fn (array $state): ?string => $state['title'] ?? 'Новий кейс')
+                                            ->schema([
+                                                TextInput::make('title')
+                                                    ->label('Назва кейсу')
+                                                    ->maxLength(120)
+                                                    ->required()
+                                                    ->columnSpanFull(),
+                                                Textarea::make('task')
+                                                    ->label('З чим прийшов клієнт')
+                                                    ->rows(2)
+                                                    ->maxLength(400)
+                                                    ->columnSpanFull(),
+                                                Textarea::make('result')
+                                                    ->label('Результат')
+                                                    ->rows(2)
+                                                    ->maxLength(400)
+                                                    ->required()
+                                                    ->columnSpanFull(),
+                                                TextInput::make('tag')
+                                                    ->label('Напрям')
+                                                    ->maxLength(60),
+                                                TextInput::make('period')
+                                                    ->label('Скільки тривало')
+                                                    ->maxLength(40),
+                                                TextInput::make('video')
+                                                    ->label('Відео')
+                                                    ->helperText('YouTube, Vimeo або пряме посилання на файл (.mp4/.mov). Інші сервіси показуються посиланням.')
+                                                    ->url()
+                                                    ->maxLength(300)
+                                                    ->columnSpanFull(),
+                                                TextInput::make('url')
+                                                    ->label('Посилання на деталі')
+                                                    ->url()
+                                                    ->maxLength(300)
+                                                    ->columnSpanFull(),
+                                                FileUpload::make('image')
+                                                    ->label('Фото')
+                                                    ->helperText('Можна завантажити файл або вставити посилання на зображення в полі нижче.')
+                                                    ->image()
+                                                    ->disk('public')
+                                                    ->visibility('public')
+                                                    ->directory('profiles/cases')
+                                                    ->columnSpanFull(),
+                                                TextInput::make('image_url')
+                                                    ->label('…або посилання на фото')
+                                                    ->url()
+                                                    ->maxLength(300)
+                                                    ->columnSpanFull(),
+                                                // Підтвердження: обираємо реальний опублікований
+                                                // відгук цього профілю — його текст відвідувач
+                                                // розгортає прямо в картці кейсу.
+                                                Select::make('review_id')
+                                                    ->label('Підтвердити відгуком клієнта')
+                                                    ->placeholder('Без підтвердження')
+                                                    ->searchable()
+                                                    ->options(fn ($record): array => $record
+                                                        ? \App\Models\ProfileReview::query()
+                                                            ->where('profile_id', $record->id)
+                                                            ->where('status', 'published')
+                                                            ->orderByDesc('published_at')
+                                                            ->orderByDesc('id')
+                                                            ->limit(300)
+                                                            ->get(['id', 'author_name', 'rating', 'body', 'published_at'])
+                                                            ->mapWithKeys(fn ($review): array => [
+                                                                $review->id => sprintf(
+                                                                    '%s · %s★ · %s',
+                                                                    Str::limit(trim((string) $review->author_name) ?: 'Клієнт', 24),
+                                                                    rtrim(rtrim(number_format((float) $review->rating, 1, '.', ''), '0'), '.'),
+                                                                    Str::limit(trim(preg_replace('/\s+/u', ' ', (string) $review->body) ?? ''), 70)
+                                                                ),
+                                                            ])
+                                                            ->all()
+                                                        : [])
+                                                    ->columnSpanFull(),
+                                            ])
+                                            ->columns(2)
+                                            ->columnSpanFull(),
+                                    ]),
+                            ]),
+
                         Tab::make('AI-збагачення')
                             ->schema([
                                 View::make('filament.resources.profiles.tabs.ai-enrichment')

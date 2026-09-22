@@ -1112,6 +1112,41 @@
                                                             </div>
                                                         @endif
 
+                                                        @php
+                                                            $caseImage = filled($case['image'] ?? null)
+                                                                ? \App\Support\MediaUrl::publicImageUrl((string) $case['image'])
+                                                                : null;
+                                                            $caseVideo = \App\Support\CaseVideo::parse($case['video'] ?? null);
+                                                        @endphp
+
+                                                        @if ($caseImage || $caseVideo)
+                                                            <div class="profile-cases__media">
+                                                                @if ($caseVideo && $caseVideo['kind'] === 'file')
+                                                                    <video class="profile-cases__video" controls preload="none" playsinline
+                                                                        @if ($caseImage) poster="{{ $caseImage }}" @endif>
+                                                                        <source src="{{ $caseVideo['href'] }}">
+                                                                    </video>
+                                                                @elseif ($caseVideo && $caseVideo['embed'])
+                                                                    {{-- Фасад: важкий плеєр вантажиться лише після кліку. --}}
+                                                                    <button type="button" class="profile-cases__video-facade" data-case-video="{{ $caseVideo['embed'] }}"
+                                                                        style="{{ ($caseVideo['thumb'] ?? $caseImage) ? 'background-image:url(' . ($caseVideo['thumb'] ?? $caseImage) . ')' : '' }}"
+                                                                        aria-label="Відтворити відео">
+                                                                        <span class="profile-cases__play"><i class="fa-solid fa-play" aria-hidden="true"></i></span>
+                                                                    </button>
+                                                                @else
+                                                                    @if ($caseImage)
+                                                                        <img class="profile-cases__photo" src="{{ $caseImage }}" alt="{{ $case['title'] }}" loading="lazy">
+                                                                    @endif
+                                                                    @if ($caseVideo)
+                                                                        <a class="profile-cases__chip profile-cases__chip--link" href="{{ $caseVideo['href'] }}" target="_blank" rel="nofollow noopener">
+                                                                            <i class="fa-solid fa-play" aria-hidden="true"></i>
+                                                                            Дивитись відео
+                                                                        </a>
+                                                                    @endif
+                                                                @endif
+                                                            </div>
+                                                        @endif
+
                                                         @if (!empty($case['proof']['text']))
                                                             {{-- Головне в блоці: кейс можна перевірити тут же, за текстом
                                                                  реального опублікованого відгуку, а не вірити на слово. --}}
@@ -2365,6 +2400,22 @@
 
     triggers.forEach((btn) => {
         btn.addEventListener('click', () => setTab(btn.dataset.profileTabTrigger || 'info'));
+    });
+
+    // Відео в кейсі: превʼю замінюється плеєром лише після кліку, щоб сторінка
+    // не тягнула iframe YouTube для кожного кейсу.
+    root.addEventListener('click', (event) => {
+        const facade = event.target.closest('[data-case-video]');
+        if (!facade) return;
+
+        const iframe = document.createElement('iframe');
+        iframe.src = facade.dataset.caseVideo;
+        iframe.className = 'profile-cases__iframe';
+        iframe.setAttribute('allow', 'accelerometer; autoplay; encrypted-media; picture-in-picture');
+        iframe.setAttribute('allowfullscreen', '');
+        iframe.setAttribute('loading', 'lazy');
+        iframe.setAttribute('title', 'Відео кейсу');
+        facade.replaceWith(iframe);
     });
 
     // Прийшли за прямим посиланням на досьє (розсилка: хеш #profile-dossier

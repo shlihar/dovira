@@ -2153,6 +2153,14 @@
                                                                         <span>Посилання (необовʼязково)</span>
                                                                         <input type="url" value="{{ $caseItem['url'] ?? '' }}" maxlength="300" data-repeater-key="url" placeholder="https://...">
                                                                     </label>
+                                                                    <label class="pro-profile-json-fields__wide">
+                                                                        <span>Відео: YouTube або пряме посилання на файл</span>
+                                                                        <input type="url" value="{{ $caseItem['video'] ?? '' }}" maxlength="300" data-repeater-key="video" placeholder="https://youtu.be/... або https://site.com/video.mp4">
+                                                                    </label>
+                                                                    <label class="pro-profile-json-fields__wide">
+                                                                        <span>Фото: посилання на зображення</span>
+                                                                        <input type="url" value="{{ $caseItem['image'] ?? '' }}" maxlength="300" data-repeater-key="image" placeholder="https://site.com/photo.jpg">
+                                                                    </label>
                                                                     <input type="hidden" value="{{ $caseItem['review_id'] ?? '' }}" data-repeater-key="review_id">
                                                                     <input type="hidden" value="{{ $caseItem['review_date'] ?? '' }}" data-repeater-key="review_date">
                                                                 </div>
@@ -2196,6 +2204,14 @@
                                                                 <label class="pro-profile-json-fields__wide">
                                                                     <span>Посилання (необовʼязково)</span>
                                                                     <input type="url" value="" maxlength="300" data-repeater-key="url" placeholder="https://...">
+                                                                </label>
+                                                                <label class="pro-profile-json-fields__wide">
+                                                                    <span>Відео: YouTube або пряме посилання на файл</span>
+                                                                    <input type="url" value="" maxlength="300" data-repeater-key="video" placeholder="https://youtu.be/... або https://site.com/video.mp4">
+                                                                </label>
+                                                                <label class="pro-profile-json-fields__wide">
+                                                                    <span>Фото: посилання на зображення</span>
+                                                                    <input type="url" value="" maxlength="300" data-repeater-key="image" placeholder="https://site.com/photo.jpg">
                                                                 </label>
                                                             </div>
                                                         </article>

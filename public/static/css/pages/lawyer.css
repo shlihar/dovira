@@ -8158,3 +8158,63 @@ body.is-lead-popup-open {
   .profile-cases__item { padding: 12px; gap: 10px; }
   .profile-cases__title { font-size: 14.5px; }
 }
+
+/* Медіа в кейсі: фото, власне відео або превʼю YouTube (плеєр — після кліку). */
+.profile-cases__media {
+  margin: 10px 0 2px;
+}
+
+.profile-cases__photo,
+.profile-cases__video,
+.profile-cases__iframe,
+.profile-cases__video-facade {
+  display: block;
+  width: 100%;
+  max-width: 420px;
+  border: 0;
+  border-radius: 12px;
+  background: #0f172a center/cover no-repeat;
+}
+
+.profile-cases__photo {
+  height: auto;
+  object-fit: cover;
+}
+
+.profile-cases__video,
+.profile-cases__iframe,
+.profile-cases__video-facade {
+  aspect-ratio: 16 / 9;
+}
+
+/* Вертикальні ролики (Shorts/TikTok-формат) у власному плеєрі не розтягуємо. */
+.profile-cases__video {
+  max-height: 460px;
+  object-fit: contain;
+}
+
+.profile-cases__video-facade {
+  position: relative;
+  padding: 0;
+  cursor: pointer;
+}
+
+.profile-cases__play {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 52px;
+  height: 52px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.92);
+  color: #17376f;
+  font-size: 17px;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.28);
+}
+
+.profile-cases__video-facade:hover .profile-cases__play {
+  background: #fff;
+  color: #2f6ef9;
+}

@@ -66,6 +66,18 @@ final class ProfileCases
                 $case['url'] = $url;
             }
 
+            // Фото приймаємо і як зовнішнє посилання, і як шлях у сховищі
+            // (адмінка вантажить файл) — далі його розгортає MediaUrl.
+            $image = self::media($item['image'] ?? null);
+            if ($image !== null) {
+                $case['image'] = $image;
+            }
+
+            $video = self::url($item['video'] ?? null);
+            if ($video !== null) {
+                $case['video'] = $video;
+            }
+
             // Підтвердження: id реального опублікованого відгуку, з якого
             // складено кейс. Саме воно робить блок перевірюваним, а не
             // черговою саморекламою.
@@ -100,6 +112,24 @@ final class ProfileCases
         $text = trim(preg_replace('/\s+/u', ' ', strip_tags((string) $value)) ?? '');
 
         return $text === '' ? null : mb_substr($text, 0, $limit);
+    }
+
+    /** Фото: або абсолютний URL, або відносний шлях у сховищі сайту. */
+    private static function media(mixed $value): ?string
+    {
+        $path = trim((string) $value);
+        if ($path === '' || mb_strlen($path) > 300) {
+            return null;
+        }
+
+        if (preg_match('#^https?://#i', $path) === 1) {
+            return $path;
+        }
+
+        // Локальний шлях: лише безпечні символи, без виходу вгору по дереву.
+        return preg_match('#^[\w\-./]+$#u', $path) === 1 && ! str_contains($path, '..')
+            ? ltrim($path, '/')
+            : null;
     }
 
     private static function url(mixed $value): ?string
