@@ -10652,14 +10652,17 @@
 }
 
 /* ---- Вирівнювання карток «Віджет»: однакова висота, контент
-   розподілений вертикально (превʼю по центру, дії внизу) ---- */
+   розподілений вертикально (превʼю по центру, дії внизу).
+   ВАЖЛИВО: height:100% — лише для карток УСЕРЕДИНІ сітки. Повноширинний
+   «Блок відгуків» стоїть поза сіткою, і 100% від auto-контейнера
+   обрізав його висоту — вміст випливав під футер. ---- */
 .pro-widget-card__grid {
   align-items: stretch;
 }
-.pro-widget-card__option {
+.pro-widget-card__grid .pro-widget-card__option {
   height: 100%;
 }
-.pro-widget-card__preview {
+.pro-widget-card__grid .pro-widget-card__preview {
   flex: 1 1 auto;
   align-items: center;
 }
@@ -11871,6 +11874,149 @@
   font-weight: 700;
 }
 
+.page-pro-account .pro-billing-plan__note {
+  margin: 4px 0 0;
+  color: #42537a;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.page-pro-account .pro-upgrade-popup {
+  position: fixed;
+  inset: 0;
+  z-index: 320;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+}
+
+body.is-pro-upgrade-popup-open {
+  overflow: hidden;
+}
+
+.page-pro-account .pro-upgrade-popup[hidden] {
+  display: none;
+}
+
+.page-pro-account .pro-upgrade-popup__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.58);
+  backdrop-filter: blur(5px);
+}
+
+.page-pro-account .pro-upgrade-popup__dialog {
+  position: relative;
+  width: min(100%, 520px);
+  max-height: calc(100vh - 40px);
+  overflow: auto;
+  padding: 26px;
+  border: 1px solid #dfe7f6;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 24px 80px rgba(15, 23, 42, 0.28);
+}
+
+.page-pro-account .pro-upgrade-popup__close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid #e4ebf7;
+  border-radius: 10px;
+  background: #fff;
+  color: #667899;
+  cursor: pointer;
+}
+
+.page-pro-account .pro-upgrade-popup__close:hover {
+  color: #1f57e6;
+  border-color: #bfd0f4;
+}
+
+.page-pro-account .pro-upgrade-popup__badge {
+  display: inline-flex;
+  margin-bottom: 12px;
+  padding: 6px 11px;
+  border-radius: 999px;
+  background: #e8f7ef;
+  color: #12813f;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.page-pro-account .pro-upgrade-popup__dialog h2 {
+  margin: 0 36px 10px 0;
+  color: #17223b;
+  font-size: 24px;
+  line-height: 1.15;
+}
+
+.page-pro-account .pro-upgrade-popup__dialog p {
+  margin: 0 0 14px;
+  color: #415173;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.page-pro-account .pro-upgrade-popup__dialog ul {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 20px;
+  padding: 0;
+  list-style: none;
+}
+
+.page-pro-account .pro-upgrade-popup__dialog li {
+  position: relative;
+  padding-left: 22px;
+  color: #263653;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.page-pro-account .pro-upgrade-popup__dialog li::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  color: #12813f;
+  font-weight: 900;
+}
+
+.page-pro-account .pro-upgrade-popup__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+@media (max-width: 640px) {
+  .page-pro-account .pro-upgrade-popup {
+    align-items: end;
+    padding: 12px;
+  }
+
+  .page-pro-account .pro-upgrade-popup__dialog {
+    width: 100%;
+    padding: 22px 18px 18px;
+    border-radius: 18px 18px 14px 14px;
+  }
+
+  .page-pro-account .pro-upgrade-popup__dialog h2 {
+    font-size: 21px;
+  }
+
+  .page-pro-account .pro-upgrade-popup__actions,
+  .page-pro-account .pro-upgrade-popup__actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
 /* ─── Липкий бар збереження форми профілю ─── */
 .pro-profile-savebar {
   position: sticky;
@@ -12764,5 +12910,173 @@
 
   .page-pro-account .claim-support {
     padding: 12px;
+  }
+}
+
+/* Мобільний перемикач профілів (account-switcher) — на десктопі його роль
+   виконує сайдбар «Ваші профілі», тож тут ховаємо. */
+.pro-mobile-switcher {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .page-pro-account .pro-mobile-switcher {
+    display: block;
+    margin: 0 0 12px;
+  }
+
+  /* Прибираємо нативний трикутник <summary>. */
+  .pro-mobile-switcher > summary {
+    list-style: none;
+  }
+  .pro-mobile-switcher > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .pro-mobile-switcher__toggle {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 9px 12px;
+    background: #fff;
+    border: 1px solid #e4ebf7;
+    border-radius: 14px;
+    box-shadow: 0 1px 4px rgba(15, 23, 42, 0.05);
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .pro-mobile-switcher[open] .pro-mobile-switcher__toggle {
+    border-color: #cdddf7;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    box-shadow: none;
+  }
+
+  .pro-mobile-switcher__avatar {
+    flex: none;
+    width: 38px;
+    height: 38px;
+    border-radius: 11px;
+    display: grid;
+    place-items: center;
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: #fff;
+    font-size: 16px;
+    font-weight: 800;
+    line-height: 1;
+  }
+
+  .pro-mobile-switcher__meta {
+    flex: 1;
+    min-width: 0;
+    display: grid;
+    gap: 1px;
+  }
+  .pro-mobile-switcher__meta small {
+    font-size: 10.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #8593a8;
+  }
+  .pro-mobile-switcher__meta strong {
+    font-size: 14px;
+    font-weight: 700;
+    color: #14203a;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .pro-mobile-switcher__chevron {
+    flex: none;
+    color: #9aa7bd;
+    font-size: 12px;
+    transition: transform 0.2s ease;
+  }
+  .pro-mobile-switcher[open] .pro-mobile-switcher__chevron {
+    transform: rotate(180deg);
+  }
+
+  .pro-mobile-switcher__menu {
+    border: 1px solid #cdddf7;
+    border-top: 0;
+    border-radius: 0 0 14px 14px;
+    background: #fff;
+    overflow: hidden;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.10);
+  }
+
+  .pro-mobile-switcher__option {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    width: 100%;
+    padding: 10px 12px;
+    border: 0;
+    border-top: 1px solid #eef2f9;
+    background: #fff;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    text-decoration: none;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    -webkit-tap-highlight-color: transparent;
+    transition: background-color 0.15s ease;
+  }
+  .pro-mobile-switcher__option:first-child {
+    border-top: 0;
+  }
+  .pro-mobile-switcher__option:active {
+    background: #f4f8ff;
+  }
+  .pro-mobile-switcher__option.is-active {
+    background: #f2f7ff;
+  }
+
+  .pro-mobile-switcher__option .pro-mobile-switcher__avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    font-size: 14px;
+  }
+  /* Неактивні профілі — приглушений аватар, щоб активний виділявся. */
+  .pro-mobile-switcher__option:not(.is-active) .pro-mobile-switcher__avatar {
+    background: #eef2f9;
+    color: #64748b;
+  }
+
+  .pro-mobile-switcher__option-meta {
+    flex: 1;
+    min-width: 0;
+    display: grid;
+    gap: 1px;
+  }
+  .pro-mobile-switcher__option-meta strong {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: #14203a;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .pro-mobile-switcher__option-meta small {
+    font-size: 11px;
+    color: #7d8aa1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .pro-mobile-switcher__check {
+    flex: none;
+    color: #2563eb;
+    font-size: 13px;
+  }
+  .pro-mobile-switcher__option:disabled {
+    opacity: 0.6;
   }
 }

@@ -1,0 +1,152 @@
+[
+    {
+        "profile_id": 8485,
+        "full_name": "Персона-Люкс, стоматологія",
+        "city": "Львів",
+        "category": "Стоматології",
+        "profile_url": "https://mydovira.com/profiles/persona-liuks-klinika-esteticnoyi-medicini",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "вулиця Академіка Богомольця, 3",
+            "phone": "(067) 380 80 25, (067) 581 99 16, (067) 679 35 66",
+            "type": "company",
+            "rating_avg": 4.96,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 15905,
+        "full_name": "ValeoDent, стоматологія",
+        "city": "Харків",
+        "category": "Стоматології",
+        "profile_url": "https://mydovira.com/profiles/avtomobilist-avtoskola",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Енергетична, 9А",
+            "phone": "(099) 614 07 07, (068) 614 07 07, (093) 127 54 00, (093) 271 45 55",
+            "type": "company",
+            "rating_avg": 4.3,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 16892,
+        "full_name": "Стоматологічна клініка доктора Осадчого",
+        "city": "Київ",
+        "category": "Стоматології",
+        "profile_url": "https://mydovira.com/profiles/stomatologicna-klinika-doktora-osadcogo",
+        "company_url": "https://osadchyclinic.com.ua/ru",
+        "additional_identity_data": {
+            "address": "Січових Стрільців, 37-41",
+            "phone": "(098) 461 99 91, (093) 461 99 91, (0444) 84 24 88",
+            "type": "company",
+            "rating_avg": 5,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 16893,
+        "full_name": "Реферта, стоматологічна клініка",
+        "city": "Київ",
+        "category": "Стоматології",
+        "profile_url": "https://mydovira.com/profiles/referta-stomatologicna-klinika",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Садова, 135а",
+            "phone": "(097) 205 02 07, (044) 29 81 91 9",
+            "type": "company",
+            "rating_avg": 5,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 16907,
+        "full_name": "Dent Line, стоматологічна клініка",
+        "city": "Київ",
+        "category": "Стоматології",
+        "profile_url": "https://mydovira.com/profiles/dent-line-stomatologicna-klinika",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Волоська, 20",
+            "phone": "(044) 425 65 88, (044) 337 11 22, (073) 528 20 98, (068) 528 20 98",
+            "type": "company",
+            "rating_avg": 4.93,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 16921,
+        "full_name": "Стоматологічна клініка Лукашука",
+        "city": "Київ",
+        "category": "Стоматології",
+        "profile_url": "https://mydovira.com/profiles/stomatologicna-klinika-lukasuka",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Ломоносова, 58а",
+            "phone": "(098) 395 05 53, (095) 778 63 77, (044) 25 05 09 9",
+            "type": "company",
+            "rating_avg": 4.96,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 16937,
+        "full_name": "Dentify, стоматологічна клініка",
+        "city": "Київ",
+        "category": "Стоматології",
+        "profile_url": "https://mydovira.com/profiles/dentify-stomatologicna-klinika",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "вул. Князів Острозьких, 46/2",
+            "phone": "(097) 275 80 00, (095) 275 80 00, (093) 275 80 00",
+            "type": "company",
+            "rating_avg": 4.98,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 16953,
+        "full_name": "Multident, дитячий стоматолог",
+        "city": "Київ",
+        "category": "Стоматології",
+        "profile_url": "https://mydovira.com/profiles/multident-ditiacii-stomatolog",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Олеся Гончара, 26",
+            "phone": "(050) 086 63 12, (098) 946 36 61, (063) 843 31 24",
+            "type": "company",
+            "rating_avg": 4.92,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 17001,
+        "full_name": "Complex Dent, сімейна стоматологія",
+        "city": "Київ",
+        "category": "Стоматології",
+        "profile_url": "https://mydovira.com/profiles/complex-dent-simeina-stomatologiia",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Воскресенська, 12",
+            "phone": "(068) 504 06 59, (073) 504 06 59, (050) 925 29 61",
+            "type": "company",
+            "rating_avg": 4.96,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 17055,
+        "full_name": "Grand Dental, стоматологічний центр",
+        "city": "Київ",
+        "category": "Стоматології",
+        "profile_url": "https://mydovira.com/profiles/grand-dental-stomatologicnii-centr",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Братства тарасівців, 6",
+            "phone": "(067) 601 61 89, (066) 357 50 05",
+            "type": "company",
+            "rating_avg": 5,
+            "reviews_count": 100
+        }
+    }
+]

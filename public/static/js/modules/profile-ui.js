@@ -434,3 +434,13 @@ export const initAccountTabs = (root = document) => {
 };
 
 initAccountTabs(document);
+
+// --- Прайс послуг на публічному профілі: «Показати всі послуги (N)» ---
+document.addEventListener('click', (event) => {
+    const button = event.target.closest('[data-price-list-more]');
+    if (!button) return;
+    button.closest('.profile-price-list')
+        ?.querySelectorAll('[data-price-row-extra]')
+        .forEach((row) => { row.hidden = false; });
+    button.remove();
+});

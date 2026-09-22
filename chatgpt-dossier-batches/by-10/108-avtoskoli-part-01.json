@@ -1,0 +1,152 @@
+[
+    {
+        "profile_id": 1856,
+        "full_name": "Auto & Moto School, автошкола",
+        "city": "Київ",
+        "category": "Автошколи",
+        "profile_url": "https://mydovira.com/profiles/centr-spadshhini-iuridicna-kompaniia",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Оболонський проспект, 18",
+            "phone": "+38  097 232 32 37",
+            "type": "company",
+            "rating_avg": 4.84,
+            "reviews_count": 102
+        }
+    },
+    {
+        "profile_id": 15905,
+        "full_name": "ValeoDent, стоматологія",
+        "city": "Харків",
+        "category": "Автошколи",
+        "profile_url": "https://mydovira.com/profiles/avtomobilist-avtoskola",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Енергетична, 9А",
+            "phone": "(099) 614 07 07, (068) 614 07 07, (093) 127 54 00, (093) 271 45 55",
+            "type": "company",
+            "rating_avg": 4.3,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 16434,
+        "full_name": "Дукат, автошкола",
+        "city": "Рівне",
+        "category": "Автошколи",
+        "profile_url": "https://mydovira.com/profiles/dukat-avtoskola",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Соборна, 16",
+            "phone": "(068) 699 00 99, (095) 667 35 65",
+            "type": "company",
+            "rating_avg": 4.62,
+            "reviews_count": 92
+        }
+    },
+    {
+        "profile_id": 15894,
+        "full_name": "Корпорація автошкіл, автошкола",
+        "city": "Харків",
+        "category": "Автошколи",
+        "profile_url": "https://mydovira.com/profiles/korporaciia-avtoskil-avtoskola-2",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "проспект Героїв Харкова, 142",
+            "phone": "(068) 778 00 77, (073) 778 01 77",
+            "type": "company",
+            "rating_avg": 4.91,
+            "reviews_count": 91
+        }
+    },
+    {
+        "profile_id": 15944,
+        "full_name": "Еліта, автошкола",
+        "city": "Івано-Франківськ",
+        "category": "Автошколи",
+        "profile_url": "https://mydovira.com/profiles/elita-avtoskola",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Південний бульвар, 20",
+            "phone": "(073) 240 29 10",
+            "type": "company",
+            "rating_avg": 4.78,
+            "reviews_count": 91
+        }
+    },
+    {
+        "profile_id": 15947,
+        "full_name": "Вердант, автошкола",
+        "city": "Івано-Франківськ",
+        "category": "Автошколи",
+        "profile_url": "https://mydovira.com/profiles/verdant-avtoskola",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Юності, 33 офіс Микитинці",
+            "phone": "(067) 340 40 59, (099) 077 41 61, (034) 25 06 24 0",
+            "type": "company",
+            "rating_avg": 4.91,
+            "reviews_count": 91
+        }
+    },
+    {
+        "profile_id": 16336,
+        "full_name": "Turbo-drive, автошкола",
+        "city": "Одеса",
+        "category": "Автошколи",
+        "profile_url": "https://mydovira.com/profiles/turbo-drive-avtoskola",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Марсельська, 33 / 3",
+            "phone": "(063) 959 07 72",
+            "type": "company",
+            "rating_avg": 4.91,
+            "reviews_count": 91
+        }
+    },
+    {
+        "profile_id": 16337,
+        "full_name": "Nascar, автошкола",
+        "city": "Одеса",
+        "category": "Автошколи",
+        "profile_url": "https://mydovira.com/profiles/nascar-avtoskola",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Академіка Корольова, 90",
+            "phone": "(073) 048 03 03, (073) 048 01 01, (073) 048 02 02, (073) 048 04 04",
+            "type": "company",
+            "rating_avg": 4.96,
+            "reviews_count": 91
+        }
+    },
+    {
+        "profile_id": 16449,
+        "full_name": "Intercom, автошкола",
+        "city": "Суми",
+        "category": "Автошколи",
+        "profile_url": "https://mydovira.com/profiles/intercom-avtoskola",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Новомістенська, 31",
+            "phone": "(095) 247 49 77, (099) 600 77 33",
+            "type": "company",
+            "rating_avg": 4.62,
+            "reviews_count": 91
+        }
+    },
+    {
+        "profile_id": 16463,
+        "full_name": "МегаДрайв, автошкола",
+        "city": "Тернопіль",
+        "category": "Автошколи",
+        "profile_url": "https://mydovira.com/profiles/megadraiv-avtoskola",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Крушельницької, 18",
+            "phone": "(067) 698 90 90, (063) 335 90 90",
+            "type": "company",
+            "rating_avg": 4.99,
+            "reviews_count": 91
+        }
+    }
+]

@@ -1,0 +1,152 @@
+[
+    {
+        "profile_id": 7998,
+        "full_name": "Медхауз, медичний центр",
+        "city": "Івано-Франківськ",
+        "category": "Косметолог",
+        "profile_url": "https://mydovira.com/profiles/medxauz-medicnii-centr",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Грушевського, 22А",
+            "phone": "(068) 442 21 03, (050) 442 21 03",
+            "type": "company",
+            "rating_avg": 4.7,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 8002,
+        "full_name": "Vise, медична клініка",
+        "city": "Івано-Франківськ",
+        "category": "Косметолог",
+        "profile_url": "https://mydovira.com/profiles/vise-medicna-klinika",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Сорохтея, 14А",
+            "phone": "(066) 563 54 30, (067) 563 54 30",
+            "type": "company",
+            "rating_avg": 4.6,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 8099,
+        "full_name": "О'Доктор, центр стоматології та сімейної медицини",
+        "city": "Київ",
+        "category": "Косметолог",
+        "profile_url": "https://mydovira.com/profiles/odoktor-centr-stomatologiyi-ta-simeinoyi-medicini",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Новомостицька, 15",
+            "phone": "(073) 920 30 92, (098) 920 30 92, (095) 920 30 92",
+            "type": "company",
+            "rating_avg": 4.97,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 8106,
+        "full_name": "Calm, багатопрофільний медичний центр",
+        "city": "Київ",
+        "category": "Косметолог",
+        "profile_url": "https://mydovira.com/profiles/calm-bagatoprofilnii-medicnii-centr",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Ростиславська, 11Б",
+            "phone": "(067) 148 62 10, (063) 434 79 95",
+            "type": "company",
+            "rating_avg": 4.86,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 8109,
+        "full_name": "MedNice, медичний центр",
+        "city": "Київ",
+        "category": "Косметолог",
+        "profile_url": "https://mydovira.com/profiles/mednice-medicnii-centr",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "проспект Правди, 19а",
+            "phone": "(067) 759 49 19, (044) 46 09 99 9",
+            "type": "company",
+            "rating_avg": 4.95,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 8112,
+        "full_name": "R+Medical Network, медичний центр",
+        "city": "Київ",
+        "category": "Косметолог",
+        "profile_url": "https://mydovira.com/profiles/rmedical-network-medicnii-centr",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Касіяна, 2/1",
+            "phone": "(0800) 30 71 03",
+            "type": "company",
+            "rating_avg": 4.64,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 8115,
+        "full_name": "Smart klinika, медичний центр",
+        "city": "Київ",
+        "category": "Косметолог",
+        "profile_url": "https://mydovira.com/profiles/smart-klinika-medicnii-centr",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Григоренка, 20",
+            "phone": "(097) 600 03 03",
+            "type": "company",
+            "rating_avg": 4.37,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 8120,
+        "full_name": "Медсіті, медичний центр",
+        "city": "Київ",
+        "category": "Косметолог",
+        "profile_url": "https://mydovira.com/profiles/medsiti-medicnii-centr",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Павлівська, 26 / 41",
+            "phone": "(044) 35 85 50 0",
+            "type": "company",
+            "rating_avg": 4.9,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 8139,
+        "full_name": "Smart Medical Center, медичний центр",
+        "city": "Київ",
+        "category": "Косметолог",
+        "profile_url": "https://mydovira.com/profiles/smart-medical-center-medicnii-centr",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Левка Лукьяненка, 19",
+            "phone": "(067) 127 03 03, (044) 49 02 50 3",
+            "type": "company",
+            "rating_avg": 4.19,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 8146,
+        "full_name": "Меділенд, клініка лазерної та ендоскопічної медицини",
+        "city": "Київ",
+        "category": "Косметолог",
+        "profile_url": "https://mydovira.com/profiles/medilend-klinika-lazernoyi-ta-endoskopicnoyi-medicini",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Маршала Рибалка, 11-Б",
+            "phone": "(095) 365 00 04, (044) 35 55 53 1",
+            "type": "company",
+            "rating_avg": 4.67,
+            "reviews_count": 100
+        }
+    }
+]

@@ -65,7 +65,7 @@
                             'name' => 'Я представляю компанію. Як керувати своїм профілем?',
                             'acceptedAnswer' => [
                                 '@type' => 'Answer',
-                                'text' => 'Зареєструйтесь і підтвердьте права на профіль — це безкоштовно й закріплює сторінку за вами. Керування профілем відкриває PRO-підписка: оновлення контактів і послуг, офіційні відповіді на відгуки, контакти клієнтів із заявок, аналітика та пріоритет у каталозі.',
+                                'text' => 'Профіль може вже бути публічним на DOVIRA й знаходитися в Google. Оформіть PRO-підписку, щоб керувати сторінкою: оновлювати контакти й послуги, відповідати на відгуки, бачити контакти клієнтів із заявок, аналітику та отримати пріоритет у каталозі. Стартова ціна 1 999 грн за 6 місяців, далі — 3 999 грн. За розміщення бейджа DOVIRA на сайті або в соцмережах діє знижка 20%. Перед оплатою ми безкоштовно перевіримо права на профіль.',
                             ],
                         ],
                     ],
@@ -81,8 +81,6 @@
     $stats = $stats ?? [];
     $statReviews = (int) ($stats['reviews'] ?? 0);
     $statProfiles = (int) ($stats['profiles'] ?? 0);
-    // Малі числа PRO працюють як антиреклама — показуємо лише від 10.
-    $statPro = (int) ($stats['pro_accounts'] ?? 0) >= 10 ? (int) $stats['pro_accounts'] : 0;
 @endphp
 
 <section class="platform-hero" id="top" aria-label="Про DOVIRA">
@@ -540,11 +538,6 @@
             <div class="cta-hero-callout__card">
                 <div class="cta-hero-callout__orb" aria-hidden="true"></div>
 
-                <div class="cta-hero-callout__mockup" aria-hidden="true">
-                    <div class="cta-hero-callout__phone-shadow"></div>
-                    <img class="cta-hero-callout__phone-img" src="{{ asset('static/assets/dovira-phone-transparent.webp') }}" alt="" loading="lazy">
-                </div>
-
                 <div class="cta-hero-callout__content">
                     <p class="cta-hero-callout__eyebrow">Поділіться досвідом</p>
                     <h2 class="cta-hero-callout__title">
@@ -571,8 +564,11 @@
                     <div class="badge pro-highlight__badge">Для компаній і спеціалістів</div>
                     <h2 class="h2 pro-highlight__title">PRO — інструменти управління репутацією</h2>
                     <p class="pro-highlight__text">
-                        Якщо на DOVIRA пишуть про ваш бізнес — керуйте цим: підтверджуйте профіль, відповідайте на відгуки
-                        та перетворюйте перегляди сторінки на звернення клієнтів.
+                        Якщо на DOVIRA пишуть про ваш бізнес — керуйте цим: оформіть підписку, відповідайте на відгуки
+                        та перетворюйте перегляди сторінки на звернення клієнтів. Перед оплатою ми безкоштовно перевіримо права на профіль.
+                    </p>
+                    <p class="pro-highlight__text">
+                        {{ \App\Support\ProPricing::launchCohortPriceLine() }} {{ \App\Support\ProPricing::launchCohortLockLine() }} {{ \App\Support\ProPricing::launchCohortCounterLine() }} За бейдж DOVIRA на сайті або в соцмережах діє знижка 20%.
                     </p>
                 </div>
 
@@ -676,8 +672,11 @@
                     <summary class="faq__question">Я представляю компанію. Як керувати своїм профілем?</summary>
                     <div class="faq__panel">
                         <div class="faq__answer">
-                            Зареєструйтесь і підтвердьте права на профіль — це безкоштовно. Після підтвердження ви зможете оновлювати
-                            контакти й послуги, відповідати на відгуки, а PRO додає пріоритет у каталозі та аналітику звернень.
+                            Профіль може вже бути публічним на DOVIRA й знаходитися в Google. Оформіть PRO-підписку, щоб оновлювати
+                            контакти й послуги, відповідати на відгуки, бачити заявки, аналітику та отримати пріоритет у каталозі.
+                            {{ \App\Support\ProPricing::launchCohortPriceLine() }}
+                            {{ \App\Support\ProPricing::launchCohortLockLine() }} {{ \App\Support\ProPricing::launchCohortCounterLine() }} За розміщення бейджа DOVIRA на сайті або в соцмережах діє знижка 20%.
+                            Перед оплатою ми безкоштовно перевіримо права на профіль.
                         </div>
                     </div>
                 </details>
@@ -694,8 +693,8 @@
 
     @php
         $platformContactEmail = config('site_contacts.email', 'info@mydovira.com');
-        $platformContactPhone = config('site_contacts.phone', '+380937269578');
-        $platformContactPhoneHref = '+' . preg_replace('/\D+/', '', $platformContactPhone);
+        $platformContactPhone = trim((string) config('site_contacts.phone'));
+        $platformContactPhoneHref = $platformContactPhone !== '' ? '+' . preg_replace('/\D+/', '', $platformContactPhone) : null;
         $platformSupportTelegram = ltrim((string) config('site_contacts.telegram_username', 'dovira_support'), '@');
         $platformSupportUrl = 'https://t.me/' . $platformSupportTelegram;
     @endphp
@@ -724,6 +723,7 @@
                                 <span>{{ $platformContactEmail }}</span>
                             </span>
                         </a>
+                        @if ($platformContactPhoneHref)
                         <a class="profile-contact-action" href="tel:{{ $platformContactPhoneHref }}">
                             <span class="profile-contact-action__icon"><i class="fa-solid fa-phone" aria-hidden="true"></i></span>
                             <span class="profile-contact-action__text">
@@ -731,6 +731,7 @@
                                 <span>{{ $platformContactPhone }}</span>
                             </span>
                         </a>
+                        @endif
                     </div>
                 </div>
             </div>

@@ -1,0 +1,152 @@
+[
+    {
+        "profile_id": 1052,
+        "full_name": "Eurokonus, інтернет-магазин сантехніки",
+        "city": "Київ",
+        "category": "Будівельні магазини",
+        "profile_url": "https://mydovira.com/profiles/advokatske-biuro-avgustinov-om",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Володимирська, 42а, офіс 28-б",
+            "phone": "(097) 888 50 77, (0800) 334 02 1, (050) 999 50 77",
+            "type": "company",
+            "rating_avg": 4.76,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 1053,
+        "full_name": "Астек, двері міжкімнатні",
+        "city": "Київ",
+        "category": "Будівельні магазини",
+        "profile_url": "https://mydovira.com/profiles/advokatske-i-rieltorske-objednannia-ukrayini",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Срібнокільська, 22",
+            "phone": "(067) 537 38 53, 4438",
+            "type": "company",
+            "rating_avg": 4.81,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 7159,
+        "full_name": "Сатурн, магазин побутової техніки",
+        "city": "Рівне",
+        "category": "Будівельні магазини",
+        "profile_url": "https://mydovira.com/profiles/pantera-perukarnia",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Міцкевича, 34",
+            "phone": "(037) 254 58 03, (037) 224 76 00, (036) 22 59 10 1",
+            "type": "company",
+            "rating_avg": 4.14,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 48759,
+        "full_name": "Сезон Плюс, магазин дверей",
+        "city": "Рівне",
+        "category": "Будівельні магазини",
+        "profile_url": "https://mydovira.com/profiles/sezon-plius-magazin-dverei",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Небесної Сотні, 24",
+            "phone": "(098) 332 97 60",
+            "type": "company",
+            "rating_avg": 4.85,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 48971,
+        "full_name": "Маяк,івельний маркет",
+        "city": "Рівне",
+        "category": "Будівельні магазини",
+        "profile_url": "https://mydovira.com/profiles/maiakivelnii-market",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Київська, 98",
+            "phone": "(097) 120 57 24, (098) 052 59 97, (036) 228 15 81, (068) 000 11 98",
+            "type": "company",
+            "rating_avg": 4.12,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 48979,
+        "full_name": "Сонцезахист та Декор вікна",
+        "city": "Тернопіль",
+        "category": "Будівельні магазини",
+        "profile_url": "https://mydovira.com/profiles/rolletto-magazin-stor-i-zaliuzi",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Митрополита Шептицького, 23b",
+            "phone": "(067) 909 71 58",
+            "type": "company",
+            "rating_avg": 5,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 49277,
+        "full_name": "Епіцентр, будівельний гіпермаркет",
+        "city": "Рівне",
+        "category": "Будівельні магазини",
+        "profile_url": "https://mydovira.com/profiles/epicentr-budivelnii-gipermarket",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Кулика і Гудачека Макарова, 17",
+            "phone": "(0362) 46 02 70, (044) 232 90 27, (0362) 46 02 71",
+            "type": "company",
+            "rating_avg": 3.61,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 49650,
+        "full_name": "Маркет Двері, мережа міжкімнатних та вхідних дверей",
+        "city": "Хмельницький",
+        "category": "Будівельні магазини",
+        "profile_url": "https://mydovira.com/profiles/market-dveri-mereza-mizkimnatnix-ta-vxidnix-dverei",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Панаса Мирного, 16/1",
+            "phone": "(067) 130 72 47",
+            "type": "company",
+            "rating_avg": 4.83,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 49840,
+        "full_name": "Хатка, супермаркет будівельних матеріалів",
+        "city": "Рівне",
+        "category": "Будівельні магазини",
+        "profile_url": "https://mydovira.com/profiles/xatka-supermarket-budivelnix-materialiv",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Біла, 16",
+            "phone": "(0362) 64 07 80",
+            "type": "company",
+            "rating_avg": 3.09,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 49871,
+        "full_name": "Олді, будівельний супермаркет",
+        "city": "Житомир",
+        "category": "Будівельні магазини",
+        "profile_url": "https://mydovira.com/profiles/oldi-budivelnii-supermarket",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Вітрука, 9",
+            "phone": "(0412) 55 65 70",
+            "type": "company",
+            "rating_avg": 3.15,
+            "reviews_count": 100
+        }
+    }
+]

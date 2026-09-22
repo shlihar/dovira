@@ -1,0 +1,32 @@
+{
+    "counts": {
+        "visible": 34258,
+        "full_policy_pass": 3717,
+        "sitemap_policy_pass": 3717
+    },
+    "policy_disagreements": [],
+    "native_reviews_by_status": [
+        {
+            "status": "hidden",
+            "count": 3
+        },
+        {
+            "status": "pending",
+            "count": 1
+        },
+        {
+            "status": "published",
+            "count": 15
+        }
+    ],
+    "claims_by_status": [
+        {
+            "status": "approved",
+            "count": 33
+        },
+        {
+            "status": "pending",
+            "count": 1
+        }
+    ]
+}

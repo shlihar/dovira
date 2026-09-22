@@ -78,32 +78,23 @@ List available checkpoints:
 ./scripts/git-rollback.sh
 ```
 
-## Deploy to Render (Client Demo)
+## Deploy (Hostinger VPS)
 
-This repo now includes:
-- [render.yaml](/Users/andriishlikhar/Desktop/project/dovira/render.yaml)
-- [scripts/render-build.sh](/Users/andriishlikhar/Desktop/project/dovira/scripts/render-build.sh)
-
-Steps:
-
-1. Push this branch to GitHub.
-2. In Render: `New` -> `Blueprint`.
-3. Select the repo and deploy.
-4. In Render service settings, update `APP_URL` to your real Render URL.
-
-Notes:
-- Config is set for demo hosting with SQLite file DB.
-- Sessions/cache use files (`SESSION_DRIVER=file`, `CACHE_STORE=file`) so no separate DB service is required.
-
-## Deploy to Render (Production)
-
-Use the production blueprint:
-
-- [render.production.yaml](/Users/andriishlikhar/Desktop/project/dovira/render.production.yaml)
-
-This setup uses PostgreSQL + Redis + dedicated queue worker + scheduler worker.  
-Run once after first deploy:
+Deployment runs on the VPS itself via [scripts/deploy-hostinger-vps.sh](/Users/andriishlikhar/Desktop/project/dovira/scripts/deploy-hostinger-vps.sh).
+Code is pulled from GitHub; `storage/`, `.env` and `bootstrap/cache` are symlinked to
+a persistent `SHARED_DIR` outside the release so they survive every deploy.
 
 ```bash
-php artisan migrate --force
+SHARED_DIR=/path/to/shared ./scripts/deploy-hostinger-vps.sh
+```
+
+### Media (profile logos, galleries)
+
+Uploaded/imported media lives under `storage/app/public/` (e.g. `catalog-media/`), which is
+**gitignored** and therefore never travels with the code deploy. After importing profiles
+locally, sync the media to the VPS persistent storage separately, for example:
+
+```bash
+rsync -avz --progress storage/app/public/catalog-media/ \
+    user@vps:$SHARED_DIR/storage/app/public/catalog-media/
 ```

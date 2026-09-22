@@ -12,6 +12,7 @@ use App\Models\Top20ImportBatch;
 use App\Models\Top20ImportItem;
 use App\Support\CategoryHierarchy;
 use App\Support\GeneratedProfileLogo;
+use App\Support\ImportedProfileIdentity;
 use App\Support\MediaUrl;
 use App\Support\RegionCityDirectory;
 use Illuminate\Database\QueryException;
@@ -157,6 +158,152 @@ class Top20BulkImportService
     }
 
     /**
+     * @param  Collection<int, Profile>  $profiles
+     * @return array<int, array{
+     *   status:string,
+     *   changed:bool,
+     *   profile_id:int,
+     *   profile_name:string,
+     *   previous_logo_url:?string,
+     *   logo_url:?string,
+     *   resolved_url:?string,
+     *   source:?string,
+     *   top20_url:?string,
+     *   checked_candidates:int
+     * }>
+     */
+    public function repairGeneratedProfileLogosFromTop20Batch(Collection $profiles, bool $persist = true, bool $downloadMedia = true): array
+    {
+        $profiles = $profiles
+            ->filter(fn (Profile $profile): bool => GeneratedProfileLogo::isGenerated((string) ($profile->logo_url ?? '')))
+            ->values();
+
+        if ($profiles->isEmpty()) {
+            return [];
+        }
+
+        $chunkSize = max(1, (int) config('top20_bulk_import.logo_repair_fetch_chunk', 10));
+        if ($profiles->count() > $chunkSize) {
+            return $profiles
+                ->chunk($chunkSize)
+                ->flatMap(fn (Collection $chunk): array => $this->repairGeneratedProfileLogosFromTop20Batch($chunk, $persist, $downloadMedia))
+                ->values()
+                ->all();
+        }
+
+        $top20UrlsByProfileId = [];
+        $urls = [];
+        foreach ($profiles as $profile) {
+            $top20Url = $this->resolveProfileTop20Url($profile);
+            $top20UrlsByProfileId[(int) $profile->id] = $top20Url;
+            if ($top20Url !== null) {
+                $urls[] = $top20Url;
+            }
+        }
+
+        $htmlByUrl = $this->fetchTop20HtmlBatch($urls, $this->profileFetchConcurrency());
+        $results = [];
+
+        foreach ($profiles as $profile) {
+            $profileId = (int) $profile->id;
+            $profileName = trim((string) ($profile->name ?? 'profile'));
+            $previousLogoUrl = $this->nullIfBlank((string) ($profile->logo_url ?? ''));
+            $top20Url = $top20UrlsByProfileId[$profileId] ?? null;
+
+            if ($top20Url === null || ! isset($htmlByUrl[$top20Url])) {
+                $results[] = [
+                    'status' => 'missing',
+                    'changed' => false,
+                    'profile_id' => $profileId,
+                    'profile_name' => $profileName,
+                    'previous_logo_url' => $previousLogoUrl,
+                    'logo_url' => $previousLogoUrl,
+                    'resolved_url' => null,
+                    'source' => null,
+                    'top20_url' => $top20Url,
+                    'checked_candidates' => 0,
+                ];
+
+                continue;
+            }
+
+            $details = $this->parseCompanyLogoDetailsFromHtml($top20Url, $htmlByUrl[$top20Url]);
+            $candidateName = trim((string) ($details['name'] ?? ''));
+            if ($candidateName !== '' && ! $this->isLikelyMatchingProfileName($profileName, $candidateName)) {
+                $details = [];
+            }
+
+            $checkedCandidates = 0;
+            $repaired = null;
+
+            foreach ([
+                $details['avatar_image'] ?? null,
+                $details['image'] ?? null,
+                $details['additional_image'] ?? null,
+            ] as $candidateUrl) {
+                $candidateUrl = trim((string) $candidateUrl);
+                if ($candidateUrl === '') {
+                    continue;
+                }
+
+                $checkedCandidates++;
+                $localized = $downloadMedia
+                    ? $this->localizeImportedImageReference($candidateUrl, 'profiles', $profileName)
+                    : $this->normalizeAbsoluteUrl($candidateUrl, $top20Url);
+                if (! filled($localized)) {
+                    continue;
+                }
+
+                $resolvedUrl = MediaUrl::publicImageUrl($localized);
+                if ($resolvedUrl === null) {
+                    continue;
+                }
+
+                if ($persist) {
+                    $profile->logo_url = $localized;
+
+                    if ($this->normalizeStoredMediaPath((string) ($profile->og_image_url ?? '')) === null
+                        && $this->normalizeStoredMediaPath((string) $localized) !== null) {
+                        $profile->og_image_url = $localized;
+                    }
+
+                    $profile->saveQuietly();
+                }
+
+                $repaired = [
+                    'status' => 'repaired',
+                    'changed' => true,
+                    'profile_id' => $profileId,
+                    'profile_name' => $profileName,
+                    'previous_logo_url' => $previousLogoUrl,
+                    'logo_url' => $localized,
+                    'resolved_url' => $resolvedUrl,
+                    'source' => $downloadMedia ? 'top20_fetched_detail' : 'top20_fetched_detail_remote',
+                    'top20_url' => $top20Url,
+                    'checked_candidates' => $checkedCandidates,
+                ];
+
+                break;
+            }
+
+            $results[] = $repaired ?? [
+                'status' => 'missing',
+                'changed' => false,
+                'profile_id' => $profileId,
+                'profile_name' => $profileName,
+                'previous_logo_url' => $previousLogoUrl,
+                'logo_url' => $previousLogoUrl,
+                'resolved_url' => null,
+                'source' => null,
+                'top20_url' => $top20Url,
+                'checked_candidates' => $checkedCandidates,
+            ];
+        }
+
+        return $results;
+    }
+
+    /**
      * @return array{profile_updated:bool,reviews_updated:int}
      */
     public function localizePersistedProfileMedia(Profile $profile, bool $includeReviewAvatars = true): array
@@ -275,6 +422,7 @@ class Top20BulkImportService
         ];
 
         $details = $this->fetchCompanyDetails($top20Url);
+        $this->assertImportIdentity($profile, (string) ($details['name'] ?? ''), (string) ($details['city'] ?? ''));
         if (($details['name'] ?? '') === '' && blank($profile->name)) {
             throw new \RuntimeException('Top20 не повернув дані профілю для оновлення.');
         }
@@ -321,7 +469,6 @@ class Top20BulkImportService
             $this->syncTop20ProfileDataSource($profile, $top20Url, $card, $details);
 
             $reviewStats = $this->syncExternalReviews($profile, $details);
-            $this->normalizeImportedReviewSources($profile);
             $reviewStats['deleted'] = $this->pruneImportedExternalReviews($profile, (int) config('top20_bulk_import.max_reviews_per_profile', 100));
             $hiddenAiDrafts = $this->hideConflictingPublishedAiDrafts($profile);
             app(ProfileReviewStatsService::class)->recalculateForProfileId((int) $profile->id);
@@ -353,13 +500,15 @@ class Top20BulkImportService
         }
 
         $details = $this->fetchCompanyDetails($top20Url);
-        $reviewStats = $this->syncExternalReviews($profile, $details);
-        $this->normalizeImportedReviewSources($profile);
-        $reviewStats['deleted'] = $this->pruneImportedExternalReviews($profile, (int) config('top20_bulk_import.max_reviews_per_profile', 100));
-        $this->syncTop20ProfileDataSource($profile, $top20Url, [], $details);
-        app(ProfileReviewStatsService::class)->recalculateForProfileId((int) $profile->id);
+        $this->assertImportIdentity($profile, (string) ($details['name'] ?? ''), (string) ($details['city'] ?? ''));
+        return DB::transaction(function () use ($profile, $top20Url, $details): array {
+            $this->syncTop20ProfileDataSource($profile, $top20Url, [], $details);
+            $reviewStats = $this->syncExternalReviews($profile, $details);
+            $reviewStats['deleted'] = $this->pruneImportedExternalReviews($profile, (int) config('top20_bulk_import.max_reviews_per_profile', 100));
+            app(ProfileReviewStatsService::class)->recalculateForProfileId((int) $profile->id);
 
-        return $reviewStats;
+            return $reviewStats;
+        });
     }
 
     /**
@@ -651,7 +800,7 @@ class Top20BulkImportService
 
     private function profileFetchConcurrency(): int
     {
-        return max(1, min(8, (int) config('top20_bulk_import.profile_fetch_concurrency', 4)));
+        return max(1, min(20, (int) config('top20_bulk_import.profile_fetch_concurrency', 4)));
     }
 
     private function reviewFetchConcurrency(): int
@@ -759,7 +908,6 @@ class Top20BulkImportService
             $this->syncTop20ProfileDataSource($profile, $top20Url, $card, $details);
 
             $reviewStats = $this->syncExternalReviews($profile, $details);
-            $this->normalizeImportedReviewSources($profile);
             $reviewStats['deleted'] = $this->pruneImportedExternalReviews($profile, (int) config('top20_bulk_import.max_reviews_per_profile', 100));
             $hiddenAiDrafts = $this->hideConflictingPublishedAiDrafts($profile);
             app(ProfileReviewStatsService::class)->recalculateForProfileId((int) $profile->id);
@@ -789,6 +937,19 @@ class Top20BulkImportService
         $shortDescription = trim((string) ($details['short_description'] ?? ''));
         if ($shortDescription === '') {
             $shortDescription = Str::limit($descriptionPlain, 280, '...');
+        }
+
+        // Захист від контамінації брендом конкурента: описи з top20.ua містять
+        // маркер «ТОП 20» / «top20». Не зберігаємо їх — сайт згенерує власний
+        // чистий опис (ProfileSeo). Без цього кожен імпорт тягнув би чужий бренд
+        // у наші meta-описи та видачу.
+        $top20Marker = '/(топ|top)[\s\-]?20/iu';
+        if ($description !== '' && preg_match($top20Marker, $descriptionPlain) === 1) {
+            $description = '';
+            $descriptionPlain = '';
+        }
+        if ($shortDescription !== '' && preg_match($top20Marker, $shortDescription) === 1) {
+            $shortDescription = '';
         }
         $phones = array_values(array_filter(array_map('trim', (array) ($details['phones'] ?? []))));
         $addresses = array_values(array_filter(array_map('trim', (array) ($details['addresses'] ?? []))));
@@ -894,7 +1055,7 @@ class Top20BulkImportService
     {
         foreach ($payload as $field => $value) {
             if ($field === 'name') {
-                if ($value !== null && trim((string) $value) !== '') {
+                if ($value !== null && trim((string) $value) !== '' && ($overwrite || blank($profile->name))) {
                     $profile->{$field} = $value;
                 }
                 continue;
@@ -941,9 +1102,11 @@ class Top20BulkImportService
             return;
         }
 
-        $fallbackPath = GeneratedProfileLogo::ensure($profile);
-        if ($logo !== $fallbackPath) {
-            $profile->logo_url = $fallbackPath;
+        // Fallback-лого більше не матеріалізуємо файлом (плодило десятки тисяч
+        // SVG → вичерпувались іноди хостингу). Немає реального лого — лишаємо
+        // порожнім: показ забезпечує CSS-заглушка (градієнт + ініціали).
+        if ($logo !== '') {
+            $profile->logo_url = null;
             $profile->saveQuietly();
         }
     }
@@ -989,6 +1152,7 @@ class Top20BulkImportService
                 (string) ($review['_rid'] ?? '')
             );
 
+            // Keep the historical hash namespace for idempotency; attribution below is Top20.
             $identity = [
                 'url' => $sourceUrl,
                 'source_type' => 'google',
@@ -1046,6 +1210,11 @@ class Top20BulkImportService
                     ->first();
 
                 if (! $existing) {
+                    // Дату у звіряння НЕ беремо: Google віддає відносну
+                    // («8 місяців тому»), і кожен імпорт перетворює її на іншу
+                    // абсолютну — через це той самий відгук лягав повторно
+                    // (6 999 дублів станом на 14.09.2026). Автор + текст +
+                    // рейтинг на одному профілі однозначно ідентифікують відгук.
                     $existing = ProfileReview::query()
                         ->where('profile_id', $profile->id)
                         ->where('rating', $rating)
@@ -1054,11 +1223,6 @@ class Top20BulkImportService
                             $query->where('external_review_author', $author)
                                 ->orWhere('author_name', $author);
                         })
-                        ->when(
-                            $publishedAt,
-                            fn ($query) => $query->where('external_review_date', $publishedAt),
-                            fn ($query) => $query->whereNull('external_review_date')
-                        )
                         ->where(function ($query): void {
                             $query->where('verification_type', 'external_google_import')
                                 ->orWhere('verification_type', 'external_top20_import')
@@ -1085,15 +1249,15 @@ class Top20BulkImportService
                 'title' => null,
                 'body' => $body,
                 'status' => 'published',
-                'verification_type' => 'external_google_import',
+                'verification_type' => 'external_top20_import',
                 'published_at' => $publishedAt ? Carbon::parse($publishedAt) : now(),
-                'external_source_url' => null,
+                'external_source_url' => $sourceUrl,
                 'external_review_hash' => $hash,
-                'external_source_type' => 'google',
+                'external_source_type' => 'top20',
                 'external_review_author' => $author,
                 'external_review_author_avatar_url' => $authorAvatarUrl,
                 'external_review_date' => $publishedAt,
-                'moderation_note' => 'Імпортовано як зовнішній відгук Google.',
+                'moderation_note' => 'Імпортовано із зовнішнього каталогу Top20; URL джерела збережено.',
             ];
 
             if ($existing) {
@@ -1151,24 +1315,6 @@ class Top20BulkImportService
         }
 
         return $hidden;
-    }
-
-    private function normalizeImportedReviewSources(Profile $profile): void
-    {
-        ProfileReview::query()
-            ->where('profile_id', $profile->id)
-            ->where(function ($query): void {
-                $query->where('verification_type', 'external_google_import')
-                    ->orWhere('verification_type', 'external_top20_import')
-                    ->orWhere('external_source_type', 'top20');
-            })
-            ->update([
-                'verification_type' => 'external_google_import',
-                'external_source_type' => 'google',
-                'external_source_url' => null,
-                'moderation_note' => 'Імпортовано як зовнішній відгук Google.',
-                'updated_at' => now(),
-            ]);
     }
 
     private function pruneImportedExternalReviews(Profile $profile, int $keepLimit): int
@@ -1498,7 +1644,7 @@ class Top20BulkImportService
 
         if ($fetchTop20 && filled($top20Url)) {
             try {
-                $details = $this->fetchCompanyDetails((string) $top20Url);
+                $details = $this->fetchCompanyLogoDetails((string) $top20Url);
                 $candidateName = trim((string) ($details['name'] ?? ''));
                 if ($candidateName !== '' && ! $this->isLikelyMatchingProfileName($profileName, $candidateName)) {
                     $details = [];
@@ -1544,6 +1690,44 @@ class Top20BulkImportService
             ->unique(fn (array $item) => (string) $item['url'])
             ->values()
             ->all();
+    }
+
+    /**
+     * Lightweight detail fetch used by logo repair. It skips review widget
+     * requests because logo repair only needs the main profile images.
+     *
+     * @return array{name:string,avatar_image:string,image:string,additional_image:string}
+     */
+    private function fetchCompanyLogoDetails(string $top20Url): array
+    {
+        $html = $this->fetchHtml($top20Url);
+        if ($html === null) {
+            return [
+                'name' => '',
+                'avatar_image' => '',
+                'image' => '',
+                'additional_image' => '',
+            ];
+        }
+
+        return $this->parseCompanyLogoDetailsFromHtml($top20Url, $html);
+    }
+
+    /**
+     * @return array{name:string,avatar_image:string,image:string,additional_image:string}
+     */
+    private function parseCompanyLogoDetailsFromHtml(string $top20Url, string $html): array
+    {
+        $meta = $this->parseTop20Microdata($html);
+        $contactData = $this->extractTop20ContactData($html);
+        $visibleProfileData = $this->extractTop20VisibleProfileData($html);
+
+        return [
+            'name' => $this->normalizeImportedSingleLineText((string) ($visibleProfileData['name'] ?? $contactData['company_name'] ?? $meta['name'] ?? '')),
+            'avatar_image' => trim((string) ($meta['avatar_image'] ?? '')),
+            'image' => trim((string) ($meta['image'] ?? '')),
+            'additional_image' => trim((string) ($meta['additional_image'] ?? '')),
+        ];
     }
 
     private function isLikelyMatchingProfileName(string $profileName, string $candidateName): bool
@@ -1699,74 +1883,59 @@ class Top20BulkImportService
         return $subcategory?->id ? (int) $subcategory->id : null;
     }
 
-    /**
-     * @param  array<string, mixed>  $details
-     * @param  array<string, mixed>  $card
-     */
+    /** Refuse previously mixed source chains until they have been reviewed. */
+    private function assertImportIdentity(Profile $profile, string $name, string $city): void
+    {
+        ImportedProfileIdentity::assertSameBusiness($profile, $name, $city);
+        foreach ($profile->dataSources()->whereIn('source_type', ['top20', 'top20_import'])->get() as $source) {
+            $sourceName = trim((string) preg_replace('/^Top20 import\s*·\s*/u', '', (string) $source->title));
+            if ($sourceName !== '' && ! ImportedProfileIdentity::sameName($sourceName, $name)) {
+                throw new \RuntimeException("Conflicting business sources for profile #{$profile->id}; manual review required.");
+            }
+        }
+    }
+
+    /** Match only an unambiguous business identity. */
     private function findExistingProfile(string $top20Url, array $details, array $card): ?Profile
     {
+        $name = trim((string) ($details['name'] ?? $card['name'] ?? ''));
+        $city = $this->canonicalImportedCity((string) ($details['city'] ?? $card['city'] ?? ''));
+        $address = trim((string) ($details['address'] ?? $card['address'] ?? ''));
         $existingBySource = $this->findExistingProfileByTop20SourceUrl($top20Url);
 
         if ($existingBySource) {
+            $this->assertImportIdentity($existingBySource, $name, $city);
+
             return $existingBySource;
         }
 
-        $name = trim((string) ($details['name'] ?? $card['name'] ?? ''));
-        $city = $this->canonicalImportedCity((string) ($details['city'] ?? $card['city'] ?? ''));
-        $cityLower = Str::lower($city);
-        $sameCityScope = static function ($query) use ($cityLower): void {
-            $query->whereNull('city')
-                ->orWhere('city', '')
-                ->orWhereRaw('lower(city) = ?', [$cityLower]);
-        };
-
-        $website = $this->normalizeWebsite((string) ($details['website'] ?? ''));
-        if ($website !== null) {
-            $profile = Profile::query()
-                ->where('website', 'like', '%' . $website . '%')
-                ->when($city !== '', fn ($query) => $query->where($sameCityScope))
-                ->first();
-            if ($profile) {
-                return $profile;
-            }
-        }
-
-        $phones = array_values(array_filter((array) ($details['phones'] ?? [])));
-        foreach ($phones as $phone) {
-            $digits = $this->normalizePhoneDigits((string) $phone);
-            if ($digits === null) {
-                continue;
-            }
-
-            $profile = Profile::query()
-                ->whereRaw("REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(COALESCE(phone,''),'+',''),' ',''),'-',''),'(',''),')','') LIKE ?", ['%' . $digits . '%'])
-                ->when($city !== '', fn ($query) => $query->where($sameCityScope))
-                ->first();
-            if ($profile) {
-                return $profile;
-            }
+        // A phone/site can be shared by unrelated businesses or different branches.
+        // Reuse only an unambiguous name + location; a source URL remains the
+        // authoritative key on subsequent imports. Ambiguity does not merge existing profiles.
+        if ($name === '') {
+            return null;
         }
 
         $slug = Str::slug($name);
+        $candidates = Profile::query()
+            ->where(fn ($q) => $q->where('slug', $slug)->orWhere('name', $name))
+            ->get()
+            ->filter(function (Profile $profile) use ($name, $city, $address): bool {
+                if (! ImportedProfileIdentity::sameName($profile->name, $name)
+                    || str_contains((string) $profile->internal_note, '[IDENTITY_REPAIR_REVIEW]')) {
+                    return false;
+                }
 
-        if ($slug !== '') {
-            $profile = Profile::query()
-                ->where('slug', $slug)
-                ->when($city !== '', fn ($query) => $query->whereRaw('lower(city) = ?', [Str::lower($city)]))
-                ->first();
-            if ($profile) {
-                return $profile;
-            }
+                return ImportedProfileIdentity::sameLocation($profile, $city, $address);
+            });
+
+        if ($candidates->count() !== 1) {
+            return null;
         }
+        $candidate = $candidates->first();
+        $this->assertImportIdentity($candidate, $name, $city);
 
-        if ($name !== '') {
-            return Profile::query()
-                ->whereRaw('lower(name) = ?', [Str::lower($name)])
-                ->when($city !== '', fn ($query) => $query->whereRaw('lower(city) = ?', [Str::lower($city)]))
-                ->first();
-        }
-
-        return null;
+        return $candidate;
     }
 
     private function findExistingProfileByTop20SourceUrl(string $top20Url): ?Profile
@@ -1789,6 +1958,10 @@ class Top20BulkImportService
             return null;
         }
 
+        if ($profileIds->count() !== 1) {
+            throw new \RuntimeException('Import source is attached to multiple profiles; manual identity review required.');
+        }
+
         return Profile::query()
             ->whereIn('id', $profileIds)
             ->orderByRaw('CASE WHEN is_published = 1 OR show_in_catalog = 1 OR status = ? THEN 0 ELSE 1 END', ['active'])
@@ -1804,6 +1977,10 @@ class Top20BulkImportService
     private function syncTop20ProfileDataSource(Profile $profile, string $top20Url, array $card, array $details): void
     {
         $variants = $this->top20ProfileUrlVariants($top20Url);
+        if (ProfileDataSource::query()->whereIn('source_type', ['top20_import', 'top20'])
+            ->whereIn('url', $variants)->whereNotNull('profile_id')->where('profile_id', '!=', $profile->id)->exists()) {
+            throw new \RuntimeException('Import source belongs to another profile.');
+        }
         $dataSource = ProfileDataSource::query()
             ->where('source_type', 'top20_import')
             ->whereIn('url', $variants)
@@ -1815,6 +1992,8 @@ class Top20BulkImportService
             $dataSource = new ProfileDataSource([
                 'source_type' => 'top20_import',
             ]);
+        } elseif ($dataSource->profile_id !== null && (int) $dataSource->profile_id !== (int) $profile->id) {
+            throw new \RuntimeException('Cannot move an existing import source to another business during import.');
         }
 
         $dataSource->fill([
@@ -2219,21 +2398,40 @@ class Top20BulkImportService
         ];
     }
 
-    /**
-     * @return array{phones: array<int, string>, addresses: array<int, string>, website: string, company_name: string}
-     */
+    /** @return array<int, array<string, mixed>> */
+    private function extractPrimaryCompanyAddresses(string $html): array
+    {
+        if (! preg_match('/var\s+addresses\s*=\s*(\[[\s\S]*?\]);/u', $html, $m)) {
+            return [];
+        }
+        $items = array_values(array_filter((array) json_decode($m[1], true), 'is_array'));
+        $companyId = $this->extractTop20CompanyId($html);
+        $ogName = trim((string) preg_replace('/\.\s*Відгуки.*$/u', '', $this->extractTop20MetaPropertyContent($html, 'og:title')));
+        $names = array_unique(array_filter(array_map(
+            fn (array $item): string => ImportedProfileIdentity::key(data_get($item, 'company.name', '')), $items
+        )));
+
+        return array_values(array_filter($items, function (array $item) use ($companyId, $ogName, $names): bool {
+            $itemId = (int) data_get($item, 'company.id', 0);
+            if ($companyId !== null && $itemId > 0) {
+                return $companyId === $itemId;
+            }
+            $name = (string) data_get($item, 'company.name', '');
+            if ($ogName !== '') {
+                return ImportedProfileIdentity::sameName($ogName, $name);
+            }
+
+            // Without a page identity, never combine multiple named businesses.
+            return count($names) === 1 && ImportedProfileIdentity::key($name) !== '';
+        }));
+    }
+
+    /** @return array{phones: array, addresses: array, website: string, company_name: string} */
     private function extractTop20ContactData(string $html): array
     {
         $website = $this->extractTop20OfficialWebsite($html);
 
-        if (! preg_match('/var\s+addresses\s*=\s*(\[[\s\S]*?\]);/u', $html, $m)) {
-            return ['phones' => [], 'addresses' => [], 'website' => $website, 'company_name' => ''];
-        }
-
-        $payload = json_decode((string) $m[1], true);
-        if (! is_array($payload)) {
-            return ['phones' => [], 'addresses' => [], 'website' => $website, 'company_name' => ''];
-        }
+        $payload = $this->extractPrimaryCompanyAddresses($html);
 
         $phones = [];
         $addresses = [];
@@ -2284,26 +2482,12 @@ class Top20BulkImportService
         $city = '';
         $address = '';
 
-        if (preg_match('/var\s+addresses\s*=\s*(\[[\s\S]*?\]);/u', $html, $m)) {
-            $payload = json_decode((string) $m[1], true);
-            if (is_array($payload)) {
-                foreach ($payload as $item) {
-                    if (! is_array($item)) {
-                        continue;
-                    }
-
-                    if ($name === '') {
-                        $name = $this->normalizeImportedSingleLineText((string) data_get($item, 'company.name', ''));
-                    }
-
-                    if ($address === '') {
-                        $address = $this->normalizeImportedSingleLineText((string) ($item['address'] ?? ''));
-                    }
-
-                    if ($name !== '' && $address !== '') {
-                        break;
-                    }
-                }
+        foreach ($this->extractPrimaryCompanyAddresses($html) as $item) {
+            if ($name === '') {
+                $name = $this->normalizeImportedSingleLineText((string) data_get($item, 'company.name', ''));
+            }
+            if ($address === '') {
+                $address = $this->normalizeImportedSingleLineText((string) ($item['address'] ?? ''));
             }
         }
 
@@ -3773,23 +3957,28 @@ class Top20BulkImportService
         $baseDirectory = trim((string) config('top20_bulk_import.media_directory', 'catalog-media'), '/');
 
         try {
-            $response = Http::timeout((int) config('top20_bulk_import.media_timeout', 20))
+            $request = Http::timeout((int) config('top20_bulk_import.media_timeout', 20))
                 ->withHeaders([
                     'User-Agent' => 'Mozilla/5.0 DOVIRA Top20 media fetcher',
                     'Accept' => 'image/avif,image/webp,image/apng,image/*,*/*;q=0.8',
                     'Referer' => 'https://top20.ua/',
-                ])
+                ]);
+
+            $mediaRetries = max(0, (int) config('top20_bulk_import.media_retries', 3));
+            if ($mediaRetries > 0) {
                 // Top20 тротлить завантаження медіа при масовому імпорті (429/503/обриви).
                 // Без ретраю це раніше призводило до масової втрати аватарок у пікові дні.
-                ->retry(3, 500, function (\Throwable $exception): bool {
+                $request = $request->retry($mediaRetries, 500, function (\Throwable $exception): bool {
                     if ($exception instanceof ConnectionException) {
                         return true;
                     }
 
                     return $exception instanceof RequestException
                         && in_array($exception->response->status(), [408, 425, 429, 500, 502, 503, 504], true);
-                }, throw: false)
-                ->get($url);
+                }, throw: false);
+            }
+
+            $response = $request->get($url);
         } catch (\Throwable) {
             return null;
         }

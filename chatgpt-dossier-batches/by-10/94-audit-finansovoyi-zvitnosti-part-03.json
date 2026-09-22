@@ -1,0 +1,152 @@
+[
+    {
+        "profile_id": 3894,
+        "full_name": "Lexopolis",
+        "city": "Львів",
+        "category": "Аудит фінансової звітності",
+        "profile_url": "https://mydovira.com/profiles/lexopolis",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Левицького, 20",
+            "phone": "(067) 100 42 23, (073) 100 42 23",
+            "type": "company",
+            "rating_avg": 5,
+            "reviews_count": 5
+        }
+    },
+    {
+        "profile_id": 3678,
+        "full_name": "Pwc, аудиторська фірма",
+        "city": "Київ",
+        "category": "Аудит фінансової звітності",
+        "profile_url": "https://mydovira.com/profiles/pwc-auditorska-firma",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Жилянська, 75",
+            "phone": "(044) 35 40 40 4, (044) 35 40 79 0",
+            "type": "company",
+            "rating_avg": 4,
+            "reviews_count": 4
+        }
+    },
+    {
+        "profile_id": 3828,
+        "full_name": "Уцоа вєда, аудиторська компанія",
+        "city": "Вінниця",
+        "category": "Аудит фінансової звітності",
+        "profile_url": "https://mydovira.com/profiles/ucoa-vjeda-auditorska-kompaniia",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Василенка, 20",
+            "phone": "(097) 282 77 48, (063) 287 45 54, (0432) 50 80 35",
+            "type": "company",
+            "rating_avg": 3.25,
+            "reviews_count": 4
+        }
+    },
+    {
+        "profile_id": 3896,
+        "full_name": "Віадук, консалтингова компанія",
+        "city": "Львів",
+        "category": "Аудит фінансової звітності",
+        "profile_url": "https://mydovira.com/profiles/viaduk-konsaltingova-kompaniia",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Пирогова, 2",
+            "phone": "(050) 430 94 64, (032) 24 73 70 7",
+            "type": "company",
+            "rating_avg": 4,
+            "reviews_count": 4
+        }
+    },
+    {
+        "profile_id": 3669,
+        "full_name": "Юнітс Консалтинг, бухгалтерська фірма",
+        "city": "Київ",
+        "category": "Аудит фінансової звітності",
+        "profile_url": "https://mydovira.com/profiles/iunits-konsalting-buxgalterska-firma",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Дегтярівська, 33А",
+            "phone": "(044) 46 76 35 3",
+            "type": "company",
+            "rating_avg": 5,
+            "reviews_count": 3
+        }
+    },
+    {
+        "profile_id": 3719,
+        "full_name": "Kpmg, аудиторська фірма",
+        "city": "Київ",
+        "category": "Аудит фінансової звітності",
+        "profile_url": "https://mydovira.com/profiles/kpmg-auditorska-firma",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Князів Острозьких, 32/2",
+            "phone": "(044) 49 05 50 7",
+            "type": "company",
+            "rating_avg": 2.33,
+            "reviews_count": 3
+        }
+    },
+    {
+        "profile_id": 3883,
+        "full_name": "Консалтінг Сервіс Груп, консалтинг для бізнесу",
+        "city": "Дніпро",
+        "category": "Аудит фінансової звітності",
+        "profile_url": "https://mydovira.com/profiles/konsalting-servis-grup-konsalting-dlia-biznesu",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Криворізька, 12/26",
+            "phone": "(067) 991 15 85",
+            "type": "company",
+            "rating_avg": 5,
+            "reviews_count": 3
+        }
+    },
+    {
+        "profile_id": 3898,
+        "full_name": "Ертель-аудит, бухгалтерська компанія",
+        "city": "Львів",
+        "category": "Аудит фінансової звітності",
+        "profile_url": "https://mydovira.com/profiles/ertel-audit-buxgalterska-kompaniia",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "площа Князя Святослава, 3",
+            "phone": "(032) 29 49 26 0, 327736629817, (032) 29 49 26 1",
+            "type": "company",
+            "rating_avg": 2.33,
+            "reviews_count": 3
+        }
+    },
+    {
+        "profile_id": 3670,
+        "full_name": "Твій Звіт, бухгалтерська компанія",
+        "city": "Київ",
+        "category": "Аудит фінансової звітності",
+        "profile_url": "https://mydovira.com/profiles/tvii-zvit-buxgalterska-kompaniia",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Солом'янська площа, 2",
+            "phone": "(097) 340 79 61",
+            "type": "company",
+            "rating_avg": 5,
+            "reviews_count": 2
+        }
+    },
+    {
+        "profile_id": 3686,
+        "full_name": "Кей Солюшн, аудиторская компания",
+        "city": "Київ",
+        "category": "Аудит фінансової звітності",
+        "profile_url": "https://mydovira.com/profiles/key-solutions-kompaniia",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Велика Васильківська, 77, 77А, Б",
+            "phone": "(068) 777 14 74, (068) 980 07 52",
+            "type": "company",
+            "rating_avg": 4.5,
+            "reviews_count": 2
+        }
+    }
+]

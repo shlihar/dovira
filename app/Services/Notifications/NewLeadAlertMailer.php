@@ -8,12 +8,15 @@ use App\Models\Profile;
 use App\Models\ProfileLead;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\URL;
 
 /**
- * Email-тригер власнику профілю про нову заявку клієнта.
- * Надсилається лише для заявлених профілів; поважає перемикачі
- * email_enabled та lead_new_enabled у налаштуваннях сповіщень.
- * Телефон клієнта видно тільки PRO-власникам (як у кабінеті).
+ * Email-тригер про нову заявку клієнта.
+ *  - Заявлений профіль → власнику (поважає email_enabled + lead_new_enabled;
+ *    телефон клієнта видно лише PRO).
+ *  - Незаявлений профіль → холодний аутріч на email профілю (лише коли увімкнено
+ *    services.lead_outreach.enabled), з тротлінгом і opt-out — щоб перетворити
+ *    вхідну заявку на привід підтвердити профіль.
  */
 class NewLeadAlertMailer
 {
@@ -22,31 +25,94 @@ class NewLeadAlertMailer
         $lead->loadMissing('profile');
         $profile = $lead->profile;
 
-        if (! $profile || ! $profile->owner_user_id) {
+        if (! $profile) {
             return;
         }
 
-        $profile->loadMissing('owner');
-        $ownerEmail = trim((string) ($profile->owner?->email ?? ''));
-        if ($ownerEmail === '' || ! filter_var($ownerEmail, FILTER_VALIDATE_EMAIL)) {
+        // --- Заявлений профіль: лист власнику ---
+        if ($profile->owner_user_id) {
+            $profile->loadMissing('owner');
+            $ownerEmail = trim((string) ($profile->owner?->email ?? ''));
+            if ($ownerEmail === '' || ! filter_var($ownerEmail, FILTER_VALIDATE_EMAIL)) {
+                return;
+            }
+
+            $prefs = (array) ($profile->notification_preferences ?? []);
+            if (($prefs['email_enabled'] ?? true) === false || ($prefs['lead_new_enabled'] ?? true) === false) {
+                return;
+            }
+
+            $this->send(
+                $profile,
+                $lead,
+                $ownerEmail,
+                forOwner: true,
+                userId: $profile->owner_user_id,
+                contactsUnlocked: (bool) $profile->is_pro,
+                ctaUrl: route('pro.account', ['tab' => 'leads', 'profile' => $profile->id]),
+            );
+
+            return;
+        }
+
+        // --- Незаявлений профіль: холодний аутріч (за прапорцем) ---
+        if (! config('services.lead_outreach.enabled')) {
             return;
         }
 
         $prefs = (array) ($profile->notification_preferences ?? []);
-        if (($prefs['email_enabled'] ?? true) === false || ($prefs['lead_new_enabled'] ?? true) === false) {
+        if (! empty($prefs['outreach_opted_out'])) {
             return;
         }
 
-        $this->send($profile, $lead, $ownerEmail);
+        $email = trim((string) ($profile->email ?? ''));
+        if ($email === '' || ! filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return;
+        }
+        if ($this->recentlyEmailed($email)) {
+            return;
+        }
+
+        $this->send(
+            $profile,
+            $lead,
+            $email,
+            forOwner: false,
+            userId: null,
+            contactsUnlocked: false,
+            ctaUrl: route('profile.show', ['slug' => $profile->slug]),
+            unsubscribeUrl: URL::signedRoute('review-outreach.unsubscribe', ['profile' => $profile->id]),
+        );
     }
 
-    private function send(Profile $profile, ProfileLead $lead, string $to): void
+    private function recentlyEmailed(string $email): bool
     {
+        $days = max(1, (int) config('services.lead_outreach.throttle_days', 14));
+
+        return (bool) rescue(fn (): bool => EmailLog::query()
+            ->where('to_email', $email)
+            ->where('subject', 'like', 'Вам залишили заявку%')
+            ->where('created_at', '>=', now()->subDays($days))
+            ->exists(), false);
+    }
+
+    private function send(
+        Profile $profile,
+        ProfileLead $lead,
+        string $to,
+        bool $forOwner,
+        ?int $userId,
+        bool $contactsUnlocked,
+        string $ctaUrl,
+        ?string $unsubscribeUrl = null,
+    ): void {
         $mailable = new NewLeadAlert(
             $profile,
             $lead,
-            contactsUnlocked: (bool) $profile->is_pro,
-            ctaUrl: route('pro.account', ['tab' => 'leads', 'profile' => $profile->id]),
+            contactsUnlocked: $contactsUnlocked,
+            ctaUrl: $ctaUrl,
+            forOwner: $forOwner,
+            unsubscribeUrl: $unsubscribeUrl,
         );
 
         $status = 'sent';
@@ -65,7 +131,7 @@ class NewLeadAlertMailer
         }
 
         rescue(fn () => EmailLog::create([
-            'user_id' => $profile->owner_user_id,
+            'user_id' => $userId,
             'to_email' => $to,
             'subject' => $mailable->envelope()->subject,
             'status' => $status,

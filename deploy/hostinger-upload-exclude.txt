@@ -1,0 +1,56 @@
+# Exclude these paths when uploading the project to hosting via FTP/ZIP/rsync.
+# Runtime/generated directories below consume many inodes and must not be copied
+# from a local machine to production.
+
+.git/
+.github/
+.claude/
+.DS_Store
+.env
+.env.*
+.phpunit.result.cache
+.phpunit.cache/
+
+node_modules/
+tests/
+test-results/
+tmp/
+backup/
+docs/
+chatgpt-dossier-batches/
+google-sheets-automation/
+undefined/
+$SCRATCH/
+
+*.log
+*.sql
+dataset_*.json
+lawyer_dossiers.jsonl
+*.png
+*.jpg
+
+storage/app/import/
+storage/app/public/catalog-media/review-avatars/
+storage/app/public/catalog-media/avatar-fallbacks/
+storage/app/public/catalog-media/profile-fallbacks/
+storage/framework/cache/
+storage/framework/sessions/
+storage/framework/testing/
+storage/framework/views/
+storage/logs/
+storage/pail/
+storage/*.key
+
+public/hot
+public/media/thumb/
+public/storage/
+
+# If the server can run Composer, also exclude vendor/ and run:
+# composer install --no-dev --optimize-autoloader
+#
+# If the server cannot run Composer, vendor/ must be uploaded.
+
+# If the server can run npm, exclude public/build/ and run:
+# npm ci && npm run build
+#
+# If the server cannot run npm, upload public/build/ from a local production build.

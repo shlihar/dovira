@@ -1,0 +1,42 @@
+{
+  "captured_at": "2026-09-21T17:44:21+00:00",
+  "strict": true,
+  "min_description": 500,
+  "groups": {
+    "allowed": {
+      "total": 3708,
+      "reviews_1_plus": 3326,
+      "reviews_10_plus": 2461,
+      "description_120_plus": 2732,
+      "services": 2334,
+      "city_address_contact": 3665,
+      "no_reviews_short_description_no_services": 5
+    },
+    "noindex": {
+      "total": 30520,
+      "reviews_1_plus": 14538,
+      "reviews_10_plus": 7979,
+      "description_120_plus": 8653,
+      "services": 11397,
+      "city_address_contact": 29196,
+      "no_reviews_short_description_no_services": 10827
+    }
+  },
+  "native_review_statuses": [
+    {
+      "status": "hidden",
+      "c": 3
+    },
+    {
+      "status": "pending",
+      "c": 1
+    },
+    {
+      "status": "published",
+      "c": 15
+    }
+  ],
+  "preliminary_candidates": 3088,
+  "candidates_without_prior_audit_flags": 2902,
+  "potentially_affected_category_landings": 419
+}

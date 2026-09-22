@@ -1,9 +1,7 @@
 @php
     $next = request()->query('next');
     $query = is_string($next) && $next !== '' ? ['next' => $next] : [];
-    $telegramBotName = trim((string) config('services.telegram.bot_name'));
     $googleEnabled = filled(config('services.google.client_id')) && filled(config('services.google.client_secret'));
-    $telegramEnabled = $telegramBotName !== '' && filled(config('services.telegram.bot_token'));
 @endphp
 
 <div class="auth-social-list" aria-label="{{ $actionLabel }} за допомогою інших сервісів">
@@ -22,62 +20,5 @@
             <i class="fa-brands fa-google" aria-hidden="true"></i>
         </button>
         @endif
-
-        @if ($telegramEnabled)
-        <button type="button" class="auth-social-icon auth-social-icon--telegram" aria-label="{{ $actionLabel }} через Telegram" title="Telegram" data-auth-telegram-toggle aria-expanded="false">
-            <i class="fa-brands fa-telegram" aria-hidden="true"></i>
-        </button>
-        @else
-        <button type="button" class="auth-social-icon" disabled aria-disabled="true" aria-label="Telegram недоступний" title="Telegram">
-            <i class="fa-brands fa-telegram" aria-hidden="true"></i>
-        </button>
-        @endif
     </div>
-
-    @if ($telegramEnabled)
-        <div class="auth-telegram-panel" data-auth-telegram-panel hidden>
-            <div class="auth-telegram" data-telegram-login-root>
-                <form method="POST" action="{{ route('auth.social.telegram') }}" class="auth-telegram__form" data-telegram-login-form>
-                    @csrf
-                    @foreach (['id', 'first_name', 'last_name', 'username', 'photo_url', 'auth_date', 'hash'] as $field)
-                        <input type="hidden" name="{{ $field }}" value="">
-                    @endforeach
-                    @if ($next)
-                        <input type="hidden" name="next" value="{{ $next }}">
-                    @endif
-                </form>
-                <script async src="https://telegram.org/js/telegram-widget.js?22"
-                    data-telegram-login="{{ $telegramBotName }}"
-                    data-size="large"
-                    data-radius="12"
-                    data-userpic="false"
-                    data-request-access="write"
-                    data-onauth="window.doviraTelegramAuth(user)"></script>
-            </div>
-        </div>
-    @endif
 </div>
-
-@if ($telegramEnabled)
-    @push('scripts')
-        <script>
-            window.doviraTelegramAuth = function (user) {
-                const form = document.querySelector('[data-telegram-login-form]');
-
-                if (!form || !user) {
-                    return;
-                }
-
-                ['id', 'first_name', 'last_name', 'username', 'photo_url', 'auth_date', 'hash'].forEach((field) => {
-                    const input = form.querySelector(`[name="${field}"]`);
-
-                    if (input) {
-                        input.value = user[field] ?? '';
-                    }
-                });
-
-                form.submit();
-            };
-        </script>
-    @endpush
-@endif

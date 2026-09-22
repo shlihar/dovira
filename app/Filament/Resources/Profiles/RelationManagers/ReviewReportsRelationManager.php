@@ -3,7 +3,7 @@
 namespace App\Filament\Resources\Profiles\RelationManagers;
 
 use App\Models\ReviewReport;
-use App\Services\ProProfileNotificationService;
+use App\Services\Moderation\ReviewReportModerator;
 use Filament\Actions\Action;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\Textarea;
@@ -66,19 +66,8 @@ class ReviewReportsRelationManager extends RelationManager
                     ->requiresConfirmation()
                     ->modalHeading('Задовольнити скаргу і зняти відгук з сайту?')
                     ->modalDescription('Відгук отримає статус «відхилений», зникне з профілю, рейтинг перерахується автоматично.')
-                    ->action(function (ReviewReport $record, array $data): void {
-                        $this->resolveReport($record, 'resolved', (string) ($data['moderator_note'] ?? ''));
-
-                        $review = $record->review;
-                        if ($review && $review->status !== 'rejected') {
-                            $review->update(['status' => 'rejected']);
-                        }
-
-                        $this->notifyOwner(
-                            $record,
-                            'Скаргу задоволено — відгук знято',
-                            'Модерація розглянула скаргу і зняла відгук з публічної сторінки. Рейтинг перераховано.'
-                        );
+                    ->action(function (ReviewReport $record, array $data, ReviewReportModerator $moderator): void {
+                        $moderator->resolve($record, (string) ($data['moderator_note'] ?? ''), auth()->id());
 
                         Notification::make()->title('Скаргу задоволено, відгук знято з сайту.')->success()->send();
                     }),
@@ -96,64 +85,11 @@ class ReviewReportsRelationManager extends RelationManager
                     ->requiresConfirmation()
                     ->modalHeading('Відхилити скаргу і повернути відгук?')
                     ->modalDescription('Скарга закриється як відхилена. Якщо власник приховав відгук на час розгляду — він знову стане опублікованим.')
-                    ->action(function (ReviewReport $record, array $data): void {
-                        $this->resolveReport($record, 'rejected', (string) ($data['moderator_note'] ?? ''));
-
-                        $review = $record->review;
-                        if ($review && $review->status === 'hidden') {
-                            $review->update(['status' => 'published']);
-                        }
-
-                        $this->notifyOwner(
-                            $record,
-                            'Скаргу відхилено — відгук повернено',
-                            'Модерація розглянула скаргу і не знайшла порушень. Відгук знову опубліковано на сторінці профілю.'
-                        );
+                    ->action(function (ReviewReport $record, array $data, ReviewReportModerator $moderator): void {
+                        $moderator->reject($record, (string) ($data['moderator_note'] ?? ''), auth()->id());
 
                         Notification::make()->title('Скаргу відхилено, відгук опубліковано.')->success()->send();
                     }),
             ]);
-    }
-
-    private function resolveReport(ReviewReport $record, string $status, string $note): void
-    {
-        $record->update([
-            'status' => $status,
-            'moderator_note' => trim($note) !== '' ? trim($note) : $record->moderator_note,
-            'resolved_by_user_id' => auth()->id(),
-            'resolved_at' => now(),
-        ]);
-
-        // Інші відкриті скарги на той самий відгук закриваємо тим самим
-        // рішенням — щоб відгук не «висів» з відкритою скаргою після вердикту.
-        ReviewReport::query()
-            ->where('profile_review_id', $record->profile_review_id)
-            ->whereKeyNot($record->id)
-            ->whereIn('status', ['open', 'in_review'])
-            ->update([
-                'status' => $status,
-                'resolved_by_user_id' => auth()->id(),
-                'resolved_at' => now(),
-            ]);
-    }
-
-    private function notifyOwner(ReviewReport $record, string $title, string $body): void
-    {
-        $profile = $record->review?->profile;
-
-        if (! $profile || ! $profile->owner_user_id) {
-            return;
-        }
-
-        app(ProProfileNotificationService::class)->create(
-            $profile,
-            'review_report_resolved',
-            $title,
-            $body,
-            [
-                'severity' => 'info',
-                'action_url' => route('pro.account', ['tab' => 'reviews', 'profile' => $profile->id]),
-            ]
-        );
     }
 }

@@ -1,0 +1,80 @@
+{
+  "profile_sitemap_count": 34224,
+  "expected_count": 34224,
+  "missing": [],
+  "unexpected": [],
+  "checks": [
+    {
+      "id": 587,
+      "slug": "advokat-vinogradskii-anton-pavlovic",
+      "status": 200,
+      "robots": [
+        "<meta name=\"robots\" content=\"index, follow, max-image-preview:large, max-snippet:-1\">"
+      ],
+      "expected_index": true,
+      "passed": true
+    },
+    {
+      "id": 588,
+      "slug": "belimenko-i-martyniuk",
+      "status": 200,
+      "robots": [
+        "<meta name=\"robots\" content=\"index, follow, max-image-preview:large, max-snippet:-1\">"
+      ],
+      "expected_index": true,
+      "passed": true
+    },
+    {
+      "id": 589,
+      "slug": "veza",
+      "status": 200,
+      "robots": [
+        "<meta name=\"robots\" content=\"index, follow, max-image-preview:large, max-snippet:-1\">"
+      ],
+      "expected_index": true,
+      "passed": true
+    },
+    {
+      "id": 8950,
+      "slug": "veterinarna-apteka-na-sicovix-strilciv",
+      "status": 200,
+      "robots": [
+        "<meta name=\"robots\" content=\"noindex, follow\">"
+      ],
+      "expected_index": false,
+      "passed": true
+    },
+    {
+      "id": 10063,
+      "slug": "veterinarna-apteka-na-vokzalna",
+      "status": 200,
+      "robots": [
+        "<meta name=\"robots\" content=\"noindex, follow\">"
+      ],
+      "expected_index": false,
+      "passed": true
+    },
+    {
+      "id": 45987,
+      "slug": "stomatologicna-klinika-na-dzerelnii",
+      "status": 200,
+      "robots": [
+        "<meta name=\"robots\" content=\"noindex, follow\">"
+      ],
+      "expected_index": false,
+      "passed": true
+    },
+    {
+      "id": 251386,
+      "slug": "zabudovniki-zitlovi-kompleksi-zitomira-vidguki-adresi-ta-telefoni-na-top-20",
+      "status": 200,
+      "robots": [
+        "<meta name=\"robots\" content=\"noindex, follow\">"
+      ],
+      "expected_index": false,
+      "passed": true
+    }
+  ],
+  "quarantine_status": 404,
+  "quarantined_in_sitemap": []
+}

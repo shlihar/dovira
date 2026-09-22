@@ -135,6 +135,10 @@ body.page-catalog {
 
 .reviews-filters-accordion {
   display: grid;
+  /* minmax(0, 1fr), а не auto: інакше колонка гріда розтягується під найдовший
+     вміст (довга назва категорії у кнопці фільтра) і блок вилазить за межі
+     картки — перевірено на «Ветеринари та ветеринарні клініки»: 323px замість 278. */
+  grid-template-columns: minmax(0, 1fr);
   gap: 8px;
   padding: 10px;
   border: 1px solid #d9e3f6;
@@ -293,6 +297,7 @@ body.page-catalog {
   margin: 0;
 }
 
+.reviews-filters-minimal .minimal-filter-group { min-width: 0; }
 .reviews-filters-minimal .minimal-filter-group {
   padding: 12px 12px 10px;
   border-bottom: 1px solid #e8eef9;
@@ -2402,10 +2407,15 @@ gap: 10px;
   align-items: center;
   gap: 24px;
   margin-bottom: 0;
+  /* Блок винесено в DOM перед сайдбаром (щоб H1 і лід ішли першими для
+     пошуковика) — у сітці сторінки він займає обидві колонки. */
+  grid-column: 1 / -1;
 }
 
 .catalog-hero__copy {
-  max-width: 640px;
+  /* Ширший рядок = менше переносів: SEO-лід більше не займає 4 рядки
+     і не зсуває результати каталогу вниз. */
+  max-width: min(920px, 100%);
 }
 
 .catalog-hero__eyebrow {
@@ -2427,10 +2437,10 @@ letter-spacing: -0.045em;
 
 .catalog-hero p:not(.catalog-hero__eyebrow) {
   margin: 4px 0 0;
-  max-width: 640px;
+  max-width: min(920px, 100%);
   color: #536c9c;
-  font-size: 16px;
-  line-height: 1.55;
+  font-size: 13.5px;
+  line-height: 1.5;
 }
 
 .catalog-hero__stats {
@@ -3257,15 +3267,17 @@ letter-spacing: -0.045em;
 }
 
 .page-catalog .catalog-hero h1 {
-  font-size: clamp(28px, 2.5vw, 38px);
-  letter-spacing: -0.035em;
+  font-size: clamp(20px, 1.6vw, 24px);
+  letter-spacing: -0.025em;
 }
 
 .page-catalog .catalog-hero p:not(.catalog-hero__eyebrow) {
-  margin-top: 8px;
-  font-size: 14px;
-  line-height: 1.42;
+  margin-top: 6px;
+  max-width: min(920px, 100%);
+  font-size: 12px;
+  line-height: 1.5;
 }
+
 
 .page-catalog .catalog-hero__stats {
   padding: 10px;
@@ -3509,10 +3521,7 @@ height: 48px;
     width: min(100% - 20px, 720px);
   }
 
-  .page-catalog .catalog-hero h1 {
-    font-size: 30px;
-  }
-
+  /* Розмір H1 героя задає фінальний блок наприкінці файлу (18px на мобільному). */
   .page-catalog .catalog-add-profile-btn {
     width: 100%;
   }
@@ -4450,17 +4459,36 @@ background: none;
   font-size: var(--page-ui-label);
 }
 
-.page-catalog .catalog-hero h1,
 .page-catalog .reviews-search-hero__title {
   font-size: var(--page-ui-title-xl);
   line-height: 1.08;
   letter-spacing: -0.03em;
 }
 
-.page-catalog .catalog-hero p:not(.catalog-hero__eyebrow),
+/* Герой каталогу компактніший за токен --page-ui-title-xl: SEO-лід і H1 не
+   мають зсувати результати вниз. Це ОСТАННЄ слово каскаду для цих селекторів —
+   правки розмірів героя робити тут (вище по файлу є старіші правила, які цей
+   блок свідомо перекриває). */
+.page-catalog .catalog-hero h1 {
+  font-size: 24px;
+  line-height: 1.12;
+  letter-spacing: -0.025em;
+}
+
 .page-catalog .reviews-search-hero__lead {
   font-size: var(--page-ui-lead);
   line-height: 1.5;
+}
+
+.page-catalog .catalog-hero p:not(.catalog-hero__eyebrow) {
+  max-width: min(920px, 100%);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.page-catalog .catalog-hero__updated {
+  font-size: 11.5px;
+  color: var(--c-muted, #94a3b8);
 }
 
 .page-catalog .catalog-stat__icon,
@@ -4484,12 +4512,20 @@ background: none;
 }
 
 @media (max-width: 760px) {
-  .page-catalog .catalog-hero h1,
   .page-catalog .reviews-search-hero__title {
     font-size: var(--page-ui-title-xl);
   }
 
-  .page-catalog .catalog-hero p:not(.catalog-hero__eyebrow),
+  .page-catalog .catalog-hero h1 {
+    font-size: 18px;
+    line-height: 1.2;
+  }
+
+  .page-catalog .catalog-hero p:not(.catalog-hero__eyebrow) {
+    font-size: 12px;
+    line-height: 1.45;
+  }
+
   .page-catalog .reviews-search-hero__lead,
   .page-catalog .profile-select,
   .page-catalog .catalog-mobile-control,
@@ -4942,4 +4978,275 @@ background: none;
   .page-catalog .catalog-stat + .catalog-stat {
     border-left: 1px solid #e8eefb;
   }
+}
+
+/* ---- SEO-посадкові «категорія × місто»: FAQ і дата оновлення ---- */
+.catalog-hero__updated {
+  margin-top: 4px;
+  font-size: 11.5px;
+  color: var(--c-muted, #94a3b8);
+}
+.catalog-faq {
+  margin-top: 30px;
+  padding-top: 22px;
+  border-top: 1px solid var(--c-border, #e4e9f2);
+}
+.catalog-faq__item {
+  border: 1px solid var(--c-border, #e4e9f2);
+  border-radius: 12px;
+  background: #fff;
+  padding: 0;
+}
+.catalog-faq__item + .catalog-faq__item {
+  margin-top: 8px;
+}
+.catalog-faq__question {
+  padding: 14px 16px;
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--c-text, #1f2937);
+  cursor: pointer;
+  list-style: none;
+  position: relative;
+  padding-right: 38px;
+}
+.catalog-faq__question::-webkit-details-marker {
+  display: none;
+}
+.catalog-faq__question::after {
+  content: '+';
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--c-primary, #2563eb);
+}
+.catalog-faq__item[open] .catalog-faq__question::after {
+  content: '−';
+}
+.catalog-faq__answer {
+  margin: 0;
+  padding: 0 16px 14px;
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--c-muted, #475569);
+}
+
+@media (max-width: 1100px) {
+  /* Лендінг-блоки завжди під результатами (flex-order мобільної розкладки). */
+  .reviews-content > .catalog-faq,
+  .reviews-content > .catalog-top-rating {
+    order: 4;
+  }
+}
+
+/* ── Посадкова послуги («пластика носа у Києві — відгуки») ── */
+.catalog-hero__lead { margin: 10px 0 0; font-size: 15px; line-height: 1.6; color: #42537a; max-width: 760px; }
+.service-quotes { margin: 26px 0 8px; }
+.service-quotes__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; }
+.service-quote { margin: 0; display: flex; flex-direction: column; gap: 8px; padding: 16px 18px; background: #fff; border: 1px solid rgba(185, 205, 241, .62); border-radius: 16px; }
+.service-quote__top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 13px; color: #64748b; }
+.service-quote__stars { display: inline-flex; gap: 2px; }
+.service-quote__author { font-weight: 700; color: #1f2f52; }
+.service-quote__text { margin: 0; font-size: 14px; line-height: 1.6; color: #334155; }
+.service-quote__profile { margin-top: auto; align-self: flex-start; color: #2f6df4; font-size: 13px; font-weight: 700; text-decoration: none; }
+.service-quote__profile:hover { text-decoration: underline; }
+.service-list { margin-top: 26px; }
+.service-landing__back { margin: 22px 0 8px; font-size: 14px; color: #8a97b4; }
+.service-landing__back a { color: #2f6df4; font-weight: 600; text-decoration: none; }
+.service-landing__back a:hover { text-decoration: underline; }
+.service-landing__back span { margin: 0 8px; }
+
+.service-list__note { margin: 0 0 14px; color: var(--color-text-muted, #6b7280); font-size: 14px; }
+.service-list__note a { color: inherit; text-decoration: underline; }
+
+/* --- Пошук усередині випадайки категорій / міст --- */
+.cat-filter__search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 6px;
+  padding: 0 12px;
+  min-height: 42px;
+  border: 1px solid #e6edf9;
+  border-radius: 10px;
+  background: #fff;
+  color: #64748b;
+}
+.cat-filter__search:focus-within { border-color: #2f6df4; box-shadow: 0 0 0 3px rgba(47, 109, 244, .12); }
+.cat-filter__search i { font-size: 13px; flex: 0 0 auto; }
+.cat-filter__search-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  font: inherit;
+  font-size: 14px;
+  color: #1e293b;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.cat-filter__search-input::-webkit-search-cancel-button { display: none; }
+.cat-filter__search-clear {
+  flex: 0 0 auto;
+  border: 0;
+  background: transparent;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+}
+.cat-filter__search-clear:hover { color: #1e293b; }
+.cat-filter__empty { margin: 0; padding: 14px 12px; color: #64748b; font-size: 14px; }
+
+/* У режимі пошуку показуємо збіги з усіх груп одразу, кожну групу підписуємо.
+   Рядок «Усі: {група}» показує/ховає сам скрипт (він потрібен, коли збіглася
+   назва групи), тому тут його більше не ховаємо. */
+.cat-filter__mega.is-searching .cat-filter__back {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 0 2px;
+  padding: 0 12px;
+  border: 0;
+  background: transparent;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  pointer-events: none;
+}
+.cat-filter__mega.is-searching .cat-filter__back i { display: none; }
+
+@media (min-width: 761px) {
+  .cat-filter__search { margin: 10px 10px 4px; }
+}
+
+/* Підсвітка варіанта під стрілками в пошуку випадайки. */
+.cat-filter__cat.is-highlighted,
+.cat-filter__sub.is-highlighted { background: #eaf1ff; color: #1e56c9; }
+
+/* Атрибут hidden мусить перемагати власні display у випадайці.
+   `.cat-filter__cat { display: flex }` специфічніший за службове правило
+   браузера `[hidden] { display: none }`, тому приховані пошуком варіанти
+   лишались на екрані — саме через це «пошук не працював». */
+.cat-filter__mega [hidden],
+.cat-filter__cat[hidden],
+.cat-filter__sub[hidden],
+.cat-filter__panel[hidden],
+.cat-filter__back[hidden] { display: none !important; }
+
+/* --- Мобільний вибір категорії / міста: окремий повноекранний крок --------
+   Раніше список розкривався всередині довгого модалу фільтрів: після дотику
+   по категорії підкатегорії з'являлись нижче поточного місця, і до них треба
+   було скролити. Тепер це самостійний екран із шапкою, пошуком і кроком назад. */
+.cat-filter__sheet-head { display: none; }
+body.cat-sheet-open { overflow: hidden; }
+
+.cat-filter__mega.is-fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: #fff;
+  box-shadow: none;
+  opacity: 1;
+  transform: none;
+  display: flex;
+  flex-direction: column;
+  max-height: 100dvh;
+  overflow: hidden;
+}
+
+.cat-filter__mega.is-fullscreen .cat-filter__sheet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid #e6edf9;
+  padding-top: max(14px, env(safe-area-inset-top));
+}
+.cat-filter__sheet-title { color: #14336d; font-size: 18px; font-weight: 800; }
+.cat-filter__sheet-close {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid #d6e3fb;
+  background: #fff;
+  color: #6a7faa;
+  display: grid;
+  place-items: center;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.cat-filter__mega.is-fullscreen .cat-filter__search { margin: 12px 16px 6px; min-height: 48px; }
+.cat-filter__mega.is-fullscreen .cat-filter__mega-inner {
+  display: block;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 4px 10px calc(16px + env(safe-area-inset-bottom));
+}
+.cat-filter__mega.is-fullscreen .cat-filter__cats,
+.cat-filter__mega.is-fullscreen .cat-filter__subs {
+  max-height: none;
+  overflow: visible;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+/* Крок 2: підкатегорії замість списку категорій, згори — повернення назад. */
+.cat-filter__mega.is-fullscreen .cat-filter__subs { display: none; }
+.cat-filter__mega.is-fullscreen.is-drilled .cat-filter__cats { display: none; }
+.cat-filter__mega.is-fullscreen.is-drilled .cat-filter__subs { display: block; }
+/* Під час пошуку показуємо самі результати: підкатегорії видно одразу, а кнопки
+   груп (вони лише ведуть на другий крок) ховаємо — групу представляє рядок
+   «Усі: {група}». Інакше на мобільному пошук показував тільки назву групи. */
+.cat-filter__mega.is-fullscreen.is-searching .cat-filter__subs { display: block; }
+.cat-filter__mega.is-fullscreen.is-searching [data-cat-cat] { display: none !important; }
+.cat-filter__mega.is-fullscreen .cat-filter__back {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 46px;
+  padding: 0 12px;
+  margin-bottom: 6px;
+  border: 0;
+  border-radius: 10px;
+  background: #f4f7fd;
+  color: #1e56c9;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+/* Пальцю потрібні більші цілі. */
+.cat-filter__mega.is-fullscreen .cat-filter__cat,
+.cat-filter__mega.is-fullscreen .cat-filter__sub { min-height: 52px; font-size: 15.5px; }
+
+/* Позначка платного розміщення на картці каталогу. Профілі з підпискою стоять
+   у видачі вище, і цей факт має бути видно — інакше це прихована реклама. */
+.dovira-catalog-card__pro {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 8px;
+  padding: 2px 7px;
+  border-radius: 6px;
+  background: #eaf1ff;
+  color: #1e56c9;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .04em;
+  vertical-align: middle;
+  cursor: help;
 }

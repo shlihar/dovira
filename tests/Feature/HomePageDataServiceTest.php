@@ -275,7 +275,7 @@ class HomePageDataServiceTest extends TestCase
         $this->assertNull($reviewsBySlug['placeholder-website-profile']['profile_site'] ?? null);
     }
 
-    public function test_leaderboard_includes_only_profiles_with_real_logos(): void
+    public function test_leaderboard_includes_profiles_without_real_logos(): void
     {
         Cache::flush();
         Storage::disk('public')->put('catalog-media/profiles/leader-a.png', 'demo');
@@ -288,20 +288,45 @@ class HomePageDataServiceTest extends TestCase
         $this->createLeaderboardProfile($category, 'real-logo-b', 'Київ', 'catalog-media/profiles/leader-b.png', rating: 4.8);
         $this->createLeaderboardProfile($category, 'real-logo-c', 'Київ', 'catalog-media/profiles/leader-c.png', rating: 4.7);
         $this->createLeaderboardProfile($category, 'generated-logo', 'Київ', '/media/catalog-media/profile-fallbacks/07/generated.svg', rating: 5.0);
-        $this->createLeaderboardProfile($category, 'missing-logo', 'Київ', null, rating: 5.0);
+        $this->createLeaderboardProfile($category, 'missing-logo', 'Київ', null, reviews: 1000, rating: 5.0);
+
+        Cache::flush();
 
         $payload = app(HomePageDataService::class)->getPayload();
         $rows = $payload['leaderboard'][0]['rows'] ?? [];
         $slugs = array_column($rows, 'slug');
 
-        $this->assertEqualsCanonicalizing(['real-logo-a', 'real-logo-b', 'real-logo-c'], $slugs);
-        $this->assertNotContains('generated-logo', $slugs);
-        $this->assertNotContains('missing-logo', $slugs);
+        $this->assertEqualsCanonicalizing(['generated-logo', 'missing-logo', 'real-logo-a', 'real-logo-b', 'real-logo-c'], $slugs);
+    }
 
-        foreach ($rows as $row) {
-            $this->assertNotEmpty($row['logo_url']);
-            $this->assertStringNotContainsString('profile-fallbacks', $row['logo_url']);
-        }
+    public function test_leaderboard_respects_manual_rating_placement_controls(): void
+    {
+        Cache::flush();
+        Storage::disk('public')->put('catalog-media/profiles/manual-auto-a.png', 'demo');
+        Storage::disk('public')->put('catalog-media/profiles/manual-auto-b.png', 'demo');
+        Storage::disk('public')->put('catalog-media/profiles/manual-hidden.png', 'demo');
+
+        $category = $this->createLeaderboardCategory();
+
+        $forced = $this->createLeaderboardProfile($category, 'manual-forced', 'Київ', null, reviews: 1, rating: 3.2);
+        $forced->update([
+            'rating_placement' => 'force',
+            'rating_priority' => 50,
+        ]);
+
+        $this->createLeaderboardProfile($category, 'manual-auto-a', 'Київ', 'catalog-media/profiles/manual-auto-a.png', reviews: 40, rating: 4.9);
+        $this->createLeaderboardProfile($category, 'manual-auto-b', 'Київ', 'catalog-media/profiles/manual-auto-b.png', reviews: 35, rating: 4.8);
+
+        $hidden = $this->createLeaderboardProfile($category, 'manual-hidden', 'Київ', 'catalog-media/profiles/manual-hidden.png', reviews: 200, rating: 5.0);
+        $hidden->update(['rating_placement' => 'hide']);
+
+        $payload = app(HomePageDataService::class)->getPayload();
+        $rows = $payload['leaderboard'][0]['rows'] ?? [];
+        $slugs = array_column($rows, 'slug');
+
+        $this->assertSame('manual-forced', $slugs[0] ?? null);
+        $this->assertContains('manual-auto-a', $slugs);
+        $this->assertNotContains('manual-hidden', $slugs);
     }
 
     public function test_city_sections_build_leaderboard_for_selected_city_only(): void

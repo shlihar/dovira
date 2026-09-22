@@ -16,7 +16,7 @@ class HomePageDataService
 {
     public const CACHE_TTL_SECONDS = 21600;
 
-    public const CACHE_VERSION = 'v7';
+    public const CACHE_VERSION = 'v8';
 
     private const BEST_RATING_PRIOR_WEIGHT = 8;
 
@@ -374,8 +374,8 @@ class HomePageDataService
         }
 
         return Cache::remember(
-            // v7: окремий міський лідерборд «Хто найкращий» тільки з реальними лого.
-            'home:city-sections:v7:'.mb_strtolower($canonicalCity),
+            // v8: лідерборд без фільтра за наявністю лого.
+            'home:city-sections:v8:'.mb_strtolower($canonicalCity),
             now()->addMinutes(30),
             function () use ($canonicalCity): array {
                 $globalRatingBaseline = $this->globalRatingBaseline();
@@ -719,66 +719,72 @@ class HomePageDataService
      */
     private function buildLatestReviews(?callable $profileFilter = null): array
     {
-        return ProfileReview::query()
-            ->select([
-                'id',
-                'profile_id',
-                'user_id',
-                'author_name',
-                'external_review_author_avatar_url',
-                'rating',
-                'body',
-                'published_at',
-            ])
-            ->with([
-                'profile' => fn ($profileQuery) => $profileQuery
-                    ->select([
-                        'profiles.id',
-                        'profiles.slug',
-                        'profiles.name',
-                        'profiles.logo_url',
-                        'profiles.website',
-                        'profiles.is_pro',
-                        'profiles.city',
-                    ])
-                    ->where('status', 'active')
-                    ->where('is_published', true)
-                    ->where('show_in_catalog', true)
-                    ->with(['categories' => fn ($categories) => $categories
-                        ->select('categories.id', 'categories.name')
-                        ->orderByDesc('profile_category.is_primary')]),
-                'author:id,avatar_url',
-            ])
-            ->whereHas('profile', function ($profileQuery) use ($profileFilter): void {
-                $profileQuery
-                    ->where('status', 'active')
-                    ->where('is_published', true)
-                    ->where('show_in_catalog', true);
-                if ($profileFilter !== null) {
-                    $profileFilter($profileQuery);
-                }
-            })
-            ->where('status', 'published')
-            ->whereNotExists(function ($query): void {
-                $query
-                    ->selectRaw('1')
-                    ->from('profile_reviews as newer_reviews')
-                    ->whereColumn('newer_reviews.profile_id', 'profile_reviews.profile_id')
-                    ->where('newer_reviews.status', 'published')
-                    ->where(function ($newerQuery): void {
-                        $newerQuery
-                            ->whereColumn('newer_reviews.published_at', '>', 'profile_reviews.published_at')
-                            ->orWhere(function ($sameMomentQuery): void {
-                                $sameMomentQuery
-                                    ->whereColumn('newer_reviews.published_at', 'profile_reviews.published_at')
-                                    ->whereColumn('newer_reviews.id', '>', 'profile_reviews.id');
-                            });
-                    });
-            })
-            ->latest('published_at')
-            ->latest('id')
-            ->take(self::LATEST_REVIEWS_LIMIT)
-            ->get()
+        $limit = self::LATEST_REVIEWS_LIMIT;
+
+        // Беремо пул найсвіжіших відгуків і лишаємо по одному на профіль уже в
+        // PHP. Раніше «найсвіжіший відгук кожного профілю» рахувався корельованим
+        // NOT EXISTS по 720 тис. рядків — на добірці «відгуки міста» запит тривав
+        // ~19 с і потрапляв у лог повільних запитів. Пул читається по індексу
+        // profile_reviews_home_latest_idx (status, published_at, id) і має розмір 10×ліміту, тож зупиняється
+        // щойно набере потрібну кількість.
+        $pool = function (int $take) use ($profileFilter) {
+            return ProfileReview::query()
+                ->select([
+                    'id',
+                    'profile_id',
+                    'user_id',
+                    'author_name',
+                    'external_review_author_avatar_url',
+                    'rating',
+                    'body',
+                    'published_at',
+                ])
+                ->whereHas('profile', function ($profileQuery) use ($profileFilter): void {
+                    $profileQuery
+                        ->where('status', 'active')
+                        ->where('is_published', true)
+                        ->where('show_in_catalog', true);
+                    if ($profileFilter !== null) {
+                        $profileFilter($profileQuery);
+                    }
+                })
+                ->where('status', 'published')
+                ->latest('published_at')
+                ->latest('id')
+                ->take($take)
+                ->get();
+        };
+
+        $reviews = $pool($limit * 10)->unique('profile_id')->take($limit)->values();
+        // Рідкісний випадок: серед найсвіжіших переважає кілька профілів —
+        // розширюємо вікно один раз.
+        if ($reviews->count() < $limit) {
+            $reviews = $pool($limit * 150)->unique('profile_id')->take($limit)->values();
+        }
+
+        // Звʼязки вантажимо лише для відібраних карток, а не для всього пулу.
+        $reviews->load([
+            'profile' => fn ($profileQuery) => $profileQuery
+                ->select([
+                    'profiles.id',
+                    'profiles.slug',
+                    'profiles.name',
+                    'profiles.logo_url',
+                    'profiles.website',
+                    'profiles.is_pro',
+                    'profiles.city',
+                ])
+                // Без цього кожна картка робила окремий EXISTS по pro_subscriptions
+                // (12 зайвих запитів на блок «свіжі відгуки»).
+                ->withProSubscriptionFlags()
+                ->with(['categories' => fn ($categories) => $categories
+                    ->select('categories.id', 'categories.name')
+                    ->orderByDesc('profile_category.is_primary')]),
+            'author:id,avatar_url',
+        ]);
+
+        return $reviews
+            ->filter(fn (ProfileReview $review) => $review->profile !== null)
             ->map(fn (ProfileReview $review) => $this->mapReviewCard($review))
             ->values()
             ->all();
@@ -814,8 +820,7 @@ class HomePageDataService
             'text' => $review->body,
             'published_at' => $review->published_at?->toIso8601String(),
             'profile_name' => $profile->name,
-            // Сайт — контактна дія, публічно доступна лише PRO-профілям.
-            'profile_site' => $profile->is_pro ? WebsiteUrl::display($profile->website) : null,
+            'profile_site' => $profile->hasActiveProSubscription() ? WebsiteUrl::display($profile->website) : null,
             'profile_city' => trim((string) $profile->city) ?: null,
             'profile_category' => $profile->relationLoaded('categories')
                 ? ($profile->categories->first()?->name ?: null)
@@ -836,49 +841,27 @@ class HomePageDataService
      */
     private function buildFreshReviews(): array
     {
-        // Перші з робочим лого; якщо таких бракує — добираємо без лого,
-        // щоб секція не лишалась порожньою.
-        $pick = function (Builder $query, array $usedProfileIds, int $count) {
-            $picked = [];
-            $fallback = [];
-            foreach ($query->take(80)->get() as $review) {
-                if (in_array((int) $review->profile_id, $usedProfileIds, true)) {
-                    continue;
-                }
-                $card = $this->mapReviewCard($review);
-                if (! empty($card['profile_logo_url'])) {
-                    $picked[] = $card;
-                    $usedProfileIds[] = (int) $review->profile_id;
-                    if (count($picked) === $count) {
-                        break;
-                    }
-                } elseif (count($fallback) < $count) {
-                    $fallback[] = ['card' => $card, 'profile_id' => (int) $review->profile_id];
-                }
-            }
-            foreach ($fallback as $item) {
-                if (count($picked) >= $count) {
-                    break;
-                }
-                if (in_array($item['profile_id'], $usedProfileIds, true)) {
-                    continue;
-                }
-                $picked[] = $item['card'];
-                $usedProfileIds[] = $item['profile_id'];
+        // Просто останні відгуки — будь-які оцінки, без поділу на позитив/негатив.
+        // Тримаємо лише по одному відгуку на профіль, щоб не показувати 3 картки
+        // однієї клініки поспіль (freshReviewQuery уже сортує за свіжістю).
+        $cards = [];
+        $usedProfileIds = [];
+
+        foreach ($this->freshReviewQuery()->take(60)->get() as $review) {
+            $profileId = (int) $review->profile_id;
+            if (in_array($profileId, $usedProfileIds, true)) {
+                continue;
             }
 
-            return [$picked, $usedProfileIds];
-        };
+            $cards[] = $this->mapReviewCard($review);
+            $usedProfileIds[] = $profileId;
 
-        [$negatives, $used] = $pick($this->freshReviewQuery()->where('rating', '<', 4), [], 1);
-        [$positives] = $pick($this->freshReviewQuery()->where('rating', '>=', 4), $used, 2);
+            if (count($cards) >= 3) {
+                break;
+            }
+        }
 
-        // Ритм: позитив → негатив → позитив.
-        return array_values(array_filter([
-            $positives[0] ?? null,
-            $negatives[0] ?? null,
-            $positives[1] ?? null,
-        ]));
+        return $cards;
     }
 
     /**
@@ -908,7 +891,22 @@ class HomePageDataService
      */
     private function buildLeaderboard(?callable $profileFilter = null): array
     {
-        $subcategories = Category::query()
+        $forcedCategoryIdsQuery = Profile::query()
+            ->join('profile_category', 'profile_category.profile_id', '=', 'profiles.id')
+            ->where('profiles.status', 'active')
+            ->where('profiles.is_published', true)
+            ->where('profiles.show_in_catalog', true)
+            ->where('profiles.rating_placement', 'force');
+
+        if ($profileFilter !== null) {
+            $profileFilter($forcedCategoryIdsQuery);
+        }
+
+        $forcedCategoryIds = $forcedCategoryIdsQuery
+            ->pluck('profile_category.category_id')
+            ->all();
+
+        $popularSubcategories = Category::query()
             ->whereNotNull('parent_id')
             ->where('is_active', true)
             ->where('show_in_catalog', true)
@@ -917,20 +915,32 @@ class HomePageDataService
                     $profiles
                         ->where('status', 'active')
                         ->where('is_published', true)
-                        ->where('show_in_catalog', true);
-                    $this->filterToRealLogoSource($profiles);
+                        ->where('show_in_catalog', true)
+                        ->where(function (Builder $query): void {
+                            $query->whereNull('rating_placement')->orWhere('rating_placement', '!=', 'hide');
+                        })
+                        ->where('reviews_count', '>=', 1);
                     if ($profileFilter !== null) {
                         $profileFilter($profiles);
                     }
                 },
             ])
-            // Розширюємо пул кандидатів (найнаповненіші за кількістю профілів з
-            // логотипом — companies_count рахує лише такі, filterToRealLogoSource),
-            // щоб у рейтинг потрапляли не лише адвокати/автошколи. Порожні/тонкі
-            // категорії відсіє фільтр «≥3 рядки» нижче.
             ->orderByDesc('companies_count')
-            ->take(24)
+            ->orderBy('name')
             ->get()
+            ->filter(fn (Category $category) => (int) $category->companies_count > 0)
+            ->values();
+
+        $forcedSubcategories = Category::query()
+            ->whereNotNull('parent_id')
+            ->where('is_active', true)
+            ->where('show_in_catalog', true)
+            ->whereIn('id', $forcedCategoryIds)
+            ->get();
+
+        $subcategories = $popularSubcategories
+            ->merge($forcedSubcategories)
+            ->unique('id')
             ->sortBy(fn (Category $category) => mb_strtolower($category->name) === 'адвокати' ? 0 : 1)
             ->values();
 
@@ -941,12 +951,6 @@ class HomePageDataService
 
         return $subcategories
             ->map(function (Category $category) use ($globalAvg, $profileFilter): array {
-                // Беремо широкий зріз (SQL-фільтр лишає й профілі з зовнішнім/
-                // згенерованим лого, які realProfileLogoUrl нижче відсіє). Малий
-                // ліміт (було 30) обрізав справжні лого ще до фільтра — тому
-                // категорії з рідкими лого не набирали п'єдесталу. Ідемо в порядку
-                // рейтингу й зупиняємось на 5-му профілі зі справжнім лого, щоб не
-                // ганяти realProfileLogoUrl (генерація thumbnail-ів) по всьому зрізу.
                 $candidates = Profile::query()
                     ->select([
                         'profiles.id',
@@ -958,35 +962,33 @@ class HomePageDataService
                         'profiles.reviews_count',
                         'profiles.is_verified',
                         'profiles.dovira_recommendation_status',
+                        'profiles.rating_placement',
+                        'profiles.rating_priority',
                     ])
                     ->where('status', 'active')
                     ->where('is_published', true)
                     ->where('show_in_catalog', true)
-                    // Поріг знижено з 3 до 1: логотип лишається обов'язковим
-                    // (realProfileLogoUrl відсіює безлогові), а поправка на кількість
-                    // відгуків (Bayesian нижче) сама притискає профілі з малою базою
-                    // вниз. Це відкриває більше категорій.
+                    ->where(function (Builder $query): void {
+                        $query->whereNull('rating_placement')->orWhere('rating_placement', '!=', 'hide');
+                    })
                     ->where('reviews_count', '>=', 1)
                     ->whereHas('categories', fn ($categories) => $categories->where('categories.id', $category->id))
-                    ->tap(fn (Builder $query) => $this->filterToRealLogoSource($query))
                     ->when($profileFilter !== null, fn (Builder $query) => $profileFilter($query))
+                    ->orderByRaw("CASE WHEN rating_placement = 'force' THEN 1 ELSE 0 END DESC")
+                    ->orderByDesc('rating_priority')
                     ->orderByRaw(
                         '(reviews_count / (reviews_count + 10)) * rating_avg + (10 / (reviews_count + 10)) * ? DESC',
                         [$globalAvg]
                     )
                     ->orderByDesc('reviews_count')
-                    // 200 — компроміс покриття/швидкості: зрізає рядки, що йдуть у
-                    // realProfileLogoUrl, але лишає ті самі 7 табів. Після міграції
-                    // на зовнішні URL (лого завжди резолвиться) вистачить і ~30.
+                    ->orderByDesc('rating_avg')
+                    ->orderBy('id')
                     ->take(200)
                     ->get();
 
                 $rows = [];
                 foreach ($candidates as $profile) {
-                    $logoUrl = MediaUrl::realProfileLogoUrl($profile, 96);
-                    if ($logoUrl === null) {
-                        continue;
-                    }
+                    $logoUrl = MediaUrl::profileLogoUrl($profile, 96);
 
                     $initials = collect(preg_split('/\s+/', trim($profile->name)))
                         ->filter()
@@ -1006,7 +1008,7 @@ class HomePageDataService
                         'recommended' => $profile->dovira_recommendation_status === 'recommend',
                     ];
 
-                    if (count($rows) >= 5) {
+                    if (count($rows) >= 10) {
                         break;
                     }
                 }
@@ -1017,10 +1019,7 @@ class HomePageDataService
                     'rows' => $rows,
                 ];
             })
-            // Таб без повного п'єдесталу — не рейтинг; такі ховаємо.
-            ->filter(fn (array $tab) => count($tab['rows']) >= 3)
-            // Максимум табів у секції: адвокати першими, далі — за наповненістю.
-            ->take(8)
+            ->filter(fn (array $tab) => count($tab['rows']) >= 1)
             ->values()
             ->all();
     }
@@ -1233,6 +1232,7 @@ class HomePageDataService
         $recommendationStatus = $profile->dovira_recommendation_status ?? null;
 
         $logoImageUrl = MediaUrl::profileLogoUrl($profile, 160);
+        $isPro = $profile->hasActiveProSubscription();
 
         return [
             'slug' => $profile->slug,
@@ -1244,7 +1244,7 @@ class HomePageDataService
             'logo_url' => $logoImageUrl,
             'logo_image_url' => $logoImageUrl,
             'initials' => $initials ?: 'DV',
-            'website' => $profile->is_pro ? $profile->website : null,
+            'website' => $profile->website,
             'city' => $profile->city,
             'address' => $profile->address,
             'about' => $profile->description,
@@ -1252,7 +1252,7 @@ class HomePageDataService
             'reviews_count' => (int) $profile->reviews_count,
             'verified' => (bool) $profile->is_verified,
             'owner_verified' => (bool) ($profile->is_owner_verified || ($profile->has_approved_claim ?? false) || $profile->owner_user_id),
-            'pro' => (bool) $profile->is_pro,
+            'pro' => $isPro,
             'category_slug' => $categorySlug,
             'category_label' => $primaryCategory?->name ?: 'Категорія',
             'category_icon' => $primaryCategory?->icon

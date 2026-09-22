@@ -274,6 +274,45 @@ PROMPT;
             throw new \RuntimeException('OpenAI response JSON is invalid.');
         }
 
+        return $this->buildAnalysisFromDecoded($decoded);
+    }
+
+    /**
+     * Записує вже згенерований (зовні) аналіз у профіль без звернення до API.
+     * Формат $decoded — той самий json_schema, що й у OpenAI-відповіді:
+     * {summary: [{type: pos|neg|tip, text}], people: [{name, role, text}], sentiment}.
+     *
+     * @param  array<string, mixed>  $decoded
+     */
+    public function storeGeneratedAnalysis(int $profileId, array $decoded, string $provider = 'claude'): bool
+    {
+        $profile = Profile::query()->find($profileId);
+        if (! $profile) {
+            return false;
+        }
+
+        $analysis = $this->buildAnalysisFromDecoded($decoded);
+        if ($analysis === null) {
+            return false;
+        }
+
+        $suggested = is_array($profile->ai_suggested_data) ? $profile->ai_suggested_data : [];
+        $suggested['review_analysis'] = array_merge($analysis, [
+            'provider' => $provider,
+            'generated_at' => now()->toIso8601String(),
+        ]);
+
+        $profile->forceFill(['ai_suggested_data' => $suggested])->save();
+
+        return true;
+    }
+
+    /**
+     * @param  array<string, mixed>  $decoded
+     * @return array<string, mixed>|null
+     */
+    private function buildAnalysisFromDecoded(array $decoded): ?array
+    {
         $summaryEntries = $this->normalizeAiSummaryEntries((array) ($decoded['summary'] ?? []));
         $people = $this->normalizeAiPeople((array) ($decoded['people'] ?? []));
         $positivePrimary = $summaryEntries['positive'][0] ?? '';

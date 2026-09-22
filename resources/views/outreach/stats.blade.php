@@ -170,6 +170,7 @@
                     @endforeach
                 </select>
             </form>
+            <a class="navlink" href="{{ url('/rozsylka/email-stats') }}{{ $campaign ? '?'.http_build_query(['campaign' => $campaign]) : '' }}">Email</a>
             <a class="navlink" href="{{ route('outreach') }}">← до розсилки</a>
         </div>
     </div>
@@ -244,6 +245,39 @@
                 <p class="dropnote">
                     Кожен етап — скільки різних адвокатів його досягли (% від тих, хто перейшов).
                     Переглянули профіль, але не клікнули контакт: <b class="num">{{ $fmt($lawyersOpened - $lawyersEngaged) }}</b>.
+                </p>
+            </div>
+
+            {{-- По каналах: Telegram (вручну) / Email / SMS --}}
+            <div class="card">
+                <h2>Як спрацював кожен канал</h2>
+                <div style="overflow-x:auto">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Канал</th>
+                                <th>Переходів усього</th>
+                                <th>Унікальних людей</th>
+                                <th>Адвокатів</th>
+                                <th>Клікнули контакт</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($byChannel as $ch)
+                                <tr>
+                                    <td><b>{{ $ch['label'] }}</b></td>
+                                    <td class="num">{{ $fmt($ch['views']) }}</td>
+                                    <td class="num">{{ $fmt($ch['people']) }}@if ($ch['extra'] > 0) <span style="color:var(--ink-3);font-size:11px">(+{{ $fmt($ch['extra']) }} понад адвокатів)</span>@endif</td>
+                                    <td class="num">{{ $fmt($ch['lawyers']) }}</td>
+                                    <td class="num">{{ $fmt($ch['engaged']) }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+                <p class="dropnote">
+                    <b>Telegram (вручну)</b> — переходи з посилань, які ти вставляєш зі сторінки розсилки; <b>Email</b> і <b>SMS</b> — з відповідних кампаній.
+                    «Переходів усього» рахує й повторні відкриття, і переслані адвокатом лінки. «Унікальних людей» — різні відвідувачі (distinct visitor). Якщо людей більше, ніж адвокатів — посилання поширюють далі (пересилають).
                 </p>
             </div>
 

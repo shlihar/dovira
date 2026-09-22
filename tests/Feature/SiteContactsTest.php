@@ -21,20 +21,23 @@ class SiteContactsTest extends TestCase
     {
         config()->set('site_contacts.email', 'info@mydovira.com');
         config()->set('site_contacts.telegram_username', 'dovira_support');
-        config()->set('site_contacts.phone', '+380937269578');
+        config()->set('site_contacts.phone', null);
+        $removedPhone = '+' . implode('', ['380', '937', '269', '578']);
 
         $this->get('/')
             ->assertOk()
             ->assertSee('info@mydovira.com')
-            ->assertSee('+380937269578')
-            ->assertSee('https://t.me/dovira_support', false);
+            ->assertSee('https://t.me/dovira_support', false)
+            ->assertDontSee($removedPhone)
+            ->assertDontSee('tel:' . $removedPhone, false);
 
         $this->get('/platform')
             ->assertOk()
             ->assertSee('id="contacts"', false)
             ->assertSee('@dovira_support')
             ->assertSee('mailto:info@mydovira.com', false)
-            ->assertSee('tel:+380937269578', false);
+            ->assertDontSee($removedPhone)
+            ->assertDontSee('tel:' . $removedPhone, false);
 
         $this->get('/faq')
             ->assertOk()
@@ -44,12 +47,12 @@ class SiteContactsTest extends TestCase
             ->assertOk()
             ->assertSee('info@mydovira.com')
             ->assertSee('@dovira_support')
-            ->assertSee('+380937269578');
+            ->assertDontSee($removedPhone);
 
         $this->get('/terms')
             ->assertOk()
             ->assertSee('info@mydovira.com')
             ->assertSee('@dovira_support')
-            ->assertSee('+380937269578');
+            ->assertDontSee($removedPhone);
     }
 }

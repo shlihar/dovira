@@ -1,0 +1,30 @@
+[
+  {
+    "url": "https://mydovira.com/catalog/stomatologiyi/kyiv",
+    "status": 200,
+    "robots": [
+      "<meta name=\"robots\" content=\"noindex, follow\">"
+    ]
+  },
+  {
+    "url": "https://mydovira.com/catalog/restorani/lviv",
+    "status": 200,
+    "robots": [
+      "<meta name=\"robots\" content=\"noindex, follow\">"
+    ]
+  },
+  {
+    "url": "https://mydovira.com/catalog/catalog-yurydychni-poslugy/kyiv",
+    "status": 200,
+    "robots": [
+      "<meta name=\"robots\" content=\"index, follow, max-image-preview:large, max-snippet:-1\">"
+    ]
+  },
+  {
+    "url": "https://mydovira.com/catalog/advokaty",
+    "status": 200,
+    "robots": [
+      "<meta name=\"robots\" content=\"noindex, follow\">"
+    ]
+  }
+]

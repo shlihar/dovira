@@ -11,9 +11,13 @@ use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
 /**
- * Тригер-лист власнику профілю про нову заявку клієнта.
- * Контакти клієнта показуємо лише PRO-власникам — для решти телефон
- * маскується так само, як у кабінеті (розблокування — аргумент PRO).
+ * Тригер-лист про нову заявку клієнта.
+ *   $forOwner = true  → власнику заявленого профілю (контакти видно лише PRO)
+ *   $forOwner = false → холодний аутріч на НЕзаявлений профіль
+ *                       («вам залишили заявку — підтвердіть профіль безкоштовно,
+ *                        щоб побачити контакти клієнта»)
+ * Контакти клієнта показуємо лише PRO-власникам; для решти телефон маскується
+ * так само, як у кабінеті (розблокування — аргумент PRO).
  */
 class NewLeadAlert extends Mailable
 {
@@ -24,14 +28,18 @@ class NewLeadAlert extends Mailable
         public ProfileLead $lead,
         public bool $contactsUnlocked,
         public string $ctaUrl,
+        public bool $forOwner = true,
+        public ?string $unsubscribeUrl = null,
     ) {
     }
 
     public function envelope(): Envelope
     {
-        return new Envelope(
-            subject: 'Нова заявка від клієнта — ' . $this->profile->name,
-        );
+        $subject = $this->forOwner
+            ? 'Нова заявка від клієнта — ' . $this->profile->name
+            : 'Вам залишили заявку на Dovira — ' . $this->profile->name;
+
+        return new Envelope(subject: $subject);
     }
 
     public function content(): Content
@@ -47,7 +55,9 @@ class NewLeadAlert extends Mailable
                 'leadPhone' => $this->contactsUnlocked ? $phone : $maskedPhone,
                 'leadMessage' => \Illuminate\Support\Str::limit(trim((string) $this->lead->message), 400),
                 'contactsUnlocked' => $this->contactsUnlocked,
+                'forOwner' => $this->forOwner,
                 'ctaUrl' => $this->ctaUrl,
+                'unsubscribeUrl' => $this->unsubscribeUrl,
             ],
         );
     }

@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Profiles\Schemas;
 use App\Models\Category;
 use App\Models\CategoryService;
 use App\Support\CategoryHierarchy;
+use App\Support\RegionCityDirectory;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Repeater;
@@ -84,6 +85,20 @@ class ProfileForm
                                             ->helperText('Показується на сторінці профілю замість «Коротко про спеціаліста». Підтримує **жирний**, заголовки і списки markdown. Порожнє — блок прихований. Після ручного редагування джерело стає «admin».')
                                             ->rows(14)
                                             ->columnSpanFull(),
+                                        Select::make('dossier_verdict')
+                                            ->label('Колір верхньої плашки досьє')
+                                            ->options([
+                                                'green' => 'Зелений — записи чисті',
+                                                'yellow' => 'Жовтий — є що перевірити',
+                                                'red' => 'Червоний — є критичні факти',
+                                            ])
+                                            ->placeholder('Без плашки')
+                                            ->native(false),
+                                        Textarea::make('dossier_verdict_note')
+                                            ->label('Висновок у верхній плашці')
+                                            ->helperText('Короткий текст поруч із кольоровим висновком у блоці досьє. Редагується окремо від markdown-досьє.')
+                                            ->rows(3)
+                                            ->columnSpanFull(),
                                     ])
                                     ->columns(2),
 
@@ -119,7 +134,13 @@ class ProfileForm
                                             ->placeholder('+380 67 123 45 67, +380 50 765 43 21')
                                             ->helperText('Можна кілька номерів — через кому.'),
                                         TextInput::make('address')->label('Адреса'),
-                                        TextInput::make('city')->label('Місто'),
+                                        Select::make('city')
+                                            ->label('Місто')
+                                            ->options(fn () => RegionCityDirectory::registeredCityOptions())
+                                            ->searchable()
+                                            ->preload()
+                                            ->native(false)
+                                            ->helperText('Тільки міста з реєстру. Старі варіанти назв нормалізуються під час аудиту.'),
                                         Select::make('region_id')
                                             ->label('Регіон')
                                             ->relationship('region', 'name')
@@ -223,11 +244,22 @@ class ProfileForm
                                                             ])
                                                             ->placeholder('Не вказано')
                                                             ->native(false),
-                                                        Toggle::make('is_owner_verified')->label('Синя галочка'),
+                                                        Toggle::make('is_owner_verified')->label('Права власника підтверджені'),
                                                         Toggle::make('is_pro')->label('PRO'),
+                                                        TextInput::make('pro_discount_percent')
+                                                            ->label('PRO знижка, %')
+                                                            ->numeric()
+                                                            ->minValue(0)
+                                                            ->maxValue(90)
+                                                            ->step(1)
+                                                            // Колонка NOT NULL DEFAULT 0 — порожнє поле не має слати null
+                                                            // (інакше падає створення профілю).
+                                                            ->default(0)
+                                                            ->dehydrateStateUsing(fn ($state) => (int) ($state ?? 0))
+                                                            ->helperText('Наприклад 20 = рахунок monopay буде зі знижкою −20%.'),
                                                         Toggle::make('is_featured')->label('Featured'),
                                                         Placeholder::make('owner_verified_status')
-                                                            ->label('Синя галочка')
+                                                            ->label('Права власника')
                                                             ->content(function ($record): string {
                                                                 if (! $record) {
                                                                     return '—';
@@ -241,7 +273,7 @@ class ProfileForm
                                                                     ? 'Підтверджено власником / офіційним представником'
                                                                     : 'Немає підтвердженого володіння профілем';
                                                             })
-                                                            ->helperText('Синя галочка означає підтверджену особу або офіційне володіння профілем.'),
+                                                            ->helperText('Це означає, що користувач довів право керувати профілем або був підтверджений адміном.'),
                                                         Select::make('status')
                                                             ->label('Статус видимості')
                                                             ->options([
@@ -258,6 +290,21 @@ class ProfileForm
                                                             ->label('Пріоритет сортування')
                                                             ->numeric()
                                                             ->default(0),
+                                                        Select::make('rating_placement')
+                                                            ->label('Показ у рейтингах')
+                                                            ->options([
+                                                                'auto' => 'Автоматично',
+                                                                'force' => 'Поставити вручну',
+                                                                'hide' => 'Сховати з рейтингів',
+                                                            ])
+                                                            ->default('auto')
+                                                            ->native(false)
+                                                            ->helperText('Впливає на блок “Хто найкращий” і сторінки “Найкращі ...”.'),
+                                                        TextInput::make('rating_priority')
+                                                            ->label('Пріоритет у рейтингах')
+                                                            ->numeric()
+                                                            ->default(0)
+                                                            ->helperText('Більше число = вище серед ручно виставлених профілів.'),
                                                     ]),
                                                 Section::make('SEO')
                                                     ->compact()

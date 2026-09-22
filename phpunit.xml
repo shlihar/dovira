@@ -30,6 +30,8 @@
         <env name="SESSION_DRIVER" value="array"/>
         <env name="TELEGRAM_BOT_TOKEN" value=""/>
         <env name="TELEGRAM_ADMIN_CHAT_ID" value=""/>
+        <env name="TURNSTILE_SITE_KEY" value=""/>
+        <env name="TURNSTILE_SECRET_KEY" value=""/>
         <env name="PULSE_ENABLED" value="false"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
         <env name="NIGHTWATCH_ENABLED" value="false"/>

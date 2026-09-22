@@ -2,6 +2,8 @@
 
 namespace App\Services\Payments;
 
+use App\Mail\ProSubscriptionActivated;
+use App\Models\EmailLog;
 use App\Models\PaymentOrder;
 use App\Models\Profile;
 use App\Models\ProSubscription;
@@ -9,6 +11,8 @@ use App\Services\Notifications\TelegramAdminNotifier;
 use App\Services\ProProfileNotificationService;
 use App\Support\ProPricing;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 
 class PaymentFulfillmentService
@@ -48,13 +52,14 @@ class PaymentFulfillmentService
             return;
         }
 
-        // Оплатити може власник або заявник (потік «оплата до підтвердження»):
-        // заявка на привʼязку розглядається лише після активації підписки.
+        // Оплатити може власник або заявник незайнятого профілю. У другому
+        // випадку PRO вже оплачений, але керування відкриється після апруву прав.
         $isOwner = (int) $profile->owner_user_id === (int) $order->user_id;
         $isClaimant = $profile->owner_user_id === null
             && \App\Models\ProfileClaim::query()
                 ->where('profile_id', $profile->id)
                 ->where('user_id', $order->user_id)
+                ->whereIn('status', ['pending', 'need_more_info'])
                 ->exists();
 
         if (! $isOwner && ! $isClaimant) {
@@ -77,10 +82,19 @@ class PaymentFulfillmentService
             ? $subscription->ends_at->copy()
             : $now->copy();
 
-        $configuredAmount = (int) config('payments.pro.amount', ProPricing::CURRENT_AMOUNT);
+        $configuredAmount = (int) ($order->meta['price_uah'] ?? config('payments.pro.amount', ProPricing::CURRENT_AMOUNT));
         $lockedAmount = $isActive && (int) $subscription->price_monthly > 0
             ? (int) $subscription->price_monthly
             : $configuredAmount;
+
+        // Токен збереженої картки з відповіді monopay (вебхук або статус
+        // інвойса) — вмикає автопродовження. Успішний платіж скидає лічильник
+        // невдалих спроб списання.
+        $meta = (array) ($order->meta ?? []);
+        $walletData = (array) (data_get($meta, 'monopay_webhook.walletData')
+            ?: data_get($meta, 'monopay_status.walletData')
+            ?: []);
+        $cardToken = trim((string) ($walletData['cardToken'] ?? ''));
 
         $subscription->fill([
             'plan' => 'pro',
@@ -92,6 +106,13 @@ class PaymentFulfillmentService
             'started_at' => $isActive && $subscription->started_at ? $subscription->started_at : $now,
             'ends_at' => $billingAnchor->copy()->addMonths(ProPricing::PERIOD_MONTHS),
             'canceled_at' => null,
+            'renew_attempts' => 0,
+            'last_renew_failed_at' => null,
+            ...($cardToken !== '' ? [
+                'auto_renew' => true,
+                'monopay_card_token' => $cardToken,
+                'monopay_wallet_id' => (string) ($walletData['walletId'] ?? ($meta['monopay_wallet_id'] ?? '')),
+            ] : []),
         ])->save();
 
         $profile->forceFill(['is_pro' => true])->save();
@@ -141,6 +162,50 @@ class PaymentFulfillmentService
                 'action_url' => route('pro.account', ['tab' => 'billing', 'profile' => $profile->id]),
             ]
         );
+
+        $this->sendActivationEmail($profile, $subscription, $lockedAmount, $isActive);
+    }
+
+    /**
+     * Підтвердження оплати на пошту власника. Помилка листа не має валити
+     * фулфілмент — гроші вже списані, підписка вже активна.
+     */
+    private function sendActivationEmail(
+        Profile $profile,
+        ProSubscription $subscription,
+        int $amount,
+        bool $isRenewal,
+    ): void {
+        $profile->loadMissing('owner');
+        $email = trim((string) ($profile->owner?->email ?? ''));
+
+        if ($email === '' || ! filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return;
+        }
+
+        $status = 'sent';
+        $error = null;
+        $mailable = new ProSubscriptionActivated($profile, $subscription, $amount, $isRenewal);
+
+        try {
+            Mail::to($email)->send($mailable);
+        } catch (\Throwable $e) {
+            $status = 'failed';
+            $error = $e->getMessage();
+            Log::warning('PRO activation email failed to send.', [
+                'profile_id' => $profile->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+
+        rescue(fn () => EmailLog::create([
+            'user_id' => $profile->owner_user_id,
+            'to_email' => $email,
+            'subject' => $mailable->envelope()->subject,
+            'status' => $status,
+            'error_message' => $error,
+            'sent_at' => $status === 'sent' ? now() : null,
+        ]));
     }
 
     /**

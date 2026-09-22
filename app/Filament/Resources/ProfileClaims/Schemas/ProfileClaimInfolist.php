@@ -39,7 +39,14 @@ class ProfileClaimInfolist
                             ->placeholder('—')
                             ->columnSpanFull(),
                         TextEntry::make('note')->label('Коментар заявника')->columnSpanFull()->placeholder('—'),
-                        IconEntry::make('profile.is_owner_verified')->label('Профіль уже verified')->boolean(),
+                        IconEntry::make('owner_verified_status')
+                            ->label('Права власника підтверджені')
+                            ->boolean()
+                            ->state(fn ($record) => (bool) (
+                                $record->status === 'approved'
+                                || $record->profile?->is_owner_verified
+                                || $record->profile?->owner_user_id
+                            )),
                         TextEntry::make('created_at')->label('Створено')->dateTime('d.m.Y H:i'),
                         TextEntry::make('reviewer.name')->label('Перевірив')->placeholder('—'),
                         TextEntry::make('reviewed_at')->label('Розглянуто')->dateTime('d.m.Y H:i')->placeholder('—'),

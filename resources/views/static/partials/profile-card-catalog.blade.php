@@ -34,7 +34,11 @@
     ])->filter()->implode(', ');
     $locationText = $locationText !== '' ? $locationText : ((string) ($profile['address'] ?? ''));
 
+    // Картку викликають з двох джерел: mapCatalogProfileCard() дає масив
+    // назв, а дані повної сторінки — масив обʼєктів із цінами. Приймаємо
+    // обидва формати, щоб рядок нижче не падав на «Array to string».
     $serviceChips = collect($profile['services'] ?? [])
+        ->map(fn ($s) => is_array($s) ? ($s['name'] ?? '') : $s)
         ->map(fn ($s) => trim((string) $s))
         ->filter()
         ->unique()
@@ -52,7 +56,8 @@
         ? 'dovira-catalog-card--recommended'
         : (!empty($profile['not_recommended']) ? 'dovira-catalog-card--not-recommended' : '');
 @endphp
-<article class="dovira-catalog-card {{ $trustModifierClass }} {{ (!empty($profile['verified']) || !empty($profile['pro'])) ? 'review-list-card--priority' : '' }}">
+{{-- data-imp: показ картки трекається батчем (impressions.js). --}}
+<article class="dovira-catalog-card {{ $trustModifierClass }} {{ (!empty($profile['verified']) || !empty($profile['pro'])) ? 'review-list-card--priority' : '' }}" data-imp="{{ $profile['slug'] ?? '' }}"@if(!empty($profile['promoted'])) data-imp-promoted="1"@endif>
     <div class="dovira-catalog-card__identity">
         <div class="dovira-catalog-card__logo-wrap">
             <a href="{{ $profileLink }}" class="dovira-catalog-card__logo entity-logo review-list-card__logo {{ $logoUrl === '' ? 'has-random-gradient' : '' }}" data-image-fallback-shell data-seed="{{ $name }}">
@@ -78,6 +83,11 @@
         <div class="dovira-catalog-card__main">
             <h3 class="dovira-catalog-card__name">
                 <a href="{{ $profileLink }}">{{ $name }}</a>
+                @if (!empty($profile['pro']))
+                    {{-- Платне розміщення має бути видимим: профіль із підпискою
+                         стоїть у видачі вище, і людина повинна це бачити. --}}
+                    <span class="dovira-catalog-card__pro" title="Профіль з підпискою PRO: розміщується вище у видачі">PRO</span>
+                @endif
             </h3>
 
             @if (!empty($profile['recommended']))
@@ -102,7 +112,7 @@
                     @if ($hasHalfStar)<i class="fa-solid fa-star-half-stroke"></i>@endif
                     @for ($i = 0; $i < $emptyStars; $i++)<i class="fa-regular fa-star"></i>@endfor
                 </span>
-                <span class="dovira-catalog-card__reviews-count">{{ $reviewsCount }} {{ $reviewsLabel }}</span>
+                <span class="dovira-catalog-card__reviews-count">{{ $reviewsCount }} {{ $reviewsLabel }}@if (!empty($profile['positive_percent'])) · {{ $profile['positive_percent'] }}% позитивних @endif</span>
             </div>
         @elseif ($reviewsCount > 0)
             {{-- Мало відгуків для чесного середнього — цифру не показуємо. --}}
@@ -133,6 +143,21 @@
             </span>
         @endif
 
+        @php
+            $cardDossierMeta = match ($profile['dossier_verdict'] ?? null) {
+                'green' => ['tone' => 'green', 'label' => 'Критичних сигналів у досьє немає'],
+                'yellow' => ['tone' => 'yellow', 'label' => 'У досьє є що перевірити'],
+                'red' => ['tone' => 'red', 'label' => 'У досьє є критичні факти'],
+                default => null,
+            };
+        @endphp
+        @if ($cardDossierMeta)
+            <p class="dovira-catalog-card__dossier dovira-catalog-card__dossier--{{ $cardDossierMeta['tone'] }}">
+                <span class="dovira-catalog-card__dossier-dot" aria-hidden="true"></span>
+                {{ $cardDossierMeta['label'] }}
+            </p>
+        @endif
+
         @if ($visibleServices->isNotEmpty())
             {{-- data-card-tags-source holds the full list for JS; JS measures
                  the row and decides at runtime how many actually fit (never
@@ -152,7 +177,7 @@
     </div>
 
     <div class="dovira-catalog-card__actions">
-        <a href="{{ $profileLink }}" class="dovira-catalog-card__profile-link">Переглянути профіль</a>
+        <a href="{{ $profileLink }}" class="dovira-catalog-card__profile-link">Перевірити репутацію →</a>
         <button type="button" class="dovira-catalog-card__save" data-favorite-toggle data-favorite-slug="{{ $profile['slug'] }}" aria-label="Зберегти профіль" aria-pressed="false">
             <i class="fa-regular fa-bookmark" aria-hidden="true"></i>
         </button>

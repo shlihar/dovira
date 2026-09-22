@@ -6,6 +6,7 @@ use App\Models\Profile;
 use App\Models\ProfileEvent;
 use App\Models\Category;
 use App\Support\CategoryHierarchy;
+use App\Support\ProfileRanking;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -14,6 +15,20 @@ use Illuminate\Support\Str;
 class ProfileAnalyticsService
 {
     public const EVENT_PROFILE_VIEW = 'profile_view';
+
+    /**
+     * Показ картки профілю поза його сторінкою: каталог, рейтинги, блок
+     * «Dovira рекомендує» на сторінках інших профілів, головна. Основа для
+     * майбутньої реклами (CPM/частота показів).
+     */
+    public const EVENT_CARD_IMPRESSION = 'card_impression';
+
+    /**
+     * Контекст показу картки, піднятої нагору підпискою. Пишеться в
+     * internal_source окремо від звичайного 'catalog' — це і є вимірюваний
+     * результат оплати: «вас показали стільки разів на платних позиціях».
+     */
+    public const CONTEXT_CATALOG_PROMOTED = 'catalog_promoted';
 
     public const WEBSITE_CLICK_EVENTS = [
         'website_click',
@@ -62,6 +77,62 @@ class ProfileAnalyticsService
         $cookie = (string) $request->cookie('dovira_visitor_id', '');
 
         return $cookie !== '' ? $cookie : (string) Str::uuid();
+    }
+
+    /**
+     * Батч-трекінг показів карток (свідомо НЕ через ALLOWED_EVENT_TYPES і
+     * одиночний /events — щоб покази не можна було слати поштучно). Дедуп:
+     * один показ профілю на відвідувача на годину, інакше прогортування
+     * каталогу туди-сюди роздуло б і таблицю подій, і цифри.
+     *
+     * @param  array<int, int>  $profileIds
+     * @return int скільки показів реально зараховано
+     */
+    public function trackImpressions(array $profileIds, array $meta): int
+    {
+        $profileIds = array_values(array_unique(array_filter(array_map('intval', $profileIds))));
+        if ($profileIds === []) {
+            return 0;
+        }
+
+        $visitorId = trim((string) ($meta['visitor_id'] ?? ''));
+
+        $alreadySeen = $visitorId === '' ? [] : ProfileEvent::query()
+            ->whereIn('profile_id', $profileIds)
+            ->where('event_type', self::EVENT_CARD_IMPRESSION)
+            ->where('visitor_id', $visitorId)
+            ->where('created_at', '>=', now()->subHour())
+            ->distinct()
+            ->pluck('profile_id')
+            ->all();
+
+        $newIds = array_values(array_diff($profileIds, array_map('intval', $alreadySeen)));
+        if ($newIds === []) {
+            return 0;
+        }
+
+        $now = now();
+        ProfileEvent::query()->insert(array_map(fn (int $profileId): array => [
+            'profile_id' => $profileId,
+            'user_id' => $meta['user_id'] ?? null,
+            'visitor_id' => $visitorId !== '' ? $visitorId : null,
+            'event_type' => self::EVENT_CARD_IMPRESSION,
+            'source' => $this->cleanNullable($meta['source'] ?? null),
+            // Контекст показу (catalog / rating / profile_related / home...):
+            // з нього потім видно, ДЕ саме картку бачать найчастіше.
+            'internal_source' => $this->cleanNullable($meta['context'] ?? null),
+            'referrer' => $this->cleanNullable($meta['referrer'] ?? null),
+            'target_url' => $this->cleanNullable($meta['page_path'] ?? null),
+            'device_type' => $this->cleanNullable($meta['device_type'] ?? null),
+            'ip_hash' => $this->cleanNullable($meta['ip_hash'] ?? null),
+            'user_agent' => $this->cleanNullable($meta['user_agent'] ?? null),
+            'created_at' => $now,
+            'updated_at' => $now,
+        ], $newIds));
+
+        Profile::query()->whereIn('id', $newIds)->increment('impressions_count');
+
+        return count($newIds);
     }
 
     public function track(Profile $profile, array $payload): ProfileEvent
@@ -128,6 +199,7 @@ class ProfileAnalyticsService
             if ($isUniqueView) {
                 $profile->increment('unique_views_count');
             }
+            $this->maybeNotifyViewsMilestone($profile);
         }
 
         if (in_array($eventType, self::WEBSITE_CLICK_EVENTS, true)) {
@@ -138,22 +210,33 @@ class ProfileAnalyticsService
             $profile->increment('contact_clicks_count');
         }
 
-        $this->recalculatePopularityScore($profile);
+        // popularity_score НЕ чіпаємо на кожній події: єдине джерело правди —
+        // нічний rating:recalculate (config/rating.php), який дзеркалить
+        // profile_ratings.popularity_score у profiles. Раніше тут працювала
+        // стара адитивна формула, що затирала розрахунок рейтингової системи.
 
         return $event;
     }
 
-    public function recalculatePopularityScore(Profile $profile): void
+    /**
+     * Якщо профіль після цього перегляду перетнув черговий поріг (кратний
+     * services.views_milestone.threshold), надсилаємо лист-тригер. Обгортка
+     * rescue: збій листа не має ламати трекінг події.
+     */
+    private function maybeNotifyViewsMilestone(Profile $profile): void
     {
-        $score = ($profile->views_count * 1)
-            + ($profile->website_clicks_count * 3)
-            + ($profile->contact_clicks_count * 5)
-            + ($profile->reviews_count * 4)
-            + (((float) $profile->rating_avg) * 10);
+        if (! config('services.views_milestone.enabled')) {
+            return;
+        }
 
-        $profile->forceFill([
-            'popularity_score' => round($score, 2),
-        ])->saveQuietly();
+        $threshold = max(1, (int) config('services.views_milestone.threshold', 100));
+        $views = (int) $profile->views_count;
+
+        if ($views <= 0 || $views % $threshold !== 0) {
+            return;
+        }
+
+        rescue(fn () => app(\App\Services\Notifications\ProfileViewsMilestoneMailer::class)->handle($profile, $views));
     }
 
     /**
@@ -193,17 +276,18 @@ class ProfileAnalyticsService
             ];
         }
 
-        $rankedIds = Profile::query()
+        // Порядок ТОЙ САМИЙ, що у видачі каталогу (ProfileRanking::applyOrganicOrder):
+        // спершу ярус за кількістю відгуків, потім популярність. Раніше тут була
+        // «чиста» популярність, і числа розходились: клініка стояла 2-ю в каталозі,
+        // а на своїй сторінці бачила «#5» (кейс А-Вет, 21.09.2026).
+        $rankedQuery = Profile::query()
             ->where('status', 'active')
             ->where('is_published', true)
             ->where('show_in_catalog', true)
             ->whereRaw('lower(city) = ?', [mb_strtolower($city)])
-            ->whereHas('categories', fn (Builder $categories) => $categories->whereKey($contextCategoryId))
-            ->orderByDesc('popularity_score')
-            ->orderByDesc('rating_avg')
-            ->orderByDesc('reviews_count')
-            ->orderBy('id')
-            ->pluck('id');
+            ->whereHas('categories', fn (Builder $categories) => $categories->whereKey($contextCategoryId));
+        ProfileRanking::applyOrganicOrder($rankedQuery);
+        $rankedIds = $rankedQuery->pluck('id');
 
         $total = $rankedIds->count();
         $position = $rankedIds->search((int) $profile->id, true);
@@ -257,6 +341,17 @@ class ProfileAnalyticsService
 
         $metrics = [
             'views' => $this->metricTrend($profile->id, [self::EVENT_PROFILE_VIEW], $fromAt, $toAt),
+            // Покази картки поза сторінкою профілю (каталог, рейтинги,
+            // рекомендації на чужих профілях) — «скільки разів вас бачили».
+            'impressions' => $this->metricTrend($profile->id, [self::EVENT_CARD_IMPRESSION], $fromAt, $toAt),
+            // Покази саме на платних позиціях каталогу (лише для підписників).
+            'promoted_impressions' => $this->metricTrend(
+                $profile->id,
+                [self::EVENT_CARD_IMPRESSION],
+                $fromAt,
+                $toAt,
+                self::CONTEXT_CATALOG_PROMOTED
+            ),
             'website_clicks' => $this->metricTrend($profile->id, self::WEBSITE_CLICK_EVENTS, $fromAt, $toAt),
             'contact_clicks' => $this->metricTrend($profile->id, self::CONTACT_CLICK_EVENTS, $fromAt, $toAt),
             'all_clicks' => $this->metricTrend(
@@ -286,14 +381,55 @@ class ProfileAnalyticsService
             'metrics' => $metrics,
             'device_types' => $this->topDimension(clone $eventsQuery, 'device_type'),
             'sources_timeline' => $this->sourceTimeline($profile->id, $fromAt, $toAt),
+            'impressions_by_context' => $this->impressionsByContext(clone $eventsQuery),
         ];
     }
 
-    private function metricTrend(int $profileId, array $eventTypes, ?CarbonImmutable $fromAt, ?CarbonImmutable $toAt): array
+    /**
+     * Де саме бачили картку профілю: контекст показу пишеться в internal_source
+     * (catalog / profile_related / rating / home / favorites — див. impressions.js).
+     *
+     * @return array<int, array{key: string, label: string, value: int}>
+     */
+    private function impressionsByContext(Builder $query): array
     {
+        $labels = [
+            'catalog' => 'У каталозі',
+            self::CONTEXT_CATALOG_PROMOTED => 'У каталозі на платних позиціях',
+            'profile_related' => 'На сторінках інших профілів',
+            'rating' => 'У рейтингах',
+            'home' => 'На головній',
+            'favorites' => 'В обраному',
+        ];
+
+        $rows = $query
+            ->where('event_type', self::EVENT_CARD_IMPRESSION)
+            ->selectRaw("COALESCE(internal_source, '') as context, COUNT(*) as total")
+            ->groupBy('context')
+            ->orderByDesc('total')
+            ->get();
+
+        return $rows
+            ->map(fn ($row): array => [
+                'key' => (string) $row->context,
+                'label' => $labels[$row->context] ?? 'Інше',
+                'value' => (int) $row->total,
+            ])
+            ->values()
+            ->all();
+    }
+
+    private function metricTrend(
+        int $profileId,
+        array $eventTypes,
+        ?CarbonImmutable $fromAt,
+        ?CarbonImmutable $toAt,
+        ?string $internalSource = null
+    ): array {
         $base = ProfileEvent::query()
             ->where('profile_id', $profileId)
-            ->whereIn('event_type', $eventTypes);
+            ->whereIn('event_type', $eventTypes)
+            ->when($internalSource !== null, fn (Builder $q) => $q->where('internal_source', $internalSource));
 
         if (! $fromAt || ! $toAt) {
             $end = CarbonImmutable::now()->endOfDay();
@@ -377,8 +513,12 @@ class ProfileAnalyticsService
             ->selectRaw("DATE(created_at) as event_date")
             ->selectRaw("SUM(CASE WHEN LOWER(COALESCE(source,'')) LIKE '%google%' THEN 1 ELSE 0 END) as google_qty")
             ->selectRaw("SUM(CASE WHEN LOWER(COALESCE(source,'')) LIKE '%facebook%' OR LOWER(COALESCE(source,'')) LIKE '%fb%' THEN 1 ELSE 0 END) as facebook_qty")
-            ->selectRaw("SUM(CASE WHEN LOWER(COALESCE(internal_source,'')) NOT IN ('', 'direct') THEN 1 ELSE 0 END) as internal_qty")
-            ->selectRaw("SUM(CASE WHEN (LOWER(COALESCE(source,'')) NOT LIKE '%google%' AND LOWER(COALESCE(source,'')) NOT LIKE '%facebook%' AND LOWER(COALESCE(source,'')) NOT LIKE '%fb%') AND LOWER(COALESCE(internal_source,'')) IN ('', 'direct') THEN 1 ELSE 0 END) as unknown_qty")
+            // Внутрішній перехід — це і явна мітка ?from= (internal_source), і
+            // source='internal', який фронт ставить при same-origin referrer.
+            // Раніше друга група падала в «невідомо» (мітку ?from= ніхто не
+            // проставляє), і серія «внутрішні» в кабінеті була завжди нульова.
+            ->selectRaw("SUM(CASE WHEN LOWER(COALESCE(source,'')) = 'internal' OR LOWER(COALESCE(internal_source,'')) NOT IN ('', 'direct') THEN 1 ELSE 0 END) as internal_qty")
+            ->selectRaw("SUM(CASE WHEN (LOWER(COALESCE(source,'')) NOT LIKE '%google%' AND LOWER(COALESCE(source,'')) NOT LIKE '%facebook%' AND LOWER(COALESCE(source,'')) NOT LIKE '%fb%' AND LOWER(COALESCE(source,'')) != 'internal') AND LOWER(COALESCE(internal_source,'')) IN ('', 'direct') THEN 1 ELSE 0 END) as unknown_qty")
             ->groupBy('event_date')
             ->orderBy('event_date')
             ->get();

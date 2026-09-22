@@ -1,0 +1,152 @@
+[
+    {
+        "profile_id": 7159,
+        "full_name": "Сатурн, магазин побутової техніки",
+        "city": "Рівне",
+        "category": "Ветеринари та ветеринарні клініки",
+        "profile_url": "https://mydovira.com/profiles/pantera-perukarnia",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Міцкевича, 34",
+            "phone": "(037) 254 58 03, (037) 224 76 00, (036) 22 59 10 1",
+            "type": "company",
+            "rating_avg": 4.14,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 9275,
+        "full_name": "Степ, ветеринарний госпіталь",
+        "city": "Кривий Ріг",
+        "category": "Ветеринари та ветеринарні клініки",
+        "profile_url": "https://mydovira.com/profiles/step-veterinarnii-gospital",
+        "company_url": "https://vetstep.com.ua",
+        "additional_identity_data": {
+            "address": "Фукса, 30А",
+            "phone": "(096) 830 19 51, (096) 911 94 94, (067) 911 72 72, (097) 010 99 36, (098) 752 72 43",
+            "type": "company",
+            "rating_avg": 2.71,
+            "reviews_count": 96
+        }
+    },
+    {
+        "profile_id": 9129,
+        "full_name": "Лікарня Ветеринарної Медицини",
+        "city": "Київ",
+        "category": "Ветеринари та ветеринарні клініки",
+        "profile_url": "https://mydovira.com/profiles/centr-sucasnoyi-veterinarnoyi-medicini",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "бульвар Кольцова, 14",
+            "phone": "(067) 247 74 65, (044) 464 77 99, (044) 484 83 77, (044) 484 83 70, (067) 247 74 68, (067) 395 42 42, (067) 247 74 84, (067) 247 74 54, (067) 247 74 67, (067) 247 74 66, (097) 468 15 68, (095) 749 24 07",
+            "type": "company",
+            "rating_avg": 3.44,
+            "reviews_count": 95
+        }
+    },
+    {
+        "profile_id": 9381,
+        "full_name": "Eurovet, мережа ветеринарних клінік",
+        "city": "Львів",
+        "category": "Ветеринари та ветеринарні клініки",
+        "profile_url": "https://mydovira.com/profiles/eurovet-mereza-veterinarnix-klinik",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "вул. Яблонської, 8",
+            "phone": "(067) 559 69 02, (067) 559 69 08",
+            "type": "company",
+            "rating_avg": 2.67,
+            "reviews_count": 95
+        }
+    },
+    {
+        "profile_id": 10007,
+        "full_name": "Довіра, ветеринарна клініка",
+        "city": "Харків",
+        "category": "Ветеринари та ветеринарні клініки",
+        "profile_url": "https://mydovira.com/profiles/dovira-veterinarna-klinika",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Мироносицька, 10/2",
+            "phone": "(057) 78 00 17 7, (068) 079 39 82, (057) 75 62 20 9, (063) 394 29 08",
+            "type": "company",
+            "rating_avg": 3.2,
+            "reviews_count": 95
+        }
+    },
+    {
+        "profile_id": 10008,
+        "full_name": "CentrVet, ветеринарна клініка",
+        "city": "Харків",
+        "category": "Ветеринари та ветеринарні клініки",
+        "profile_url": "https://mydovira.com/profiles/centrvet-veterinarna-klinika",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Каразіна, 17",
+            "phone": "(066) 044 77 73",
+            "type": "company",
+            "rating_avg": 3.09,
+            "reviews_count": 95
+        }
+    },
+    {
+        "profile_id": 9024,
+        "full_name": "Діана Вет, ветеринарна клініка",
+        "city": "Запоріжжя",
+        "category": "Ветеринари та ветеринарні клініки",
+        "profile_url": "https://mydovira.com/profiles/diana-vet-veterinarna-klinika",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Олексія Поради, 49-а",
+            "phone": "(061) 769 43 43, (066) 505 21 45, (096) 255 47 45, (093) 800 13 05",
+            "type": "company",
+            "rating_avg": 3.56,
+            "reviews_count": 94
+        }
+    },
+    {
+        "profile_id": 9128,
+        "full_name": "Альфа, ветеринарна клініка",
+        "city": "Київ",
+        "category": "Ветеринари та ветеринарні клініки",
+        "profile_url": "https://mydovira.com/profiles/alfa-veterinarna-klinika",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Оранжерейна, 3",
+            "phone": "(044) 22 16 44 3, (097) 006 34 18",
+            "type": "company",
+            "rating_avg": 3.83,
+            "reviews_count": 94
+        }
+    },
+    {
+        "profile_id": 9140,
+        "full_name": "Звірополіс, ветеринарна клініка",
+        "city": "Київ",
+        "category": "Ветеринари та ветеринарні клініки",
+        "profile_url": "https://mydovira.com/profiles/zviropolis-veterinarna-klinika",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "проспект Івасюка, 26а",
+            "phone": "(044) 29 03 35 7, (044) 29 03 34 5, (096) 196 00 11",
+            "type": "company",
+            "rating_avg": 3.44,
+            "reviews_count": 94
+        }
+    },
+    {
+        "profile_id": 9146,
+        "full_name": "Red Fox, ветеринарна клініка",
+        "city": "Київ",
+        "category": "Ветеринари та ветеринарні клініки",
+        "profile_url": "https://mydovira.com/profiles/red-fox-veterinarna-klinika",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Анатолія Солов'яненка, 8а",
+            "phone": "(073) 226 06 66",
+            "type": "company",
+            "rating_avg": 3.79,
+            "reviews_count": 94
+        }
+    }
+]

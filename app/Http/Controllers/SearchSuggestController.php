@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Category;
 use App\Models\Profile;
+use App\Support\SearchText;
 use App\Support\WebsiteUrl;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Http\JsonResponse;
@@ -41,8 +42,8 @@ class SearchSuggestController extends Controller
         $query = trim((string) $request->query('q', ''));
         $limit = max(4, min(12, (int) $request->query('limit', 8)));
         $scope = trim((string) $request->query('scope', 'all'));
-        // v4: мета профілю = місто · підкатегорія (замість сайту).
-        $cacheKey = 'public:search-suggest:v4:' . md5(json_encode([$scope, $query, $limit], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+        // v6: пошук по профілях став token-based, щоб порядок слів не ламав результат.
+        $cacheKey = 'public:search-suggest:v6:' . md5(json_encode([$scope, $query, $limit], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
 
         $items = Cache::remember(
             $cacheKey,
@@ -124,6 +125,18 @@ class SearchSuggestController extends Controller
             ->whereNotNull('parent_id')
             ->where('is_active', true)
             ->where(function ($builder) use ($patterns) {
+                if (! empty($patterns['token_groups'])) {
+                    foreach ($patterns['token_groups'] as $patternGroup) {
+                        $builder->where(function ($tokenQuery) use ($patternGroup) {
+                            foreach ($patternGroup as $like) {
+                                $tokenQuery->orWhere('name', 'like', $like);
+                            }
+                        });
+                    }
+
+                    return;
+                }
+
                 $builder
                     ->where('name', 'like', $patterns['contains'])
                     ->orWhere('name', 'like', $patterns['contains_title']);
@@ -192,10 +205,12 @@ class SearchSuggestController extends Controller
             ->select(['id', 'slug', 'name', 'website', 'city', 'is_verified', 'is_pro', 'reviews_count', 'rating_avg'])
             ->with('categories:id,name,parent_id')
             ->where('status', 'active')
-            ->orderByDesc('is_verified')
-            ->orderByDesc('is_pro')
+            ->where('is_published', true)
+            ->where('show_in_catalog', true)
+            // Підказки «популярне» до введення запиту — за чесною популярністю
+            // (та сама шкала, що в каталозі), без платного пріоритету.
+            ->orderByDesc('popularity_score')
             ->orderByDesc('reviews_count')
-            ->orderByDesc('rating_avg')
             ->take($limit)
             ->get()
             ->map(fn (Profile $profile) => [
@@ -246,10 +261,10 @@ class SearchSuggestController extends Controller
         return Profile::query()
             ->select(['id', 'slug', 'name', 'website', 'city', 'is_verified', 'is_pro', 'reviews_count', 'rating_avg'])
             ->where('status', 'active')
-            ->orderByDesc('is_verified')
-            ->orderByDesc('is_pro')
+            // Пошук власного профілю для підтвердження прав — PRO тут не
+            // впливає ні на що, лишаємо просто популярні.
+            ->orderByDesc('popularity_score')
             ->orderByDesc('reviews_count')
-            ->orderByDesc('rating_avg')
             ->take($limit)
             ->get()
             ->map(fn (Profile $profile) => $this->mapClaimProfileItem($profile))
@@ -297,12 +312,24 @@ class SearchSuggestController extends Controller
      */
     private function buildSearchPatterns(string $query): array
     {
-        $normalized = mb_strtolower(trim($query));
+        $normalized = SearchText::normalize($query);
         $title = mb_convert_case($normalized, MB_CASE_TITLE, 'UTF-8');
+        $tokens = SearchText::tokens($query);
 
         return [
             'normalized' => $normalized,
             'title' => $title,
+            'tokens' => $tokens,
+            'token_groups' => collect($tokens)
+                ->map(fn ($token) => collect(SearchText::caseVariants($token))
+                    ->filter()
+                    ->unique()
+                    ->map(fn ($variant) => '%'.$variant.'%')
+                    ->values()
+                    ->all())
+                ->filter()
+                ->values()
+                ->all(),
             'contains' => '%' . $normalized . '%',
             'contains_title' => '%' . $title . '%',
             'starts' => $normalized . '%',
@@ -314,14 +341,34 @@ class SearchSuggestController extends Controller
 
     /**
      * @param Builder<Profile> $query
-     * @param array<string, string> $patterns
+     * @param array<string, mixed> $patterns
      * @return Builder<Profile>
      */
     private function applyProfileSearch(Builder $query, array $patterns): Builder
     {
         return $query
             ->where('status', 'active')
+            // Ті самі умови видимості, що в каталозі: прихований профіль не має
+            // спливати у підказках (інакше «приховати» ховає лише наполовину).
+            ->where('is_published', true)
+            ->where('show_in_catalog', true)
             ->where(function (Builder $builder) use ($patterns) {
+                if (! empty($patterns['token_groups'])) {
+                    foreach ($patterns['token_groups'] as $patternGroup) {
+                        $builder->where(function (Builder $tokenQuery) use ($patternGroup) {
+                            foreach ($patternGroup as $like) {
+                                $tokenQuery
+                                    ->orWhere('name', 'like', $like)
+                                    ->orWhere('website', 'like', $like)
+                                    ->orWhere('slug', 'like', $like)
+                                    ->orWhere('city', 'like', $like);
+                            }
+                        });
+                    }
+
+                    return;
+                }
+
                 $builder
                     ->where('name', 'like', $patterns['contains'])
                     ->orWhere('name', 'like', $patterns['contains_title'])
@@ -331,7 +378,23 @@ class SearchSuggestController extends Controller
                     ->orWhere('city', 'like', $patterns['contains_title']);
             })
             ->orderByRaw(
-                'CASE
+                $this->profileSearchRelevanceSql($patterns),
+                $this->profileSearchRelevanceBindings($patterns)
+            )
+            // Релевантність вирішує; PRO — лише тайбрейк між однаково
+            // релевантними (обіцяна перевага у внутрішньому пошуку),
+            // далі — популярність.
+            ->orderByDesc('is_pro')
+            ->orderByDesc('popularity_score')
+            ->orderByDesc('reviews_count');
+    }
+
+    /**
+     * @param array<string, mixed> $patterns
+     */
+    private function profileSearchRelevanceSql(array $patterns): string
+    {
+        $sql = 'CASE
                     WHEN name LIKE ? THEN 700
                     WHEN name LIKE ? THEN 700
                     WHEN name LIKE ? THEN 600
@@ -342,25 +405,70 @@ class SearchSuggestController extends Controller
                     WHEN website LIKE ? THEN 300
                     WHEN city LIKE ? THEN 200
                     WHEN city LIKE ? THEN 200
-                    ELSE 0
-                END DESC',
-                [
-                    $patterns['starts'],
-                    $patterns['starts_title'],
-                    $patterns['word'],
-                    $patterns['word_title'],
-                    $patterns['contains'],
-                    $patterns['contains_title'],
-                    $patterns['contains'],
-                    $patterns['contains'],
-                    $patterns['contains'],
-                    $patterns['contains_title'],
-                ]
-            )
-            ->orderByDesc('is_verified')
-            ->orderByDesc('is_pro')
-            ->orderByDesc('reviews_count')
-            ->orderByDesc('rating_avg');
+        ';
+
+        foreach (['name' => 450, 'slug' => 350, 'website' => 250, 'city' => 150] as $column => $score) {
+            [$tokenSql] = $this->tokenAndLikeExpression($column, (array) ($patterns['tokens'] ?? []));
+            if ($tokenSql !== '') {
+                $sql .= "WHEN {$tokenSql} THEN {$score}\n                    ";
+            }
+        }
+
+        return $sql.'ELSE 0
+                END DESC';
+    }
+
+    /**
+     * @param array<string, mixed> $patterns
+     * @return array<int, string>
+     */
+    private function profileSearchRelevanceBindings(array $patterns): array
+    {
+        $bindings = [
+            $patterns['starts'],
+            $patterns['starts_title'],
+            $patterns['word'],
+            $patterns['word_title'],
+            $patterns['contains'],
+            $patterns['contains_title'],
+            $patterns['contains'],
+            $patterns['contains'],
+            $patterns['contains'],
+            $patterns['contains_title'],
+        ];
+
+        foreach (['name', 'slug', 'website', 'city'] as $column) {
+            [, $tokenBindings] = $this->tokenAndLikeExpression($column, (array) ($patterns['tokens'] ?? []));
+            array_push($bindings, ...$tokenBindings);
+        }
+
+        return $bindings;
+    }
+
+    /**
+     * @param  array<int, string>  $tokens
+     * @return array{0:string,1:array<int,string>}
+     */
+    private function tokenAndLikeExpression(string $column, array $tokens): array
+    {
+        if (empty($tokens)) {
+            return ['', []];
+        }
+
+        $parts = [];
+        $bindings = [];
+
+        foreach ($tokens as $token) {
+            $variants = SearchText::caseVariants($token);
+            $variantParts = [];
+            foreach ($variants as $variant) {
+                $variantParts[] = "{$column} LIKE ?";
+                $bindings[] = '%'.$variant.'%';
+            }
+            $parts[] = '('.implode(' OR ', $variantParts).')';
+        }
+
+        return ['('.implode(' AND ', $parts).')', $bindings];
     }
 
     /**
@@ -368,15 +476,6 @@ class SearchSuggestController extends Controller
      */
     private function mapClaimProfileItem(Profile $profile, string $query = ''): array
     {
-        $params = [
-            'tab' => 'claims',
-            'claim_profile' => $profile->id,
-        ];
-
-        if ($query !== '') {
-            $params['q'] = $query;
-        }
-
         return [
             'type' => 'profile',
             'label' => $profile->name,
@@ -384,7 +483,7 @@ class SearchSuggestController extends Controller
             'icon' => 'fa-regular fa-user',
             'profile_id' => $profile->id,
             'profile_slug' => $profile->slug,
-            'url' => route('pro.account', $params),
+            'url' => route('pro.account.billing.pay', ['profile' => $profile->id]),
         ];
     }
 }

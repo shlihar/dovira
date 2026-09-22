@@ -83,84 +83,18 @@ class SocialAuthenticationTest extends TestCase
         $this->assertSame('https://example.com/google-avatar.jpg', $user->avatar_url);
     }
 
-    public function test_telegram_callback_can_create_and_authenticate_a_user(): void
+    public function test_telegram_auth_route_is_removed(): void
     {
-        config()->set('services.telegram.bot_name', 'dovira_test_bot');
-        config()->set('services.telegram.bot_token', 'telegram-bot-token');
-        config()->set('services.telegram.login_max_age', 86400);
+        // Telegram-авторизацію прибрано з сайту: іменований маршрут і POST-хендлер
+        // більше не існують (лишається тільки GET-редірект/колбек для OAuth).
+        $this->assertFalse(\Illuminate\Support\Facades\Route::has('auth.social.telegram'));
 
-        $payload = [
+        $this->post('/auth/telegram/callback', [
             'id' => '555666777',
-            'first_name' => 'Tele',
-            'last_name' => 'Gram',
-            'username' => 'telegram_user',
-            'photo_url' => 'https://example.com/telegram-avatar.jpg',
-            'auth_date' => (string) time(),
-        ];
-
-        $payload['hash'] = $this->telegramHash($payload, 'telegram-bot-token');
-
-        $response = $this->post('/auth/telegram/callback', $payload);
-
-        $this->assertAuthenticated();
-        $response->assertRedirect(route('home', absolute: false));
-
-        $user = User::query()->where('telegram_id', '555666777')->firstOrFail();
-
-        $this->assertSame('telegram', $user->auth_provider);
-        $this->assertSame('telegram_user', $user->telegram_username);
-        $this->assertSame('telegram-555666777@social.dovira.local', $user->email);
-    }
-
-    public function test_telegram_callback_accepts_user_without_optional_fields(): void
-    {
-        config()->set('services.telegram.bot_name', 'dovira_test_bot');
-        config()->set('services.telegram.bot_token', 'telegram-bot-token');
-        config()->set('services.telegram.login_max_age', 86400);
-
-        // Telegram підписує лише надіслані поля: користувач без username,
-        // прізвища і фото має валідний hash тільки по id/first_name/auth_date.
-        $signedPayload = [
-            'id' => '888999000',
-            'first_name' => 'NoUsername',
-            'auth_date' => (string) time(),
-        ];
-
-        $hash = $this->telegramHash($signedPayload, 'telegram-bot-token');
-
-        // Форма на сайті завжди сабмітить усі поля — відсутні порожніми.
-        $response = $this->post('/auth/telegram/callback', [
-            ...$signedPayload,
-            'last_name' => '',
-            'username' => '',
-            'photo_url' => '',
-            'hash' => $hash,
-        ]);
-
-        $this->assertAuthenticated();
-        $response->assertRedirect(route('home', absolute: false));
-
-        $user = User::query()->where('telegram_id', '888999000')->firstOrFail();
-        $this->assertSame('telegram', $user->auth_provider);
-    }
-
-    public function test_telegram_callback_rejects_invalid_hash(): void
-    {
-        config()->set('services.telegram.bot_name', 'dovira_test_bot');
-        config()->set('services.telegram.bot_token', 'telegram-bot-token');
-        config()->set('services.telegram.login_max_age', 86400);
-
-        $response = $this->from('/login')->post('/auth/telegram/callback', [
-            'id' => '1',
-            'first_name' => 'Bad',
-            'last_name' => 'Hash',
-            'username' => 'bad_hash',
-            'photo_url' => 'https://example.com/avatar.jpg',
             'auth_date' => (string) time(),
             'hash' => str_repeat('a', 64),
-        ]);
+        ])->assertStatus(405);
 
-        $response->assertSessionHasErrors('social');
         $this->assertGuest();
     }
 
@@ -169,19 +103,5 @@ class SocialAuthenticationTest extends TestCase
         Mockery::close();
 
         parent::tearDown();
-    }
-
-    /**
-     * @param  array<string, string>  $payload
-     */
-    private function telegramHash(array $payload, string $botToken): string
-    {
-        ksort($payload);
-
-        $dataCheckString = collect($payload)
-            ->map(static fn (string $value, string $key): string => $key . '=' . $value)
-            ->implode("\n");
-
-        return hash_hmac('sha256', $dataCheckString, hash('sha256', $botToken, true));
     }
 }

@@ -23,6 +23,15 @@ class ExpireProSubscriptions extends Command
             ->where('status', 'active')
             ->whereNotNull('ends_at')
             ->where('ends_at', '<', $now)
+            // Підписки з автопродовженням у грейсі не чіпаємо: команда
+            // dovira:pro:renew-subscriptions ще ретраїть списання. Якщо ретраї
+            // вичерпані, вона сама вимикає auto_renew — і підписка потрапляє
+            // сюди наступною годиною.
+            ->where(function ($query) use ($now): void {
+                $query->where('auto_renew', false)
+                    ->orWhereNull('monopay_card_token')
+                    ->orWhere('ends_at', '<', $now->copy()->subDays(RenewProSubscriptions::GRACE_DAYS));
+            })
             ->get();
 
         if ($expired->isEmpty()) {

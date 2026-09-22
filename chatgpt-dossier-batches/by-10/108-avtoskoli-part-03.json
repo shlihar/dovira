@@ -1,0 +1,152 @@
+[
+    {
+        "profile_id": 16620,
+        "full_name": "Автопрофі, автошкола",
+        "city": "Київ",
+        "category": "Автошколи",
+        "profile_url": "https://mydovira.com/profiles/avtoprofi-avtoskola-3",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Будівельників, 37",
+            "phone": "(067) 179 43 82",
+            "type": "company",
+            "rating_avg": 4.91,
+            "reviews_count": 91
+        }
+    },
+    {
+        "profile_id": 8496,
+        "full_name": "Верстава, автошкола",
+        "city": "Львів",
+        "category": "Автошколи",
+        "profile_url": "https://mydovira.com/profiles/vert-salon-krasi",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Угорська, 14",
+            "phone": "(068) 222 00 17",
+            "type": "company",
+            "rating_avg": 4.72,
+            "reviews_count": 90
+        }
+    },
+    {
+        "profile_id": 15897,
+        "full_name": "Професіонал, автошкола",
+        "city": "Харків",
+        "category": "Автошколи",
+        "profile_url": "https://mydovira.com/profiles/profesional-avtoskola",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "вул. Серпова, 4",
+            "phone": "(096) 102 05 00, (093) 102 05 00, (0577) 00 76 97",
+            "type": "company",
+            "rating_avg": 4.82,
+            "reviews_count": 90
+        }
+    },
+    {
+        "profile_id": 16315,
+        "full_name": "Антарес, автошкола",
+        "city": "Миколаїв",
+        "category": "Автошколи",
+        "profile_url": "https://mydovira.com/profiles/antares-avtoskola-7",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "проспект Центральний, 2",
+            "phone": "(068) 871 44 40, (095) 871 44 40",
+            "type": "company",
+            "rating_avg": 4.23,
+            "reviews_count": 90
+        }
+    },
+    {
+        "profile_id": 16338,
+        "full_name": "Пегас, мережа автошкіл",
+        "city": "Одеса",
+        "category": "Автошколи",
+        "profile_url": "https://mydovira.com/profiles/pegas-mereza-avtoskil",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Ольгіївська, 4 / 1",
+            "phone": "(048) 770 70 95, (097) 481 34 34, (097) 222 20 11, (097) 888 20 11",
+            "type": "company",
+            "rating_avg": 5,
+            "reviews_count": 90
+        }
+    },
+    {
+        "profile_id": 16462,
+        "full_name": "Еліта, автошкола",
+        "city": "Тернопіль",
+        "category": "Автошколи",
+        "profile_url": "https://mydovira.com/profiles/elita-avtoskola-2",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "вул. Шашкевича, 19",
+            "phone": "(073) 939 54 94",
+            "type": "company",
+            "rating_avg": 4.96,
+            "reviews_count": 90
+        }
+    },
+    {
+        "profile_id": 16476,
+        "full_name": "Водій, автошкола",
+        "city": "Ужгород",
+        "category": "Автошколи",
+        "profile_url": "https://mydovira.com/profiles/vodii-avtoskola",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "вул. Заньковецької, 89",
+            "phone": "(099) 165 33 33, (097) 165 33 33, (093) 165 33 33",
+            "type": "company",
+            "rating_avg": 4.73,
+            "reviews_count": 90
+        }
+    },
+    {
+        "profile_id": 16485,
+        "full_name": "Люкс Авто, автошкола",
+        "city": "Хмельницький",
+        "category": "Автошколи",
+        "profile_url": "https://mydovira.com/profiles/liuks-avto-avtoskola",
+        "company_url": "https://luks-avto.com.ua",
+        "additional_identity_data": {
+            "address": "вул. Заводська, 34",
+            "phone": "(097) 944 33 00, (068) 944 33 00, (063) 944 33 00",
+            "type": "company",
+            "rating_avg": 4.94,
+            "reviews_count": 90
+        }
+    },
+    {
+        "profile_id": 16490,
+        "full_name": "Еліта, автошкола",
+        "city": "Хмельницький",
+        "category": "Автошколи",
+        "profile_url": "https://mydovira.com/profiles/elita-avtoskola-3",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "вул. Вайсера, 17/2",
+            "phone": "(073) 440 62 99",
+            "type": "company",
+            "rating_avg": 5,
+            "reviews_count": 90
+        }
+    },
+    {
+        "profile_id": 16512,
+        "full_name": "Автошкола на Ремісничій",
+        "city": "Чернігів",
+        "category": "Автошколи",
+        "profile_url": "https://mydovira.com/profiles/instruktora-top-avtoskola",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "проспект Перемоги, 39",
+            "phone": "(093) 586 00 01, (096) 565 05 00, (073) 565 05 00",
+            "type": "company",
+            "rating_avg": 4.99,
+            "reviews_count": 90
+        }
+    }
+]

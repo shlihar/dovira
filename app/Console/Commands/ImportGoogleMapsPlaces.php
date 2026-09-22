@@ -10,6 +10,7 @@ use App\Models\ProfileReview;
 use App\Models\Region;
 use App\Services\ProfileReviewStatsService;
 use App\Support\CategoryHierarchy;
+use App\Support\ImportedProfileIdentity;
 use Illuminate\Console\Command;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
@@ -23,6 +24,7 @@ class ImportGoogleMapsPlaces extends Command
         {--max-new= : Зупинитись після створення такої кількості нових профілів}
         {--skip-existing : Не чіпати існуючі профілі (ні полів, ні відгуків) — лише створювати нові}
         {--include-all-categories : Не фільтрувати за юридичними категоріями}
+        {--medical : Медична вертикаль: приймати всі місця й мапити на медичні категорії (пластичні хірурги, клініки тощо)}
         {--publish : Публікувати нові профілі одразу}
         {--refresh-existing : Перезаписувати контакти існуючих профілів даними з Google}
         {--dry-run : Аналіз без запису в БД}';
@@ -79,6 +81,28 @@ class ImportGoogleMapsPlaces extends Command
         'Адвокат із майнового планування' => 'Спадкове право',
         'Бізнес-адвокат' => 'Корпоративне право',
     ];
+
+    /**
+     * Медична вертикаль: маркер у назві Google-категорії (або назві місця) →
+     * slug категорії платформи. Порядок важливий — перший збіг перемагає,
+     * тому "пластичн" стоїть раніше за загальне "клінік".
+     */
+    private const MEDICAL_CATEGORY_MAP = [
+        'пластичн' => 'plasticni-xirurgi',
+        'стоматолог' => 'stomatologiyi',
+        'косметолог' => 'kosmetolog',
+        'косметич' => 'kosmetologicni-kliniki',
+        'салон краси' => 'kosmetologicni-kliniki',
+        'школа краси' => 'kosmetologicni-kliniki',
+        'епіляц' => 'kosmetologicni-kliniki',
+        'лазерн' => 'kosmetologicni-kliniki',
+    ];
+
+    /** Решта медичних місць (центри, лікарні, вузькі хірурги) — приватні клініки. */
+    private const MEDICAL_DEFAULT_SLUG = 'privatni-kliniki';
+
+    /** @var array<string, ?Category> */
+    private array $categoryBySlugCache = [];
 
     /** @var array<string, int|null> */
     private array $regionIdCache = [];
@@ -154,7 +178,7 @@ class ImportGoogleMapsPlaces extends Command
                 continue;
             }
 
-            if (! $this->option('include-all-categories') && ! $this->isLegalPlace($item)) {
+            if (! $this->option('include-all-categories') && ! $this->option('medical') && ! $this->isLegalPlace($item)) {
                 $counters['skipped_category']++;
                 continue;
             }
@@ -211,6 +235,7 @@ class ImportGoogleMapsPlaces extends Command
                 if ($profile === null) {
                     continue;
                 }
+                ImportedProfileIdentity::assertSameBusiness($profile, $title, (string) ($item['city'] ?? ''));
                 $this->updateProfile($profile, $item);
                 $this->ensureDataSource($profile, $item);
                 $counters['updated']++;
@@ -322,13 +347,16 @@ class ImportGoogleMapsPlaces extends Command
                     : (array) json_decode((string) $source->found_fields, true);
                 $placeId = trim((string) ($found['place_id'] ?? ''));
                 if ($placeId !== '') {
+                    if (isset($index['by_place'][$placeId]) && $index['by_place'][$placeId] !== (int) $source->profile_id) {
+                        throw new \RuntimeException('Ambiguous Google place mapping: ' . $placeId);
+                    }
                     $index['by_place'][$placeId] = (int) $source->profile_id;
                 }
             });
 
         Profile::query()
             ->whereIn('city', $cities)
-            ->get(['id', 'name', 'phone', 'city'])
+            ->get(['id', 'name', 'phone', 'city', 'address', 'internal_note'])
             ->each(function (Profile $profile) use (&$index): void {
                 $phoneKey = $this->phoneKey((string) $profile->phone);
                 if ($phoneKey !== '' && ! isset($index['by_phone'][$phoneKey])) {
@@ -337,6 +365,9 @@ class ImportGoogleMapsPlaces extends Command
 
                 $index['by_city_tokens'][(string) $profile->city][] = [
                     'id' => (int) $profile->id,
+                    'name' => (string) $profile->name,
+                    'address' => (string) $profile->address,
+                    'quarantined' => str_contains((string) $profile->internal_note, '[IDENTITY_REPAIR_REVIEW]'),
                     'tokens' => $this->normalizeNameTokens((string) $profile->name, (string) $profile->city),
                     'is_notary' => str_contains(mb_strtolower((string) $profile->name), 'нотар'),
                 ];
@@ -347,7 +378,7 @@ class ImportGoogleMapsPlaces extends Command
 
     /**
      * Матчинг лише за індексами в памʼяті (без запитів на кожне місце):
-     * placeId → телефон → нормалізоване ім'я в місті. Повертає ID, а не
+     * placeId → точна назва та адреса в одному місті. Повертає ID, а не
      * завантажену модель — щоб пропуск існуючих не бив у БД.
      *
      * @param  array<string, mixed>  $item
@@ -361,23 +392,14 @@ class ImportGoogleMapsPlaces extends Command
             return [$index['by_place'][$placeId], 'place_id'];
         }
 
-        $phoneKey = $this->phoneKey((string) ($item['phone'] ?? ''));
-        if ($phoneKey !== '' && isset($index['by_phone'][$phoneKey])) {
-            return [$index['by_phone'][$phoneKey], 'phone'];
-        }
-
         $city = trim((string) ($item['city'] ?? ''));
-        $tokens = $this->normalizeNameTokens((string) $item['title'], $city);
-        $itemIsNotary = str_contains(mb_strtolower((string) $item['title'] . ' ' . (string) ($item['categoryName'] ?? '')), 'нотар');
+        $address = ImportedProfileIdentity::key((string) ($item['street'] ?? $item['address'] ?? ''));
         $matchedIds = [];
         foreach ($index['by_city_tokens'][$city] ?? [] as $candidate) {
-            // "Нотаріус Білик В.В." і юрфірма "Білик та Партнери" — різні
-            // бізнеси, навіть якщо прізвище збігається.
-            if ($candidate['is_notary'] !== $itemIsNotary) {
-                continue;
-            }
-
-            if ($this->nameTokensMatch($tokens, $candidate['tokens'])) {
+            if (! ($candidate['quarantined'] ?? false)
+                && $address !== ''
+                && $address === ImportedProfileIdentity::key($candidate['address'] ?? '')
+                && ImportedProfileIdentity::sameName((string) $item['title'], $candidate['name'] ?? '')) {
                 $matchedIds[] = $candidate['id'];
             }
         }
@@ -432,6 +454,7 @@ class ImportGoogleMapsPlaces extends Command
             'slug' => $this->uniqueProfileSlug($name),
             'type' => 'company',
             'phone' => $this->nullIfBlank((string) ($item['phone'] ?? '')),
+            'email' => $this->nullIfBlank((string) ($item['email'] ?? '')),
             'website' => $this->nullIfBlank((string) ($item['website'] ?? '')),
             'address' => $this->nullIfBlank((string) ($item['street'] ?? $item['address'] ?? '')),
             'city' => $this->nullIfBlank((string) ($item['city'] ?? '')),
@@ -446,7 +469,9 @@ class ImportGoogleMapsPlaces extends Command
                 . (string) ($item['categoryName'] ?? '—') . ').',
         ]);
 
-        $category = $this->pickCategory($item, $advokaty, $notariusy, $realEstate);
+        $category = $this->option('medical')
+            ? $this->pickMedicalCategory($item)
+            : $this->pickCategory($item, $advokaty, $notariusy, $realEstate);
         if ($category) {
             CategoryHierarchy::syncProfileCategories(
                 $profile,
@@ -520,6 +545,7 @@ class ImportGoogleMapsPlaces extends Command
 
         foreach ([
             'phone' => $this->nullIfBlank((string) ($item['phone'] ?? '')),
+            'email' => $this->nullIfBlank((string) ($item['email'] ?? '')),
             'website' => $this->nullIfBlank((string) ($item['website'] ?? '')),
             'address' => $this->nullIfBlank((string) ($item['street'] ?? $item['address'] ?? '')),
         ] as $field => $value) {
@@ -560,6 +586,35 @@ class ImportGoogleMapsPlaces extends Command
         }
 
         return null;
+    }
+
+    /**
+     * Медичний вибір категорії: скануємо назву Google-категорії разом із
+     * назвою місця за впорядкованими маркерами (пластична хірургія →
+     * стоматологія → косметологія тощо). Що не збіглося з вузькою
+     * спеціалізацією — приватна клініка.
+     *
+     * @param  array<string, mixed>  $item
+     */
+    private function pickMedicalCategory(array $item): ?Category
+    {
+        $haystack = mb_strtolower(
+            (string) ($item['categoryName'] ?? '') . ' ' . (string) ($item['title'] ?? '')
+        );
+
+        foreach (self::MEDICAL_CATEGORY_MAP as $marker => $slug) {
+            if (str_contains($haystack, $marker)) {
+                return $this->categoryBySlug($slug);
+            }
+        }
+
+        return $this->categoryBySlug(self::MEDICAL_DEFAULT_SLUG);
+    }
+
+    private function categoryBySlug(string $slug): ?Category
+    {
+        return $this->categoryBySlugCache[$slug]
+            ??= Category::query()->where('slug', $slug)->first();
     }
 
     /**

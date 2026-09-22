@@ -1,0 +1,152 @@
+[
+    {
+        "profile_id": 4362,
+        "full_name": "MedClinic, медичний центр",
+        "city": "Київ",
+        "category": "Приватні клініки",
+        "profile_url": "https://mydovira.com/profiles/medclinic-medicnii-centr",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Боткіна, 4а",
+            "phone": "(099) 307 76 76, (067) 307 76 76",
+            "type": "company",
+            "rating_avg": 4.92,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 4402,
+        "full_name": "Меділюкс, лікувально-діагностичний центр",
+        "city": "Вінниця",
+        "category": "Приватні клініки",
+        "profile_url": "https://mydovira.com/profiles/mediliuks-likuvalno-diagnosticnii-centr",
+        "company_url": "http://medilux.ua",
+        "additional_identity_data": {
+            "address": "вул. Литвиненко-Вольгемут, 5",
+            "phone": "(080) 03 30 13 0",
+            "type": "company",
+            "rating_avg": 4.85,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 5670,
+        "full_name": "Oxford Medical, медичний центр",
+        "city": "Тернопіль",
+        "category": "Приватні клініки",
+        "profile_url": "https://mydovira.com/profiles/oksford-medikal-medicnii-centr",
+        "company_url": "http://ternopil.oxford-med.com.ua",
+        "additional_identity_data": {
+            "address": "вул. Качали, 5",
+            "phone": "(068) 752 52 52",
+            "type": "company",
+            "rating_avg": 4.84,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 5740,
+        "full_name": "AVIDA, приватна клініка",
+        "city": "Тернопіль",
+        "category": "Приватні клініки",
+        "profile_url": "https://mydovira.com/profiles/avida-privatna-klinika",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Петлюри, 1А/4 пов.",
+            "phone": "(097) 703 73 03",
+            "type": "company",
+            "rating_avg": 4.86,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 5750,
+        "full_name": "Профімед-VG, медичний центр",
+        "city": "Тернопіль",
+        "category": "Приватні клініки",
+        "profile_url": "https://mydovira.com/profiles/profimed-vg-medicnii-centr",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Брюкнера, 3",
+            "phone": "(067) 900 92 92, (0352) 42 28 92",
+            "type": "company",
+            "rating_avg": 4.8,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 5762,
+        "full_name": "ТІНМЕД, медичний центр краси та здоров'я",
+        "city": "Тернопіль",
+        "category": "Приватні клініки",
+        "profile_url": "https://mydovira.com/profiles/tinmed-medicnii-centr-krasi-ta-zdorovia",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Котляревського, 159",
+            "phone": "(097) 300 05 35",
+            "type": "company",
+            "rating_avg": 4.81,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 5786,
+        "full_name": "Лазерхауз, центр лазерної епіляції та косметології",
+        "city": "Тернопіль",
+        "category": "Приватні клініки",
+        "profile_url": "https://mydovira.com/profiles/lazerxauz-centr-lazernoyi-epiliaciyi-ta-kosmetologiyi-2",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Героїв Євромайдану, 9",
+            "phone": "(093) 177 16 27",
+            "type": "company",
+            "rating_avg": 4.72,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 5798,
+        "full_name": "Лорімед, медичний центр",
+        "city": "Тернопіль",
+        "category": "Приватні клініки",
+        "profile_url": "https://mydovira.com/profiles/lorimed-medicnii-centr",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Генерала Тарнавського, 2а",
+            "phone": "(098) 040 40 90, (097) 040 40 90",
+            "type": "company",
+            "rating_avg": 4.72,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 7078,
+        "full_name": "Марія kids, дитячий медичний центр",
+        "city": "Хмельницький",
+        "category": "Приватні клініки",
+        "profile_url": "https://mydovira.com/profiles/mariia-medicnii-centr",
+        "company_url": "http://medcenter-maria.com",
+        "additional_identity_data": {
+            "address": "вул. Степана Бандери, 49/1",
+            "phone": "(067) 400 09 91, (067) 400 09 92, (067) 004 47 74, (067) 004 47 75, (067) 380 55 99",
+            "type": "company",
+            "rating_avg": 4.66,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 7089,
+        "full_name": "Оксфорд Медікал, медичний центр",
+        "city": "Хмельницький",
+        "category": "Приватні клініки",
+        "profile_url": "https://mydovira.com/profiles/oksford-medikal-medicnii-centr-2",
+        "company_url": "https://khmelnitsky.oxford-med.com.ua",
+        "additional_identity_data": {
+            "address": "вул. Подільська, 93/1",
+            "phone": "(097) 470 20 30, (0382) 70 20 30",
+            "type": "company",
+            "rating_avg": 4.59,
+            "reviews_count": 100
+        }
+    }
+]

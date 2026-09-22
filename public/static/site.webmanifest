@@ -1,0 +1,19 @@
+{
+    "name": "DOVIRA",
+    "short_name": "DOVIRA",
+    "icons": [
+        {
+            "src": "/static/favicon-96.png",
+            "sizes": "96x96",
+            "type": "image/png"
+        },
+        {
+            "src": "/static/apple-touch-icon.png",
+            "sizes": "180x180",
+            "type": "image/png"
+        }
+    ],
+    "theme_color": "#3a67f2",
+    "background_color": "#ffffff",
+    "display": "standalone"
+}

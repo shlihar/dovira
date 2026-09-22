@@ -33,10 +33,6 @@ Route::middleware(['guest', RefreshAuthPageState::class])->group(function () {
     Route::get('auth/{provider}/callback', [SocialAuthController::class, 'callback'])
         ->name('auth.social.callback');
 
-    Route::post('auth/telegram/callback', [SocialAuthController::class, 'telegram'])
-        ->middleware('throttle:15,1')
-        ->name('auth.social.telegram');
-
     Route::get('forgot-password', [PasswordResetLinkController::class, 'create'])
         ->name('password.request');
 

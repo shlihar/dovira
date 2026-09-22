@@ -20,6 +20,7 @@ use App\Services\ProProfileNotificationService;
 use App\Support\AuditLogger;
 use App\Support\CategoryHierarchy;
 use App\Support\MediaUrl;
+use App\Support\ProDiscount;
 use App\Support\ProfileSeo;
 use App\Support\RegionCityDirectory;
 use Carbon\CarbonImmutable;
@@ -37,9 +38,6 @@ use Throwable;
 
 class ProAccountController extends Controller
 {
-    /** Скільки відгуків власник може приховати на один профіль. */
-    public const HIDDEN_REVIEWS_LIMIT = 5;
-
     public function __invoke(Request $request): View
     {
         $claimProfileId = ($id = (int) $request->query('claim_profile')) > 0 ? $id : null;
@@ -80,8 +78,9 @@ class ProAccountController extends Controller
             : $ownedProfiles->first();
 
         abort_unless($currentProfile instanceof Profile, 404);
-        // Аналітика — частина платного PRO-кабінету.
-        abort_unless($currentProfile->hasActiveProSubscription(), 403);
+        // Аналітика переглядів безкоштовна для власника після підтвердження
+        // прав (з 10.08.2026) — саме вона й продає апгрейд до PRO. Профіль
+        // уже гарантовано належить користувачу (взятий з ownedProfiles).
 
         $analytics = app(ProfileAnalyticsService::class)->analyticsSummary($currentProfile, $analyticsPeriod);
 
@@ -123,13 +122,33 @@ class ProAccountController extends Controller
         return redirect()->to($redirectUrl);
     }
 
-    public function showBillingPayment(Request $request, Profile $profile): View
+    public function showBillingPayment(Request $request, Profile $profile): View|RedirectResponse
     {
-        $this->assertBillableProfile($request, $profile);
+        $this->assertPaymentPageVisible($request, $profile);
+
+        $userId = (int) $request->user()->id;
+        $isOwner = (int) $profile->owner_user_id === $userId;
+        $needsOwnershipCheck = ! $isOwner && $profile->owner_user_id === null;
+        $existingClaim = $needsOwnershipCheck
+            ? ProfileClaim::query()
+                ->where('profile_id', $profile->id)
+                ->where('user_id', $userId)
+                ->latest('updated_at')
+                ->first()
+            : null;
+        $canPayNow = $isOwner || ($existingClaim && in_array((string) $existingClaim->status, ['pending', 'need_more_info'], true));
+
+        // Підтвердження прав живе на окремій сторінці без PRO-обгортки:
+        // спершу людина безкоштовно підтверджує профіль, потім повертається сюди.
+        if (! $canPayNow) {
+            return redirect()->route('pro.account.claims.verify', ['profile' => $profile->id, 'next' => 'pay']);
+        }
 
         return view('pay.pro', [
             'profile' => $profile,
             'product' => $this->proPaymentProduct($profile),
+            'canPayNow' => true,
+            'pendingOwnershipPayment' => ! $isOwner,
         ]);
     }
 
@@ -142,6 +161,7 @@ class ProAccountController extends Controller
         }
 
         $product = $this->proPaymentProduct($profile);
+        $amount = (int) $product['amount'];
 
         $order = PaymentOrder::create([
             'user_id' => $request->user()->id,
@@ -150,11 +170,23 @@ class ProAccountController extends Controller
             'method' => PaymentOrder::METHOD_MONOPAY,
             'product_type' => PaymentOrder::PRODUCT_PRO_SUBSCRIPTION,
             'status' => PaymentOrder::STATUS_PENDING,
-            'amount' => (string) ((int) config('payments.pro.amount') * 100),
+            'amount' => (string) ($amount * 100),
             'currency' => (string) config('payments.pro.currency'),
             'description' => $product['name'],
-            'meta' => ['price_uah' => (int) config('payments.pro.amount')],
+            'meta' => [
+                'price_uah' => $amount,
+                'base_price_uah' => (int) $product['base_amount'],
+                'discount_percent' => (int) $product['discount_percent'],
+                'discount_amount_uah' => (int) $product['discount_amount'],
+            ],
         ]);
+
+        // walletId привʼязує збережену картку до пари користувач+профіль:
+        // стабільний, щоб повторна оплата перезаписувала той самий «гаманець».
+        $walletId = 'dovira-' . $request->user()->id . '-' . $profile->id;
+        $order->forceFill([
+            'meta' => array_merge((array) ($order->meta ?? []), ['monopay_wallet_id' => $walletId]),
+        ])->save();
 
         try {
             $invoice = MonopayClient::make()->createInvoice([
@@ -162,13 +194,19 @@ class ProAccountController extends Controller
                 'ccy' => (int) config('payments.pro.currency_code'),
                 'merchantPaymInfo' => [
                     'reference' => $order->token,
-                    'destination' => $product['name'] . ' — ' . $profile->name,
+                    'destination' => 'Оплата за інформаційні послуги, без ПДВ.',
                     'comment' => $product['description'],
                 ],
                 'redirectUrl' => route('pro.account.billing.success', $order->token),
                 'webHookUrl' => route('webhooks.monopay'),
                 'validity' => (int) config('payments.pro.validity'),
                 'paymentType' => 'debit',
+                // Підписка з автопродовженням: monopay зберігає картку і
+                // повертає cardToken у вебхуку — ним списуємо наступні періоди.
+                'saveCardData' => [
+                    'saveCard' => true,
+                    'walletId' => $walletId,
+                ],
                 'withAppUrl' => true,
             ]);
 
@@ -286,6 +324,8 @@ class ProAccountController extends Controller
 
         $subscription->forceFill([
             'status' => 'canceled',
+            // Скасування завершує і майбутні списання.
+            'auto_renew' => false,
             'ends_at' => now(),
             'canceled_at' => now(),
         ])->save();
@@ -358,19 +398,34 @@ class ProAccountController extends Controller
     {
         $this->assertOwnedProfile($request, $profile);
 
-        // Редагування профілю (включно з досьє) — лише з активною PRO-підпискою.
+        // Після безкоштовного підтвердження прав власник може змінити ЛИШЕ назву
+        // профілю. Решта полів (фото, послуги, контакти, опис, досьє, SEO,
+        // публікація) редагується тільки з активною PRO-підпискою.
         if (! $profile->hasActiveProSubscription()) {
+            $validated = $request->validate([
+                'name' => ['required', 'string', 'max:255'],
+            ]);
+
+            $profile->forceFill([
+                'name' => trim((string) $validated['name']),
+                'updated_by_user_id' => $request->user()->id,
+            ])->save();
+
+            AuditLogger::log('pro.profile_name_updated', $profile, [
+                'updated_by_owner' => $request->user()->id,
+            ]);
+
             if ($request->expectsJson()) {
                 return response()->json([
-                    'status' => 'error',
-                    'message' => 'Редагування профілю доступне лише з PRO-підпискою.',
-                    'redirect_url' => route('pro.account.billing.pay', $profile),
-                ], 403);
+                    'status' => 'ok',
+                    'message' => 'Назву профілю оновлено.',
+                    'profile' => ['id' => $profile->id, 'name' => $profile->name],
+                ]);
             }
 
             return redirect()
-                ->route('pro.account.billing.pay', $profile)
-                ->with('status', 'pro-edit-requires-pro');
+                ->route('pro.account', ['tab' => 'profile', 'profile' => $profile->id])
+                ->with('status', 'pro-profile-updated');
         }
 
         $validated = $request->validate([
@@ -382,9 +437,18 @@ class ProAccountController extends Controller
             'service_ids.*' => ['integer', Rule::exists('category_services', 'id')],
             'service_names' => ['nullable', 'array'],
             'service_names.*' => ['nullable', 'string', 'max:120'],
+            // Прайс: рядки ключуються індексом (не назвою — крапки в назвах
+            // ламають wildcard-валідацію), назва — усередині рядка.
+            'service_prices' => ['nullable', 'array', 'max:60'],
+            'service_prices.*.name' => ['nullable', 'string', 'max:120'],
+            'service_prices.*.type' => ['nullable', Rule::in(\App\Support\ServicePrice::TYPES)],
+            'service_prices.*.price' => ['nullable', 'integer', 'min:1', 'max:9000000'],
+            'service_prices.*.price_max' => ['nullable', 'integer', 'min:1', 'max:9000000'],
+            'service_prices.*.description' => ['nullable', 'string', 'max:300'],
             'short_description' => ['nullable', 'string', 'max:500'],
             'description' => ['nullable', 'string', 'max:10000'],
-            'dossier' => ['nullable', 'string', 'max:20000'],
+            // 'dossier' видалено з форми: досьє редагує лише команда (запит
+            // на перегляд — окремий потік dossier-revision).
             'logo_url' => ['nullable', 'string', 'max:2048'],
             'logo_file' => ['nullable', 'file', 'image', 'mimetypes:image/jpeg,image/png,image/webp,image/gif', 'max:10240'],
             'banner_url' => ['nullable', 'string', 'max:2048'],
@@ -623,6 +687,7 @@ class ProAccountController extends Controller
             $allowedServiceIds = $this->resolveProfileServiceIds($serviceCategoryId, $allowedServiceIds, $serviceNames);
         }
         $profile->services()->sync($allowedServiceIds);
+        $this->syncServicePrices($profile, (array) ($validated['service_prices'] ?? []));
 
         AuditLogger::log('pro.profile_updated', $profile, [
             'updated_by_owner' => $request->user()->id,
@@ -722,6 +787,10 @@ class ProAccountController extends Controller
             'reason' => $report->reason,
         ]);
 
+        if ($report->wasRecentlyCreated) {
+            app(\App\Services\Notifications\TelegramAdminNotifier::class)->newReviewReport($report);
+        }
+
         return response()->json([
             'status' => 'ok',
             'message' => 'Скаргу надіслано на модерацію.',
@@ -797,67 +866,6 @@ class ProAccountController extends Controller
             ->with('status', 'pro-review-reply-saved');
     }
 
-    public function updateReviewVisibility(Request $request, ProfileReview $review): RedirectResponse|JsonResponse
-    {
-        $review->loadMissing('profile');
-        $profile = $review->profile;
-        abort_unless($profile instanceof Profile, 404);
-        $this->assertOwnedProfile($request, $profile);
-        // Керування видимістю відгуків — частина платного керування профілем.
-        $this->assertCanManageReviewModeration($profile);
-
-        $validated = $request->validate([
-            'status' => ['required', Rule::in(['published', 'hidden'])],
-        ]);
-
-        // Ліміт приховувань: власник може сховати максимум 5 відгуків на
-        // профіль. Це не дає ховати всю критику. Розкриття — завжди дозволено.
-        if ($validated['status'] === 'hidden' && $review->status !== 'hidden') {
-            $hiddenCount = $profile->reviews()->where('status', 'hidden')->count();
-
-            if ($hiddenCount >= self::HIDDEN_REVIEWS_LIMIT) {
-                $message = sprintf(
-                    'Можна приховати не більше %d відгуків. Спершу поверніть якийсь із прихованих або поскаржтесь на модерацію.',
-                    self::HIDDEN_REVIEWS_LIMIT
-                );
-
-                if ($request->expectsJson()) {
-                    return response()->json(['status' => 'error', 'message' => $message], 422);
-                }
-
-                return redirect()
-                    ->route('pro.account', ['tab' => 'reviews', 'profile' => $review->profile_id])
-                    ->withErrors(['review_visibility' => $message]);
-            }
-        }
-
-        $payload = ['status' => $validated['status']];
-        if ($validated['status'] === 'published' && ! $review->published_at) {
-            $payload['published_at'] = now();
-        }
-
-        $review->update($payload);
-
-        AuditLogger::log('pro.review_visibility_updated', $review, [
-            'profile_id' => $review->profile_id,
-            'status' => $validated['status'],
-        ]);
-
-        if ($request->expectsJson()) {
-            return response()->json([
-                'status' => 'ok',
-                'message' => 'Видимість відгуку оновлено.',
-                'review_id' => $review->id,
-                'review_status' => $review->status,
-                'redirect_url' => route('pro.account', ['tab' => 'reviews', 'profile' => $review->profile_id]),
-            ]);
-        }
-
-        return redirect()
-            ->route('pro.account', ['tab' => 'reviews', 'profile' => $review->profile_id])
-            ->with('status', 'pro-review-visibility-updated');
-    }
-
     public function updateNotificationPreferences(Request $request, Profile $profile): RedirectResponse|JsonResponse
     {
         $this->assertOwnedProfile($request, $profile);
@@ -881,6 +889,111 @@ class ProAccountController extends Controller
         return redirect()
             ->route('pro.account', ['tab' => 'notifications', 'profile' => $profile->id])
             ->with('status', 'pro-profile-updated');
+    }
+
+    /**
+     * Запит на перегляд досьє (PRO): власник описує, що неточне або що
+     * змінити, — команда перевіряє факти й переробляє досьє вручну.
+     */
+    public function submitDossierRevision(Request $request, Profile $profile): JsonResponse
+    {
+        $this->assertOwnedProfile($request, $profile);
+        abort_unless($profile->hasActiveProSubscription(), 403, 'Запит на перегляд досьє доступний з PRO-підпискою.');
+
+        $validated = $request->validate([
+            'message' => ['required', 'string', 'min:20', 'max:3000'],
+        ], [
+            'message.min' => 'Опишіть детальніше (від 20 символів), що саме неточне — так ми швидше перевіримо.',
+        ]);
+
+        $open = \App\Models\DossierRevisionRequest::query()
+            ->where('profile_id', $profile->id)
+            ->whereIn('status', \App\Models\DossierRevisionRequest::OPEN_STATUSES)
+            ->latest('id')
+            ->first();
+
+        if ($open) {
+            return response()->json([
+                'ok' => false,
+                'error' => 'Попередній запит ще на розгляді — ми відповімо, щойно перевіримо факти.',
+            ], 422);
+        }
+
+        $revisionRequest = \App\Models\DossierRevisionRequest::create([
+            'profile_id' => $profile->id,
+            'user_id' => $request->user()->id,
+            'message' => trim((string) $validated['message']),
+            'status' => \App\Models\DossierRevisionRequest::STATUS_PENDING,
+        ]);
+
+        AuditLogger::log('pro.dossier_revision_requested', $profile, [
+            'request_id' => $revisionRequest->id,
+        ]);
+        rescue(fn () => app(\App\Services\Notifications\TelegramAdminNotifier::class)->newDossierRevisionRequest($revisionRequest));
+
+        return response()->json([
+            'ok' => true,
+            'message' => 'Запит надіслано. Ми перевіримо факти й оновимо досьє — сповістимо в кабінеті.',
+            'date' => now()->translatedFormat('d F Y'),
+        ]);
+    }
+
+    /**
+     * Тумблер автопродовження підписки: вимкнення не скасовує PRO — доступ
+     * діє до кінця сплаченого періоду, просто не буде наступного списання.
+     */
+    public function updateAutoRenew(Request $request, Profile $profile): RedirectResponse|JsonResponse
+    {
+        $this->assertOwnedProfile($request, $profile);
+
+        $enabled = (bool) $request->boolean('enabled');
+
+        $subscription = $profile->proSubscriptions()
+            ->where('status', 'active')
+            ->latest('id')
+            ->first();
+
+        abort_unless($subscription, 404);
+
+        // Увімкнути можна лише коли є збережена картка (токен зʼявляється
+        // після першої оплати з saveCardData).
+        if ($enabled && blank($subscription->monopay_card_token)) {
+            $enabled = false;
+        }
+
+        $subscription->forceFill(['auto_renew' => $enabled])->save();
+
+        if ($request->expectsJson()) {
+            return response()->json(['ok' => true, 'auto_renew' => $enabled]);
+        }
+
+        return redirect()
+            ->route('pro.account', ['tab' => 'billing', 'profile' => $profile->id])
+            ->with('status', $enabled ? 'pro-auto-renew-on' : 'pro-auto-renew-off');
+    }
+
+    /**
+     * Воронка заявок у кабінеті: new → in_progress → done. Зміна статусу
+     * заодно знімає позначку «нова» (is_read).
+     */
+    public function updateLeadStatus(Request $request, \App\Models\ProfileLead $lead): JsonResponse
+    {
+        $profile = $lead->profile;
+        abort_unless($profile && (int) $profile->owner_user_id === (int) $request->user()->id, 403);
+
+        $validated = $request->validate([
+            'status' => ['required', 'in:new,in_progress,done'],
+        ]);
+
+        $lead->forceFill([
+            'status' => $validated['status'],
+            'is_read' => $validated['status'] === 'new' ? $lead->is_read : true,
+        ])->save();
+
+        return response()->json([
+            'ok' => true,
+            'status' => $validated['status'],
+        ]);
     }
 
     public function markNotificationsRead(Request $request, Profile $profile): RedirectResponse|JsonResponse
@@ -1371,6 +1484,7 @@ class ProAccountController extends Controller
 
         return match ($normalizedType) {
             'google_maps', 'google', 'google_business' => 'Google',
+            'threads' => 'Threads',
             'facebook' => 'Facebook',
             'instagram' => 'Instagram',
             'telegram' => 'Telegram',
@@ -1645,11 +1759,17 @@ class ProAccountController extends Controller
         abort_unless((int) $profile->owner_user_id === (int) $request->user()->id, 403);
     }
 
-    /**
-     * Оплата PRO доступна власнику профілю АБО заявнику (профіль ще без
-     * власника, але користувач подав заявку на привʼязку) — підтвердження
-     * профілю відбувається лише після активації підписки.
-     */
+    private function assertPaymentPageVisible(Request $request, Profile $profile): void
+    {
+        $userId = (int) $request->user()->id;
+
+        if ((int) $profile->owner_user_id === $userId) {
+            return;
+        }
+
+        abort_unless($profile->owner_user_id === null, 403);
+    }
+
     private function assertBillableProfile(Request $request, Profile $profile): void
     {
         $userId = (int) $request->user()->id;
@@ -1662,6 +1782,7 @@ class ProAccountController extends Controller
             && ProfileClaim::query()
                 ->where('profile_id', $profile->id)
                 ->where('user_id', $userId)
+                ->whereIn('status', ['pending', 'need_more_info'])
                 ->exists();
 
         abort_unless($isClaimant, 403);
@@ -1673,7 +1794,7 @@ class ProAccountController extends Controller
     private function proBillingCatalog(): array
     {
         // Стартова пропозиція: один тариф PRO на 6 місяців. Ціна береться з
-        // ProPricing — при завершенні акції міняється лише константа.
+        // ProPricing — після завершення стартової когорти міняється лише константа.
         return [
             'pro' => [
                 'label' => 'PRO',
@@ -1687,17 +1808,25 @@ class ProAccountController extends Controller
 
     private function proPaymentProduct(Profile $profile): array
     {
-        $amount = (int) config('payments.pro.amount');
-        $priceDisplay = $amount === \App\Support\ProPricing::CURRENT_AMOUNT
-            ? \App\Support\ProPricing::formatDisplay(\App\Support\ProPricing::DISPLAY_CURRENT)
-            : \App\Support\ProPricing::formatAmount($amount);
+        $baseAmount = (int) config('payments.pro.amount');
+        $price = ProDiscount::price($profile, $baseAmount);
+        $amount = (int) $price['amount'];
+        $displayPrice = ProDiscount::price($profile, \App\Support\ProPricing::DISPLAY_CURRENT);
+        $priceDisplay = \App\Support\ProPricing::formatDisplay((int) $displayPrice['amount']);
 
         return [
             'name' => (string) config('payments.pro.name'),
             'description' => trim((string) config('payments.pro.description') . ' Профіль: ' . $profile->name . '.'),
-            // На тестових сумах показуємо реальну гривневу ціну, щоб UI збігався зі списанням.
             'price_display' => $priceDisplay,
             'price_uah' => \App\Support\ProPricing::formatAmount($amount),
+            'base_price_display' => \App\Support\ProPricing::formatDisplay(\App\Support\ProPricing::DISPLAY_CURRENT),
+            'base_price_uah' => \App\Support\ProPricing::formatAmount($baseAmount),
+            'base_amount' => $baseAmount,
+            'discount_percent' => (int) $price['discount_percent'],
+            'discount_amount' => (int) $price['discount_amount'],
+            'discount_amount_display' => \App\Support\ProPricing::formatDisplay((int) $displayPrice['discount_amount']),
+            'discount_amount_uah' => \App\Support\ProPricing::formatAmount((int) $price['discount_amount']),
+            'has_discount' => (bool) $price['has_discount'],
             'amount' => $amount,
             'currency' => (string) config('payments.pro.currency'),
             'success_url' => route('pro.account', ['profile' => $profile->id]),
@@ -1706,6 +1835,17 @@ class ProAccountController extends Controller
 
     private function ensureMonopayAvailable(Request $request, Profile $profile): RedirectResponse|JsonResponse|null
     {
+        // Плановий вимикач нових оплат (PRO_CHECKOUT_ENABLED=false): блокуємо
+        // створення інвойсів навіть на прямий POST в обхід прихованої кнопки.
+        if (! (bool) config('payments.checkout.enabled', true)) {
+            return $this->monopayPaymentFailureResponse(
+                $request,
+                $profile,
+                'pro-billing-paused',
+                (string) config('payments.checkout.paused_message')
+            );
+        }
+
         if ((string) config('payments.monopay.token') === '') {
             return $this->monopayPaymentFailureResponse(
                 $request,
@@ -1715,7 +1855,7 @@ class ProAccountController extends Controller
             );
         }
 
-        if ((int) config('payments.pro.amount') <= 0) {
+        if ((int) $this->proPaymentProduct($profile)['amount'] <= 0) {
             return $this->monopayPaymentFailureResponse(
                 $request,
                 $profile,
@@ -2132,6 +2272,55 @@ class ProAccountController extends Controller
      * @param  array<int, string>  $serviceNames
      * @return array<int, int>
      */
+    /**
+     * Прайс-поля на привʼязках послуг: рядки з форми матчаться за назвою
+     * (нормалізованою), значення нормалізуються — range без максимуму стає
+     * «від», порожній тип обнуляє ціни. Викликається після services()->sync().
+     *
+     * @param  array<int, array<string, mixed>>  $rows
+     */
+    private function syncServicePrices(Profile $profile, array $rows): void
+    {
+        $byName = collect($rows)
+            ->filter(fn ($row) => is_array($row) && trim((string) ($row['name'] ?? '')) !== '')
+            ->values()
+            ->map(fn (array $row, int $index) => [...$row, '_position' => $index])
+            ->keyBy(fn (array $row) => mb_strtolower(trim((string) $row['name'])));
+
+        $profile->load('services');
+
+        foreach ($profile->services as $service) {
+            $row = $byName->get(mb_strtolower(trim((string) $service->name)), []);
+
+            $type = in_array($row['type'] ?? null, \App\Support\ServicePrice::TYPES, true) ? $row['type'] : null;
+            $price = (int) ($row['price'] ?? 0) > 0 ? (int) $row['price'] : null;
+            $priceMax = (int) ($row['price_max'] ?? 0) > 0 ? (int) $row['price_max'] : null;
+
+            // Нормалізація: договірна — без сум; типи з сумою без суми — скидаються;
+            // діапазон із «максимумом» не більшим за мінімум — стає «від».
+            if ($type === 'negotiable') {
+                $price = $priceMax = null;
+            } elseif ($type !== null && $price === null) {
+                $type = null;
+                $priceMax = null;
+            } elseif ($type === 'range' && ($priceMax === null || $priceMax <= $price)) {
+                $type = 'from';
+                $priceMax = null;
+            } elseif ($type !== 'range') {
+                $priceMax = null;
+            }
+
+            $profile->services()->updateExistingPivot($service->id, [
+                'price_type' => $type,
+                'price' => $price,
+                'price_max' => $priceMax,
+                'description' => ($d = trim((string) ($row['description'] ?? ''))) !== '' ? mb_substr($d, 0, 300) : null,
+                // Порядок — як у формі; послуги без рядка прайсу йдуть у кінець.
+                'sort_order' => (int) ($row['_position'] ?? 999),
+            ]);
+        }
+    }
+
     private function resolveProfileServiceIds(int $categoryId, array $existingIds, array $serviceNames): array
     {
         $resolvedIds = collect($existingIds);

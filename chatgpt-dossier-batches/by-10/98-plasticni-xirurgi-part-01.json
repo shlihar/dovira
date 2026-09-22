@@ -1,0 +1,152 @@
+[
+    {
+        "profile_id": 4396,
+        "full_name": "Клініка доктора Валіхновського",
+        "city": "Київ",
+        "category": "Пластичні хірурги",
+        "profile_url": "https://mydovira.com/profiles/klinika-plasticnoyi-xirurgiyi-doktora-valixnovskogo",
+        "company_url": "https://valikhnovskimd.com/ru",
+        "additional_identity_data": {
+            "address": "проспект Краснозвьоздний, 17",
+            "phone": "(044) 20 00 31 1",
+            "type": "company",
+            "rating_avg": 4.26,
+            "reviews_count": 121
+        }
+    },
+    {
+        "profile_id": 4114,
+        "full_name": "Пластичний хірург Компанієць Анатолій Олегович",
+        "city": "Київ",
+        "category": "Пластичні хірурги",
+        "profile_url": "https://mydovira.com/profiles/denis-iurcenko-plasticnii-xirurg",
+        "company_url": "https://yurchenko.ua",
+        "additional_identity_data": {
+            "address": "Композитора Мейтуса, 5",
+            "phone": "(050) 608 32 30",
+            "type": "company",
+            "rating_avg": 4.25,
+            "reviews_count": 99
+        }
+    },
+    {
+        "profile_id": 7239,
+        "full_name": "Virtus, інститут пластичної хірургії і косметології",
+        "city": "Одеса",
+        "category": "Пластичні хірурги",
+        "profile_url": "https://mydovira.com/profiles/virtus-institut-plasticnoyi-xirurgiyi-i-kosmetologiyi",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Буніна, 9 / 1",
+            "phone": "(048) 771 05 17, (048) 700 60 60, (048) 70 06 06 0, (044) 36 48 0  0",
+            "type": "company",
+            "rating_avg": 4.56,
+            "reviews_count": 96
+        }
+    },
+    {
+        "profile_id": 4138,
+        "full_name": "Docber Clinic, клініка пластичної хірургії доктора Дмитра Березовського",
+        "city": "Київ",
+        "category": "Пластичні хірурги",
+        "profile_url": "https://mydovira.com/profiles/docber-clinic-klinika-plasticnoyi-xirurgiyi-doktora-dmitra-berezovskogo",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Драгомирова, 18",
+            "phone": "(050) 534 43 43",
+            "type": "company",
+            "rating_avg": 4.91,
+            "reviews_count": 94
+        }
+    },
+    {
+        "profile_id": 4184,
+        "full_name": "Nove Tilo, клініка пластичної хірургії",
+        "city": "Київ",
+        "category": "Пластичні хірурги",
+        "profile_url": "https://mydovira.com/profiles/nove-tilo-klinika-plasticnoyi-xirurgiyi",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Щекавицька, 9А",
+            "phone": "(068) 906 09 01, (067) 614 64 52",
+            "type": "company",
+            "rating_avg": 4.54,
+            "reviews_count": 87
+        }
+    },
+    {
+        "profile_id": 7077,
+        "full_name": "Patlazhan Clinic, клініка пластичної хірургії",
+        "city": "Одеса",
+        "category": "Пластичні хірурги",
+        "profile_url": "https://mydovira.com/profiles/patlazhan-clinic-klinika-plasticnoyi-xirurgiyi",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Хрестовий перевулок, 31 / 3",
+            "phone": "(097) 772 57 77",
+            "type": "company",
+            "rating_avg": 4.62,
+            "reviews_count": 85
+        }
+    },
+    {
+        "profile_id": 8510,
+        "full_name": "Estel, медичний центр пластичної хірургії",
+        "city": "Львів",
+        "category": "Пластичні хірурги",
+        "profile_url": "https://mydovira.com/profiles/estel-medicnii-centr-plasticnoyi-xirurgiyi",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Липинського, 54",
+            "phone": "(098) 314 22 64",
+            "type": "company",
+            "rating_avg": 4.71,
+            "reviews_count": 73
+        }
+    },
+    {
+        "profile_id": 4308,
+        "full_name": "Українська академія пластичної хірургії, мережа клінік",
+        "city": "Київ",
+        "category": "Пластичні хірурги",
+        "profile_url": "https://mydovira.com/profiles/ukrayinska-akademiia-plasticnoyi-xirurgiyi-mereza-klinik",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Маршала Рибалка, 11Б",
+            "phone": "(067) 220 20 96",
+            "type": "company",
+            "rating_avg": 4.5,
+            "reviews_count": 64
+        }
+    },
+    {
+        "profile_id": 7297,
+        "full_name": "Dr.Mozart, медичний центр пластичної естетичної хірургії,косметології та стоматології",
+        "city": "Одеса",
+        "category": "Пластичні хірурги",
+        "profile_url": "https://mydovira.com/profiles/drmozart-medicnii-centr-plasticnoyi-esteticnoyi-xirurgiyikosmetologiyi-ta-stomatologiyi",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Польська, 18",
+            "phone": "(048) 777 15 10, (048) 705 70 02, (048) 705 70 03",
+            "type": "company",
+            "rating_avg": 4.05,
+            "reviews_count": 61
+        }
+    },
+    {
+        "profile_id": 4404,
+        "full_name": "Еталон, центр пластичної хірургії",
+        "city": "Вінниця",
+        "category": "Пластичні хірурги",
+        "profile_url": "https://mydovira.com/profiles/etalon-centr-plasticnoyi-xirurgiyi",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Грушевського, 12",
+            "phone": "(067) 768 85 91, (043) 267 55 55, (093) 371 52 38",
+            "type": "company",
+            "rating_avg": 4.64,
+            "reviews_count": 55
+        }
+    }
+]

@@ -128,6 +128,22 @@ class ProfilesTable
                     ->grow(false)
                     ->numeric()
                     ->sortable(),
+                TextColumn::make('impressions_count')
+                    ->label('Покази картки')
+                    ->tooltip('Скільки разів картку профілю бачили в каталозі, рейтингах і рекомендаціях')
+                    ->width('1%')
+                    ->grow(false)
+                    ->numeric()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: false),
+                TextColumn::make('total_seen')
+                    ->label('Показів разом')
+                    ->tooltip('Покази картки + перегляди сторінки профілю')
+                    ->width('1%')
+                    ->grow(false)
+                    ->state(fn ($record) => number_format((int) $record->impressions_count + (int) $record->views_count, 0, '.', ' '))
+                    ->sortable(query: fn (Builder $query, string $direction): Builder => $query
+                        ->orderByRaw('(impressions_count + views_count) ' . $direction)),
                 TextColumn::make('website_clicks_count')
                     ->label('Кліки на сайт')
                     ->width('1%')
@@ -158,13 +174,28 @@ class ProfilesTable
                     ->grow(false)
                     ->numeric(decimalPlaces: 2)
                     ->sortable(),
+                TextColumn::make('rating_placement')
+                    ->label('Рейтинги')
+                    ->width('1%')
+                    ->grow(false)
+                    ->badge()
+                    ->formatStateUsing(fn (?string $state): string => match ($state) {
+                        'force' => 'Вручну',
+                        'hide' => 'Сховано',
+                        default => 'Авто',
+                    })
+                    ->color(fn (?string $state): string => match ($state) {
+                        'force' => 'success',
+                        'hide' => 'danger',
+                        default => 'gray',
+                    }),
                 IconColumn::make('is_verified')
                     ->label('Verified')
                     ->width('1%')
                     ->grow(false)
                     ->boolean(),
                 IconColumn::make('owner_verified_status')
-                    ->label('Синя галочка')
+                    ->label('Права власника')
                     ->width('1%')
                     ->grow(false)
                     ->boolean()
@@ -257,7 +288,7 @@ class ProfilesTable
                     ->relationship('region', 'name'),
                 TernaryFilter::make('is_verified')->label('Verified'),
                 TernaryFilter::make('owner_verified')
-                    ->label('Синя галочка')
+                    ->label('Права власника')
                     ->queries(
                         true: fn (Builder $query) => $query->where(function (Builder $inner) {
                             $inner->where('is_owner_verified', true)
@@ -334,6 +365,13 @@ class ProfilesTable
 
                         return $value > 0 ? $query->where('rating_avg', '>=', $value) : $query;
                     }),
+                SelectFilter::make('rating_placement')
+                    ->label('Показ у рейтингах')
+                    ->options([
+                        'auto' => 'Автоматично',
+                        'force' => 'Поставити вручну',
+                        'hide' => 'Сховати з рейтингів',
+                    ]),
                 SelectFilter::make('completeness')
                     ->label('Повнота профілю')
                     ->options([

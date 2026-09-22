@@ -1,0 +1,29 @@
+[
+  {
+    "path": "/",
+    "status": 200,
+    "body_bytes": 360501
+  },
+  {
+    "path": "/catalog",
+    "status": 200,
+    "body_bytes": 266080
+  },
+  {
+    "path": "/sitemap.xml",
+    "status": 200,
+    "body_bytes": 513
+  },
+  {
+    "path": "/profiles/advokatske-biuro-avgustinov-om",
+    "status": 404
+  },
+  {
+    "path": "/profiles/pantera-perukarnia",
+    "status": 404
+  },
+  {
+    "path": "/profiles/budxata-magazin-budivelnix-tovariv",
+    "status": 404
+  }
+]

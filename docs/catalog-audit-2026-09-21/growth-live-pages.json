@@ -1,0 +1,82 @@
+[
+  {
+    "url": "https://mydovira.com/profiles/dim-muliarovix-restoraciia",
+    "status": 200,
+    "title": [
+      "Дім Мулярових, ресторація — 4.9/5 · 100 відгуків | DOVIRA"
+    ],
+    "robots": [
+      "<meta name=\"robots\" content=\"noindex, follow\">"
+    ],
+    "canonical": [
+      "<link rel=\"canonical\" href=\"https://mydovira.com/profiles/dim-muliarovix-restoraciia\">"
+    ],
+    "h1": [
+      "<span class=\"profile-hero__title-text\">Дім Мулярових, ресторація</span>"
+    ]
+  },
+  {
+    "url": "https://mydovira.com/profiles/copper-head-beer-workshop-restoran-pivovarnia",
+    "status": 200,
+    "title": [
+      "Copper Head. Beer workshop, ресторан-пивоварня відгуки | DOVIRA"
+    ],
+    "robots": [
+      "<meta name=\"robots\" content=\"noindex, follow\">"
+    ],
+    "canonical": [
+      "<link rel=\"canonical\" href=\"https://mydovira.com/profiles/copper-head-beer-workshop-restoran-pivovarnia\">"
+    ],
+    "h1": [
+      "<span class=\"profile-hero__title-text\">Copper Head. Beer workshop, ресторан-пивоварня</span>"
+    ]
+  },
+  {
+    "url": "https://mydovira.com/profiles/urban-space-100-gromadskii-restoran",
+    "status": 200,
+    "title": [
+      "Urban Space 100, громадський ресторан відгуки і рейтинг | DOVIRA"
+    ],
+    "robots": [
+      "<meta name=\"robots\" content=\"noindex, follow\">"
+    ],
+    "canonical": [
+      "<link rel=\"canonical\" href=\"https://mydovira.com/profiles/urban-space-100-gromadskii-restoran\">"
+    ],
+    "h1": [
+      "<span class=\"profile-hero__title-text\">Urban Space 100, громадський ресторан</span>"
+    ]
+  },
+  {
+    "url": "https://mydovira.com/catalog/advokaty/kyiv",
+    "status": 200,
+    "title": [
+      "Найкращі адвокати у Києві — рейтинг 2026 за 10 671 відгуком | DOVIRA"
+    ],
+    "robots": [
+      "<meta name=\"robots\" content=\"noindex, follow\">"
+    ],
+    "canonical": [
+      "<link rel=\"canonical\" href=\"https://mydovira.com/catalog/advokaty/kyiv\">"
+    ],
+    "h1": [
+      "Адвокати у Києві"
+    ]
+  },
+  {
+    "url": "https://mydovira.com/catalog/stomatologiyi/kyiv/implantaciia-zubiv",
+    "status": 200,
+    "title": [
+      "Імплантація зубів у Києві — відгуки пацієнтів 2026: 469 фахівців, 2 392 відгуки | DOVIRA"
+    ],
+    "robots": [
+      "<meta name=\"robots\" content=\"index, follow, max-image-preview:large, max-snippet:-1\">"
+    ],
+    "canonical": [
+      "<link rel=\"canonical\" href=\"https://mydovira.com/catalog/stomatologiyi/kyiv/implantaciia-zubiv\">"
+    ],
+    "h1": [
+      "Імплантація зубів у Києві — відгуки пацієнтів"
+    ]
+  }
+]

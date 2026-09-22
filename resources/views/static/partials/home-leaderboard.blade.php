@@ -62,7 +62,10 @@
                     </a>
                 @endforeach
 
-                <a class="leaderboard__all" href="{{ route('catalog', ['sub' => $lbTab['name'], 'sort' => 'rating_desc']) }}">
+                {{-- На programmatic-рейтинг /top/{slug}, якщо є slug (пряме
+                     посилання з головної на SEO-сторінку рейтингу); інакше —
+                     фолбек на відсортований каталог. --}}
+                <a class="leaderboard__all" href="{{ ! empty($lbTab['slug']) ? route('top.rating', ['category' => $lbTab['slug']]) : route('catalog', ['sub' => $lbTab['name'], 'sort' => 'rating_desc']) }}">
                     Весь рейтинг «{{ $lbTab['name'] }}» <span aria-hidden="true">→</span>
                 </a>
             </div>

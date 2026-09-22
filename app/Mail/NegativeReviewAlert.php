@@ -3,7 +3,9 @@
 namespace App\Mail;
 
 use App\Models\Profile;
+use App\Models\ProfileEvent;
 use App\Models\ProfileReview;
+use App\Services\ProfileAnalyticsService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
@@ -29,11 +31,17 @@ class NegativeReviewAlert extends Mailable
     ) {
     }
 
+    /**
+     * Перегляди профілю за 30 днів — головний аргумент листа («цей відгук уже
+     * бачать»). Маленька цифра продає проти нас, тому нижче порогу не показуємо.
+     */
+    private const VIEWS_MIN_TO_SHOW = 25;
+
     public function envelope(): Envelope
     {
         $subject = $this->forOwner
-            ? 'Новий негативний відгук про ' . $this->profile->name
-            : 'Про ваш бізнес залишили негативний відгук на Dovira';
+            ? 'Новий негативний відгук про ' . $this->profile->name . ' — ви можете відповісти'
+            : 'Негативний відгук про ' . $this->profile->name . ' — його вже бачать клієнти';
 
         return new Envelope(subject: $subject);
     }
@@ -50,7 +58,19 @@ class NegativeReviewAlert extends Mailable
                 'forOwner' => $this->forOwner,
                 'ctaUrl' => $this->ctaUrl,
                 'unsubscribeUrl' => $this->unsubscribeUrl,
+                'viewsLast30' => $this->viewsLast30Days(),
             ],
         );
+    }
+
+    private function viewsLast30Days(): ?int
+    {
+        $views = (int) ProfileEvent::query()
+            ->where('profile_id', $this->profile->id)
+            ->where('event_type', ProfileAnalyticsService::EVENT_PROFILE_VIEW)
+            ->where('created_at', '>=', now()->subDays(30))
+            ->count();
+
+        return $views >= self::VIEWS_MIN_TO_SHOW ? $views : null;
     }
 }

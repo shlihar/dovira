@@ -33,10 +33,48 @@ $publicPlatformStats = function (): array {
 };
 
 Route::get('/', HomePageController::class)->name('home');
+// Лендінг «Перевірка адвоката» під пошуковий попит; пошук веде в каталог.
+Route::get('/perevirka-advokata', function () use ($publicPlatformStats) {
+    return view('static.perevirka', [
+        'stats' => $publicPlatformStats(),
+        'dossiers' => (int) rescue(fn () => Profile::query()
+            ->where('status', 'active')
+            ->where('is_published', true)
+            ->whereNotNull('dossier')
+            ->count(), 0, false),
+    ]);
+})->name('lawyer.check');
+// Programmatic SEO-рейтинги «ТОП-10 {категорія} {місто}» на реальних даних.
+// Slug-констрейнти, щоб не перехоплювати службові шляхи.
+Route::get('/top', [\App\Http\Controllers\TopRatingController::class, 'index'])
+    ->middleware('throttle:60,1')
+    ->name('top.index');
+Route::get('/top/{category}', [\App\Http\Controllers\TopRatingController::class, 'show'])
+    ->where('category', '[a-z0-9\-]+')
+    ->middleware('throttle:60,1')
+    ->name('top.rating');
+Route::get('/top/{category}/{city}', [\App\Http\Controllers\TopRatingController::class, 'show'])
+    ->where(['category' => '[a-z0-9\-]+', 'city' => '[a-z0-9\-]+'])
+    ->middleware('throttle:60,1')
+    ->name('top.rating.city');
 // Внутрішній інструмент розсилки адвокатам (доступ лише персоналу — перевірка в контролері).
 Route::get('/rozsylka', [OutreachController::class, 'index'])->name('outreach');
+Route::get('/rozsylka/status', [OutreachController::class, 'status'])->name('outreach.status');
 Route::get('/rozsylka/stats', [OutreachController::class, 'stats'])->name('outreach.stats');
+Route::get('/rozsylka/email-stats', [OutreachController::class, 'emailStats'])->name('outreach.email-stats');
+Route::get('/rozsylka/notifications', [OutreachController::class, 'notifications'])->name('outreach.notifications');
+Route::post('/rozsylka/profiles/{profile}/flags', [OutreachController::class, 'updateProfileFlags'])->name('outreach.profile-flags');
+Route::post('/rozsylka/profiles/{profile}/email', [OutreachController::class, 'updateProfileContact'])->name('outreach.profile-email');
+// Особистий трекер задач із розкрутки (лише персонал; прогрес у localStorage).
+Route::get('/rozsylka/tasks', [OutreachController::class, 'tasks'])->name('outreach.tasks');
 Route::get('/sitemap.xml', [App\Http\Controllers\SeoController::class, 'sitemap'])->name('seo.sitemap');
+// Дочірні sitemap-и індексу (каталог може рости за межу 50 000 URL).
+Route::get('/sitemap-static.xml', [App\Http\Controllers\SeoController::class, 'sitemapStatic'])->name('seo.sitemap.static');
+Route::get('/sitemap-landing.xml', [App\Http\Controllers\SeoController::class, 'sitemapLanding'])->name('seo.sitemap.landing');
+Route::get('/sitemap-ratings.xml', [App\Http\Controllers\SeoController::class, 'sitemapRatings'])->name('seo.sitemap.ratings');
+Route::get('/sitemap-profiles-{page}.xml', [App\Http\Controllers\SeoController::class, 'sitemapProfiles'])
+    ->where('page', '[0-9]+')
+    ->name('seo.sitemap.profiles');
 Route::get('/robots.txt', [App\Http\Controllers\SeoController::class, 'robots'])->name('seo.robots');
 Route::get('/llms.txt', [App\Http\Controllers\SeoController::class, 'llms'])->name('seo.llms');
 // Машиночитаний прайс для AI-агентів (без рендера JS-сторінки /pro).
@@ -44,6 +82,8 @@ Route::get('/pricing.md', [App\Http\Controllers\SeoController::class, 'pricing']
 // Віджет рейтингу для сайтів власників: SVG-бейдж і iframe-версія.
 Route::get('/widget/{slug}/badge.svg', [App\Http\Controllers\WidgetController::class, 'badge'])->name('widget.badge');
 Route::get('/widget/{slug}/float.js', [App\Http\Controllers\WidgetController::class, 'float'])->name('widget.float');
+Route::get('/widget/{slug}/reviews.js', [App\Http\Controllers\WidgetController::class, 'reviewsLoader'])->name('widget.reviews-loader');
+Route::get('/widget/{slug}/reviews', [App\Http\Controllers\WidgetController::class, 'reviews'])->name('widget.reviews');
 Route::get('/widget/{slug}', [App\Http\Controllers\WidgetController::class, 'show'])->name('widget.show');
 // On-the-fly resized WebP thumbnails — must be registered BEFORE the generic
 // /media/{path} catch-all so it isn't swallowed by it.
@@ -79,6 +119,12 @@ Route::get('/catalog/{category}/{city}', [CatalogPageController::class, 'landing
     ->where(['category' => '[a-z0-9\-]+', 'city' => '[a-z0-9\-]+'])
     ->middleware('throttle:60,1')
     ->name('catalog.landing.city');
+// Посадкова рівня послуги: «пластика носа київ відгуки» → /catalog/plasticni-xirurgi/kyiv/plastyka-nosa.
+// Словник послуг — config/service_landings.php.
+Route::get('/catalog/{category}/{city}/{service}', [\App\Http\Controllers\ServiceLandingController::class, 'show'])
+    ->where(['category' => '[a-z0-9\-]+', 'city' => '[a-z0-9\-]+', 'service' => '[a-z0-9\-]+'])
+    ->middleware('throttle:60,1')
+    ->name('catalog.landing.service');
 Route::get('/search/suggest', SearchSuggestController::class)->name('search.suggest');
 
 // «Обране»: сторінка і резолв гостьового списку — публічні,
@@ -115,6 +161,11 @@ Route::post('/profiles/{slug}/events', ProfileEventController::class)
     ->withoutMiddleware([VerifyCsrfToken::class])
     ->middleware('throttle:120,1')
     ->name('profile.events.store');
+// Батч показів карток профілів (каталог/рейтинги/рекомендації) — див.
+// ProfileAnalyticsService::trackImpressions.
+Route::post('/events/impressions', App\Http\Controllers\ProfileImpressionController::class)
+    ->middleware('throttle:30,1')
+    ->name('profile.events.impressions');
 Route::post('/events/site-page-view', SitePageEventController::class)
     ->withoutMiddleware([VerifyCsrfToken::class])
     ->middleware('throttle:120,1')
@@ -131,10 +182,43 @@ Route::post('/events/ui', SitePageEventController::class)
 Route::get('/review-alerts/unsubscribe/{profile}', [ProAccountController::class, 'unsubscribeOutreach'])
     ->middleware('signed')
     ->name('review-outreach.unsubscribe');
+// Той самий signed-URL, але POST — для Gmail/Yahoo one-click (List-Unsubscribe-Post).
+Route::post('/review-alerts/unsubscribe/{profile}', [ProAccountController::class, 'unsubscribeOutreach'])
+    ->middleware('signed')
+    ->withoutMiddleware([VerifyCsrfToken::class])
+    ->name('review-outreach.unsubscribe.post');
 
 Route::get('/r/{slug}', function (string $slug) {
     return redirect()->to(route('profile.show', ['slug' => $slug]).'?review=1&utm_source=dovira_invite#reviews');
 })->where('slug', '[a-z0-9\-]+')->name('profile.review-link');
+
+// Магічне посилання-claim з листа аутрічу: GET показує підтвердження,
+// POST виконує (signed; POST — щоб прев'ю-боти пошти не забирали профіль).
+Route::get('/claim/{profile}', [\App\Http\Controllers\ProfileClaimLinkController::class, 'show'])
+    ->where('profile', '[0-9]+')
+    ->middleware('signed')
+    ->name('profile.claim-link');
+Route::post('/claim/{profile}', [\App\Http\Controllers\ProfileClaimLinkController::class, 'confirm'])
+    ->where('profile', '[0-9]+')
+    ->middleware('signed')
+    ->name('profile.claim-link.confirm');
+
+// Коротке ЧИСТЕ посилання на досьє профілю: /s/{id}[/{канал}] → профіль (блок
+// досьє) з UTM (додаємо редіректом, щоб сам лінк лишався коротким).
+// Канал: tg = ручний Telegram, em = email, без суфікса = sms (default).
+Route::get('/s/{profile}/{channel?}', function (Profile $profile, ?string $channel = null) {
+    $verdict = $profile->dossier_verdict ?: 'neutral';
+    $medium = match ($channel) {
+        'tg' => 'dm',
+        'em' => 'email',
+        default => 'sms',
+    };
+
+    return redirect()->to(
+        route('profile.show', ['slug' => $profile->slug])
+        . '?utm_source=outreach&utm_medium=' . $medium . '&utm_content=d1_' . $verdict . '#profile-dossier'
+    );
+})->where(['profile' => '[0-9]+', 'channel' => 'tg|em|sms'])->name('outreach.sms-link');
 
 Route::get('/profiles/{slug?}', [CatalogPageController::class, 'showProfile'])
     ->middleware('throttle:60,1')
@@ -163,6 +247,11 @@ Route::view('/terms', 'static.terms')->name('terms');
 Route::post('/webhooks/monopay', [App\Http\Controllers\PaymentWebhookController::class, 'monopay'])
     ->withoutMiddleware([VerifyCsrfToken::class])
     ->name('webhooks.monopay');
+// Telegram-бот: підключення сповіщень власника (/start, /stop).
+Route::post('/webhooks/telegram', App\Http\Controllers\TelegramWebhookController::class)
+    ->withoutMiddleware([VerifyCsrfToken::class])
+    ->middleware('throttle:60,1')
+    ->name('webhooks.telegram');
 Route::get('/blog', [App\Http\Controllers\BlogController::class, 'index'])->name('blog');
 Route::get('/blog/{slug}', [App\Http\Controllers\BlogController::class, 'show'])->name('blog.show');
 
@@ -198,22 +287,28 @@ Route::middleware('auth')->group(function () {
     // підтвердженого email — інакше keby-нік із чужою поштою міг би заявити права.
     Route::post('/pro/account/claims', [ProfileClaimController::class, 'store'])->middleware('verified')->name('pro.account.claims.store');
     // OTP-підтвердження прав на профіль (код на email/телефон із профілю).
+    Route::get('/pro/account/claims/{profile}/verify', [ProfileClaimController::class, 'showVerify'])->middleware('verified')->name('pro.account.claims.verify');
     Route::post('/pro/account/claims/request-code', [ProfileClaimController::class, 'requestCode'])
         ->middleware(['verified', 'throttle:12,1'])->name('pro.account.claims.request-code');
     Route::post('/pro/account/claims/verify-code', [ProfileClaimController::class, 'verifyCode'])
         ->middleware(['verified', 'throttle:20,1'])->name('pro.account.claims.verify-code');
     Route::post('/pro/account/profiles', [ProfileClaimController::class, 'createProfile'])->middleware('verified')->name('pro.account.profiles.store');
     Route::patch('/pro/account/profiles/{profile}', [ProAccountController::class, 'updateProfile'])->name('pro.account.profiles.update');
-    Route::get('/pro/account/billing/{profile}/pay', [ProAccountController::class, 'showBillingPayment'])->middleware('verified')->name('pro.account.billing.pay');
-    Route::post('/pro/account/billing/{profile}/checkout', [ProAccountController::class, 'purchaseSubscription'])->middleware('verified')->name('pro.account.billing.checkout');
-    Route::post('/pro/account/billing/{profile}/pay/monopay', [ProAccountController::class, 'startBillingMonopay'])->middleware(['verified', 'throttle:10,1'])->name('pro.account.billing.pay.monopay');
-    Route::get('/pro/account/billing/success/{token}', [ProAccountController::class, 'billingPaymentSuccess'])->middleware('verified')->name('pro.account.billing.success');
+    Route::post('/pro/account/profiles/{profile}/dossier-revision', [ProAccountController::class, 'submitDossierRevision'])->middleware('throttle:6,1')->name('pro.account.profiles.dossier-revision');
+    // Оплата БЕЗ вимоги підтвердженого email (рішення власника 14.09.2026):
+    // підтвердження пошти зайвий бар'єр перед платежем, а права на профіль
+    // усе одно захищені окремо — claim через OTP на контакти з профілю.
+    Route::get('/pro/account/billing/{profile}/pay', [ProAccountController::class, 'showBillingPayment'])->name('pro.account.billing.pay');
+    Route::post('/pro/account/billing/{profile}/checkout', [ProAccountController::class, 'purchaseSubscription'])->name('pro.account.billing.checkout');
+    Route::post('/pro/account/billing/{profile}/pay/monopay', [ProAccountController::class, 'startBillingMonopay'])->middleware(['throttle:10,1'])->name('pro.account.billing.pay.monopay');
+    Route::get('/pro/account/billing/success/{token}', [ProAccountController::class, 'billingPaymentSuccess'])->name('pro.account.billing.success');
     Route::post('/pro/account/billing/{profile}/cancel', [ProAccountController::class, 'cancelTestSubscription'])->name('pro.account.billing.cancel');
+    Route::post('/pro/account/billing/{profile}/auto-renew', [ProAccountController::class, 'updateAutoRenew'])->name('pro.account.billing.auto-renew');
     Route::get('/pro/account/billing/payments/{payment}/receipt', [ProAccountController::class, 'downloadBillingReceipt'])->name('pro.account.billing.receipt');
     Route::get('/pro/account/reviews/{review}/detail', [ProAccountController::class, 'reviewDetail'])->name('pro.account.reviews.detail');
     Route::post('/pro/account/reviews/{review}/report', [ProAccountController::class, 'reportReview'])->name('pro.account.reviews.report');
     Route::post('/pro/account/reviews/{review}/reply', [ProAccountController::class, 'upsertReply'])->name('pro.account.reviews.reply');
-    Route::patch('/pro/account/reviews/{review}/visibility', [ProAccountController::class, 'updateReviewVisibility'])->name('pro.account.reviews.visibility');
+    Route::patch('/pro/account/leads/{lead}/status', [ProAccountController::class, 'updateLeadStatus'])->name('pro.account.leads.status');
     Route::patch('/pro/account/notifications/{profile}/preferences', [ProAccountController::class, 'updateNotificationPreferences'])->name('pro.account.notifications.preferences');
     Route::post('/pro/account/notifications/{profile}/read-all', [ProAccountController::class, 'markNotificationsRead'])->name('pro.account.notifications.read-all');
 });

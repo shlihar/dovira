@@ -1,0 +1,152 @@
+[
+    {
+        "profile_id": 4088,
+        "full_name": "Meditrina, стоматологічна клініка",
+        "city": "Житомир",
+        "category": "Стоматології",
+        "profile_url": "https://mydovira.com/profiles/meditrina-stomatologicna-klinika",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Чуднівська, 113а",
+            "phone": "(067) 595 00 94, (073) 888 33 77",
+            "type": "company",
+            "rating_avg": 4.12,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 4098,
+        "full_name": "Мед-Део, мережа стоматологічних клінік",
+        "city": "Київ",
+        "category": "Стоматології",
+        "profile_url": "https://mydovira.com/profiles/med-deo-mereza-stomatologicnix-klinik",
+        "company_url": "https://www.med-deo.com.ua",
+        "additional_identity_data": {
+            "address": "вул. Ірпінська, 78а",
+            "phone": "(093) 39 49 09 4, (068) 394 90 94, (093) 394 90 94",
+            "type": "company",
+            "rating_avg": 4.88,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 7078,
+        "full_name": "Марія kids, дитячий медичний центр",
+        "city": "Хмельницький",
+        "category": "Стоматології",
+        "profile_url": "https://mydovira.com/profiles/mariia-medicnii-centr",
+        "company_url": "http://medcenter-maria.com",
+        "additional_identity_data": {
+            "address": "вул. Степана Бандери, 49/1",
+            "phone": "(067) 400 09 91, (067) 400 09 92, (067) 004 47 74, (067) 004 47 75, (067) 380 55 99",
+            "type": "company",
+            "rating_avg": 4.66,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 7089,
+        "full_name": "Оксфорд Медікал, медичний центр",
+        "city": "Хмельницький",
+        "category": "Стоматології",
+        "profile_url": "https://mydovira.com/profiles/oksford-medikal-medicnii-centr-2",
+        "company_url": "https://khmelnitsky.oxford-med.com.ua",
+        "additional_identity_data": {
+            "address": "вул. Подільська, 93/1",
+            "phone": "(097) 470 20 30, (0382) 70 20 30",
+            "type": "company",
+            "rating_avg": 4.59,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 7159,
+        "full_name": "Сатурн, магазин побутової техніки",
+        "city": "Рівне",
+        "category": "Стоматології",
+        "profile_url": "https://mydovira.com/profiles/pantera-perukarnia",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Міцкевича, 34",
+            "phone": "(037) 254 58 03, (037) 224 76 00, (036) 22 59 10 1",
+            "type": "company",
+            "rating_avg": 4.14,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 7534,
+        "full_name": "Vidnova, клініка естетичної медицини",
+        "city": "Запоріжжя",
+        "category": "Стоматології",
+        "profile_url": "https://mydovira.com/profiles/vidnova-klinika-esteticnoyi-medicini",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Гончаренка, 26",
+            "phone": "(096) 214 03 33",
+            "type": "company",
+            "rating_avg": 4.9,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 7648,
+        "full_name": "Усмішка, мережа стоматологій",
+        "city": "Миколаїв",
+        "category": "Стоматології",
+        "profile_url": "https://mydovira.com/profiles/usmiska-mereza-stomatologii",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "проспект Миру, 34\\2",
+            "phone": "(068) 575 62 58, (050) 650 15 24",
+            "type": "company",
+            "rating_avg": 4.73,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 7954,
+        "full_name": "Soltys Dental Studio, центр естетичної стоматології",
+        "city": "Чернівці",
+        "category": "Стоматології",
+        "profile_url": "https://mydovira.com/profiles/soltys-beauty-zone-centr-z-dogliadu-za-oblicciam",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Володимира Великого, 91",
+            "phone": "(068) 808 03 80",
+            "type": "company",
+            "rating_avg": 5,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 8099,
+        "full_name": "О'Доктор, центр стоматології та сімейної медицини",
+        "city": "Київ",
+        "category": "Стоматології",
+        "profile_url": "https://mydovira.com/profiles/odoktor-centr-stomatologiyi-ta-simeinoyi-medicini",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Новомостицька, 15",
+            "phone": "(073) 920 30 92, (098) 920 30 92, (095) 920 30 92",
+            "type": "company",
+            "rating_avg": 4.97,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 8479,
+        "full_name": "Пародент, стоматологічна клініка",
+        "city": "Львів",
+        "category": "Стоматології",
+        "profile_url": "https://mydovira.com/profiles/parodent-stomatologicna-klinika",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Глибока, 3 / 1",
+            "phone": "(067) 320 33 43, (067) 000 21 86, (067) 325 94 22, (044) 334 41 00, (067) 320 02 70, (067) 674 75 35, (032) 26 15 04 5, (067) 000 21 87, (067) 000 18 73, (032) 23 77 56 5, (032) 23 77 53 7",
+            "type": "company",
+            "rating_avg": 4.81,
+            "reviews_count": 100
+        }
+    }
+]

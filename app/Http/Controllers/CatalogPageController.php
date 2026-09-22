@@ -13,6 +13,7 @@ use App\Models\ReviewReport;
 use App\Services\ProfileAnalyticsService;
 use App\Support\CategoryHierarchy;
 use App\Support\MediaUrl;
+use App\Support\ProfileRanking;
 use App\Support\ProfileSeo;
 use App\Support\RegionCityDirectory;
 use Illuminate\Http\JsonResponse;
@@ -110,17 +111,27 @@ class CatalogPageController extends Controller
                 'profiles.is_pro',
                 'profiles.popularity_score',
                 'profiles.dovira_recommendation_status',
+                'profiles.dossier_verdict',
                 'profiles.created_at',
             ])
             ->with([
                 'services',
+                // Розподіл оцінок для «% позитивних» на картці.
+                'rating:profile_id,dist_1,dist_2,dist_3,dist_4,dist_5,reviews_counted',
                 'categories' => fn ($categories) => $categories->select(['categories.id', 'categories.name'])->orderByDesc('profile_category.is_primary'),
             ])
             ->withCount('officialReplies')
             ->withExists([
                 'claims as has_approved_claim' => fn ($claims) => $claims->where('status', 'approved'),
             ])
-            ->where('status', 'active');
+            // Прапорці підписки одним запитом: інакше кожна картка робила
+            // власний SELECT EXISTS по pro_subscriptions (N+1).
+            ->withProSubscriptionFlags()
+            ->where('status', 'active')
+            // Прапорці видимості — та сама умова, що в sitemap і на головній.
+            // Без них прихований профіль лишався у видачі каталогу.
+            ->where('is_published', true)
+            ->where('show_in_catalog', true);
 
         $this->applyCatalogFilters(
             $profilesQuery,
@@ -134,11 +145,56 @@ class CatalogPageController extends Controller
             $statusFilter
         );
 
+        // PRO-блок: промарковані PRO-профілі окремо НАД чесною органічною
+        // видачею (див. App\Support\ProfileRanking і /rating-method). Будуємо
+        // до сортування/пагінації, бо їх треба виключити з органіки.
+        // Блок «Спонсоровані» прибрано 22.09.2026: підписка тепер піднімає
+        // профіль у самій видачі, а не показує його окремою секцією.
+        $proBlockProfiles = collect();
+        if ($proBlockProfiles->isNotEmpty()) {
+            $profilesQuery->whereNotIn('profiles.id', $proBlockProfiles->pluck('id')->all());
+        }
+
         $this->applySorting($profilesQuery, $sort);
 
-        $profilesPaginator = $profilesQuery
-            ->simplePaginate(12)
-            ->withQueryString();
+        $profilesPaginator = $profilesQuery->simplePaginate(12);
+
+        // Захист від «сторінки з самої реклами»: якщо після виключення PRO
+        // органіки майже не лишилось — повертаємо їх у звичайний список.
+        if ($proBlockProfiles->isNotEmpty()
+            && $profilesPaginator->getCollection()->count() < 5
+            && ! $profilesPaginator->hasMorePages()) {
+            $profilesPaginator->setCollection(
+                $proBlockProfiles->concat($profilesPaginator->getCollection())->values()
+            );
+            $proBlockProfiles = collect();
+        }
+
+        if ($pathContext === null) {
+            $profilesPaginator->withQueryString();
+        } else {
+            // ЧПУ-посадкова: category/місто вже в path — інжектовані landing()-ом
+            // параметри не тягнемо в лінки пагінації, інакше краулер бачить
+            // брудні дублікати виду ?category=Адвокати&regions[0]=Вінниця&page=2.
+            $cleanQuery = collect($request->query())
+                ->except(['category'])
+                ->map(function ($value, string $key) use ($pathContext) {
+                    if ($key !== 'regions' || ! is_array($value)) {
+                        return $value;
+                    }
+
+                    $pathCity = (string) ($pathContext['cityName'] ?? '');
+
+                    return collect($value)
+                        ->reject(fn ($region) => (string) $region === $pathCity)
+                        ->values()
+                        ->all();
+                })
+                ->reject(fn ($value) => $value === null || $value === '' || $value === [])
+                ->all();
+
+            $profilesPaginator->appends($cleanQuery);
+        }
 
         $mappedProfiles = $profilesPaginator->getCollection()
             ->map(fn (Profile $profile) => $this->mapCatalogProfileCard($profile))
@@ -147,13 +203,18 @@ class CatalogPageController extends Controller
         /** @var LengthAwarePaginator $profilesPaginator */
         $profilesPaginator->setCollection($mappedProfiles);
 
+        // PRO-блок рендериться тією ж карткою, тож і формат даних той самий.
+        $proBlockProfiles = $proBlockProfiles
+            ->map(fn (Profile $profile) => $this->mapCatalogProfileCard($profile))
+            ->values();
+
         $categoryFilters = $this->buildCategoryFilters();
         $categoryOptions = $this->buildCategoryOptions();
         $regionFilters = $this->buildRegionFilters();
         $popularQueries = $this->buildPopularQueries($categoryFilters);
 
         if ($request->boolean('ajax')) {
-            return $this->buildCatalogAjaxResponse($request, $profilesPaginator, $catalogStats);
+            return $this->buildCatalogAjaxResponse($request, $profilesPaginator, $catalogStats, $proBlockProfiles);
         }
 
         // Server-rendered посилання на SEO-посадкові: краулер знаходить
@@ -185,24 +246,55 @@ class CatalogPageController extends Controller
         $pathCityName = $pathContext['cityName'] ?? null;
         $pathCitySlug = $pathContext['citySlug'] ?? null;
         $pathCanonical = $pathContext['canonical'] ?? null;
-        $pathIndexable = false;
+        // Внутрішній пошук і фільтри не є окремими SEO-посадковими.
+        // Tracking-параметри не змінюють вміст і не блокують індексацію.
+        $pathIndexable = $search === ''
+            && $category === ''
+            && $subcategory === ''
+            && $selectedCategories === []
+            && $selectedRegions === []
+            && $ratingFilter === ''
+            && $reviewsCountFilter === ''
+            && $statusFilter === ''
+            && $sort === 'recommended'
+            && max(1, (int) $request->query('page', 1)) === 1;
         $pathRelated = [];
         $topRatingUrl = null;
+        $landingSeo = null;
 
         if ($pathCategory !== null) {
+            $landingSeo = \App\Support\CatalogLandingSeo::build($pathCategory, $pathCityName);
+
+            // Дата-блоки шапки — по категорії (+місту), а не по всьому каталогу:
+            // числа в hero мають збігатися з фактами сторінки.
+            $catalogStats = [
+                'profiles' => $landingSeo['profiles_count'],
+                'reviews' => $landingSeo['reviews_count'],
+            ];
+
             $regionsCount = count(array_filter((array) $request->query('regions', [])));
             $hasRefiningParams = $request->filled('q')
                 || $request->filled('rating')
                 || $request->filled('reviews_count')
-                || $request->filled('status')
-                || $request->filled('sub')
+                || $statusFilter !== ''
+                || ($pathContext['hasExplicitCategoryFilter'] ?? false)
                 || (is_array($request->query('categories')) && count(array_filter((array) $request->query('categories'))) > 0)
                 || $sort !== 'recommended'
                 || $regionsCount > ($pathCityName !== null ? 1 : 0);
 
-            $pathIndexable = $profilesPaginator->count() > 0
+            // Пагінація: сторінки 2+ доступні краулеру (лінк-вага тече на глибокі
+            // профілі), але noindex — індексується лише перша, канонічна.
+            $pageNumber = max(1, (int) $request->query('page', 1));
+            if ($pageNumber > 1 && $pathCanonical !== null) {
+                $pathCanonical .= '?page=' . $pageNumber;
+            }
+
+            // Тонкі пари (1–2 профілі) не індексуємо: не годуємо пошук
+            // сторінками-заглушками, follow лишається.
+            $pathIndexable = $landingSeo['profiles_count'] >= \App\Support\CatalogLandingSeo::MIN_INDEXABLE_PROFILES
                 && (bool) ($pathCategory->is_indexable ?? true)
-                && ! $hasRefiningParams;
+                && ! $hasRefiningParams
+                && $pageNumber === 1;
 
             $pathRelated = rescue(fn (): array => Category::query()
                 ->where('is_active', true)
@@ -223,8 +315,10 @@ class CatalogPageController extends Controller
 
         return view('static.catalog', [
             'profiles' => $profilesPaginator,
+            'proProfiles' => $proBlockProfiles,
             'catalogCount' => $this->buildCatalogCount($profilesPaginator),
             'categoryFilters' => $categoryFilters,
+            'hasRecommendedProfiles' => $this->hasRecommendedProfiles(),
             'categoryOptions' => $categoryOptions,
             'seoLandingCategories' => $seoLandingCategories,
             'regionFilters' => $regionFilters,
@@ -238,6 +332,7 @@ class CatalogPageController extends Controller
             'pathIndexable' => $pathIndexable,
             'pathRelated' => $pathRelated,
             'topRatingUrl' => $topRatingUrl,
+            'landingSeo' => $landingSeo,
         ]);
     }
 
@@ -258,12 +353,30 @@ class CatalogPageController extends Controller
         $cityName = null;
         if ($citySlug !== null) {
             $cityName = RegionCityDirectory::cityFromSlug($citySlug);
+            // Другий сегмент — не місто, а послуга зі словника («ринопластика
+            // відгуки» без міста) → сторінка послуги по всій Україні.
+            if ($cityName === null && \App\Support\ServiceLandingSeo::service($categorySlug, $citySlug) !== null) {
+                return app(\App\Http\Controllers\ServiceLandingController::class)->show($categorySlug, null, $citySlug);
+            }
             abort_if($cityName === null, 404);
         }
 
+        $hasExplicitCategoryFilter = $request->filled('category') || $request->filled('sub');
+
         // ЧПУ-сегменти → звичайні фільтри запиту: категорія (за назвою, як у
         // каталозі) і місто (в regions). Далі все працює наявним конвеєром.
-        $request->merge(['category' => (string) $category->name]);
+        // Якщо це підкатегорія — віддаємо фільтрам пару «батько + підкатегорія»,
+        // інакше сайдбар не показував вибір і писав «Усі категорії» на сторінці,
+        // де категорія вже застосована (перевірено на /catalog/veterinari-...).
+        if ($category->parent_id !== null) {
+            $parent = Category::query()->find($category->parent_id);
+            $request->merge([
+                'category' => (string) ($parent->name ?? $category->name),
+                'sub' => (string) $category->name,
+            ]);
+        } else {
+            $request->merge(['category' => (string) $category->name]);
+        }
         if ($cityName !== null) {
             $regions = collect((array) $request->query('regions', []))->filter()->values();
             if (! $regions->contains($cityName)) {
@@ -281,6 +394,7 @@ class CatalogPageController extends Controller
             'cityName' => $cityName,
             'citySlug' => $citySlug,
             'canonical' => $canonical,
+            'hasExplicitCategoryFilter' => $hasExplicitCategoryFilter,
         ]);
     }
 
@@ -302,9 +416,9 @@ class CatalogPageController extends Controller
         $profileModel = $slug
             ? (clone $profileQuery)->where('slug', $slug)->firstOrFail()
             : (clone $profileQuery)
-                ->orderByDesc('is_verified')
-                ->orderByDesc('is_pro')
-                ->orderByDesc('rating_avg')
+                // Фолбек «показати хоч якийсь профіль», коли slug не заданий:
+                // беремо найпопулярніший, без платних пріоритетів.
+                ->orderByDesc('popularity_score')
                 ->orderByDesc('reviews_count')
                 ->firstOrFail();
 
@@ -343,9 +457,17 @@ class CatalogPageController extends Controller
         $profile['ai_review_summary_generated_at'] = $profileModel->ai_review_summary_generated_at;
         $profile['google_rating'] = $profileModel->google_rating;
         $profile['google_reviews_count'] = $profileModel->google_reviews_count;
-        $relatedProfiles = $this->buildRelatedProfiles($profileModel)
-            ->map(fn (Profile $relatedProfile) => $this->mapProfile($relatedProfile))
-            ->all();
+        // Активний PRO не показує конкурентів на своїй сторінці (захист
+        // трафіку — платна перевага), тож і не збираємо їх дарма.
+        $relatedProfiles = $profileModel->hasActiveProSubscription()
+            ? []
+            // Саме mapCatalogProfileCard: картка каталогу чекає services як
+            // масив НАЗВ, а mapProfile() (дані повної сторінки) віддає масив
+            // обʼєктів із цінами — на профілях, де в «схожих» траплялися
+            // послуги, це давало «Array to string conversion» у partial.
+            : $this->buildRelatedProfiles($profileModel)
+                ->map(fn (Profile $relatedProfile) => $this->mapCatalogProfileCard($relatedProfile))
+                ->all();
 
         return response()
             ->view('static.lawyer', compact('profile', 'sampleReviews', 'relatedProfiles', 'publishedReviewsTotal', 'nativeReviewStats'))
@@ -657,7 +779,7 @@ class CatalogPageController extends Controller
             'details' => ['nullable', 'string', 'max:1000'],
         ]);
 
-        ReviewReport::query()->firstOrCreate(
+        $report = ReviewReport::query()->firstOrCreate(
             [
                 'profile_review_id' => $review->id,
                 'reporter_user_id' => $request->user()->id,
@@ -668,6 +790,10 @@ class CatalogPageController extends Controller
                 'details' => trim((string) ($validated['details'] ?? '')),
             ]
         );
+
+        if ($report->wasRecentlyCreated) {
+            app(\App\Services\Notifications\TelegramAdminNotifier::class)->newReviewReport($report);
+        }
 
         return response()->json([
             'ok' => true,
@@ -879,7 +1005,7 @@ class CatalogPageController extends Controller
             fn (): array => [
                 'profiles' => Profile::query()->where('status', 'active')->count(),
                 'reviews' => (int) Profile::query()->where('status', 'active')->sum('reviews_count'),
-                'verified' => Profile::query()->where('status', 'active')->where('is_verified', true)->count(),
+                // «перевірених» прибрано з каталогу — не рахуємо й не показуємо.
             ]
         );
     }
@@ -910,7 +1036,38 @@ class CatalogPageController extends Controller
                     // Сервіси профілю («імплантація зубів», «розлучення»…) —
                     // на них ведуть сервіс-чипи секції категорій на головній.
                     ->orWhereHas('services', fn ($services) => $services->where('category_services.name', 'like', $like));
+
+                // Пошук за ПОТРЕБОЮ («вакцинація тварин», «виплати за загиблих»):
+                // дивимось у попередньо зібраний індекс profile_search_terms, куди
+                // зведені назва, категорії, послуги й ключові слова з відгуків.
+                // Прямий LIKE по 720 тис. відгуків тривав би ~6 с — заміряно.
+                $boolean = \App\Support\ProfileSearchTerms::resolveBooleanQuery($search);
+                if ($boolean !== null && \App\Support\ProfileSearchTerms::indexAvailable()) {
+                    $query->orWhereIn('profiles.id', function ($sub) use ($boolean): void {
+                        $sub->select('profile_id')
+                            ->from('profile_search_terms')
+                            ->whereRaw('MATCH(terms) AGAINST (? IN BOOLEAN MODE)', [$boolean]);
+                    });
+                }
             });
+
+            // Сортування за релевантністю — ПЕРШИМ, ще до звичайного порядку
+            // каталогу. Інакше «заміна паспорта» показувала вгорі профіль, який
+            // збігся лише зі словом «заміна», а не з обома словами запиту.
+            $relevance = \App\Support\ProfileSearchTerms::resolveBooleanQuery($search);
+            if ($relevance !== null && \App\Support\ProfileSearchTerms::indexAvailable()) {
+                $profilesQuery
+                    ->leftJoinSub(
+                        \Illuminate\Support\Facades\DB::table('profile_search_terms')
+                            ->select('profile_id')
+                            ->selectRaw('MATCH(terms) AGAINST (? IN BOOLEAN MODE) AS relevance', [$relevance]),
+                        'search_hit',
+                        'search_hit.profile_id',
+                        '=',
+                        'profiles.id'
+                    )
+                    ->orderByDesc('search_hit.relevance');
+            }
         }
 
         if ($category !== '' || ! empty($selectedCategories) || $subcategory !== '') {
@@ -970,34 +1127,160 @@ class CatalogPageController extends Controller
         }
     }
 
+    /**
+     * PRO-блок каталогу: максимум N промаркованих PRO над органічною видачею.
+     *
+     * Показуємо ЛИШЕ на першій сторінці дефолтного сортування і лише коли
+     * користувач не шукає конкретну компанію текстом — інакше блок перетворює
+     * пошук на рекламу поверх наміру. Порядок і ротація — у ProfileRanking.
+     *
+     * @return \Illuminate\Support\Collection<int, Profile>
+     */
+    private function buildCatalogProBlock(Request $request, $profilesQuery, string $sort, string $search): Collection
+    {
+        $page = max(1, (int) $request->query('page', 1));
+
+        if ($sort !== 'recommended' || $page > 1 || trim($search) !== '') {
+            return collect();
+        }
+
+        $ids = ProfileRanking::proBlockIds(clone $profilesQuery);
+
+        if ($ids === []) {
+            return collect();
+        }
+
+        $profiles = Profile::query()
+            ->select([
+                'profiles.id', 'profiles.slug', 'profiles.name', 'profiles.logo_url', 'profiles.website',
+                'profiles.city', 'profiles.district', 'profiles.address', 'profiles.description',
+                'profiles.rating_avg', 'profiles.reviews_count', 'profiles.is_verified',
+                'profiles.is_owner_verified', 'profiles.owner_user_id', 'profiles.is_pro',
+                'profiles.popularity_score', 'profiles.dovira_recommendation_status', 'profiles.created_at',
+                'profiles.dossier_verdict',
+            ])
+            ->with([
+                'services',
+                'rating:profile_id,dist_1,dist_2,dist_3,dist_4,dist_5,reviews_counted',
+                'categories' => fn ($categories) => $categories->select(['categories.id', 'categories.name'])->orderByDesc('profile_category.is_primary'),
+            ])
+            ->withCount('officialReplies')
+            ->withExists([
+                'claims as has_approved_claim' => fn ($claims) => $claims->where('status', 'approved'),
+            ])
+            ->withProSubscriptionFlags()
+            ->whereIn('profiles.id', $ids)
+            ->get();
+
+        return ProfileRanking::sortByIdList($profiles, $ids);
+    }
+
+    /**
+     * Профілі, підняті нагору поточною підпискою (заповнює applySorting).
+     *
+     * @var array<int, int>
+     */
+    private array $promotedIds = [];
+
     private function applySorting($profilesQuery, string $sort): void
     {
+        // Поріг, з якого оцінку взагалі показуємо (той самий, що в /top і на
+        // картках). Профілі з кількома відгуками не мають обганяти тих, у кого
+        // сотні, лише тому що в них випадкова 5.0.
+        $min = (int) \App\Support\RatingDisplay::MIN_REVIEWS;
+        $tier = "CASE WHEN profiles.reviews_count >= {$min} THEN 2 WHEN profiles.reviews_count >= 1 THEN 1 ELSE 0 END";
+
+        // Профілі з активною підпискою — першими в будь-якому порядку видачі.
+        // Це і є те, що купує клієнт. Розміщення промарковане позначкою PRO на
+        // картці, тож оплата видима. Сторінок рейтингів /top це НЕ стосується:
+        // там порядок формує тільки оцінка.
+        //
+        // Нагору йде ПО ОДНОМУ профілю на бренд (той, де більше відгуків):
+        // дублі одного бізнесу не мають займати кілька верхніх місць підряд.
+        // promotedIds повертає їх уже в ротованому порядку — FIELD() зберігає
+        // саме цю чергу, тож перше місце серед платних щодня в іншого.
+        $promotedIds = ProfileRanking::promotedIds($profilesQuery);
+        // Запамʼятовуємо, щоб позначити ці картки в розмітці: власник має
+        // бачити в кабінеті, скільки показів дала саме оплата.
+        $this->promotedIds = $promotedIds;
+        if ($promotedIds !== []) {
+            $list = implode(',', array_map('intval', $promotedIds));
+            $profilesQuery
+                ->orderByRaw("CASE WHEN profiles.id IN ({$list}) THEN 1 ELSE 0 END DESC")
+                ->orderByRaw("FIELD(profiles.id, {$list})");
+        }
+
         match ($sort) {
-            'popular' => $profilesQuery
-                ->orderByDesc('popularity_score')
-                ->orderByDesc('views_count')
-                ->orderByDesc('reviews_count'),
+            // «Популярні» — реальний попит: перегляди й активність (popularity_score).
+            'popular' => ProfileRanking::applyOrganicOrder($profilesQuery),
+            // «Найвищий рейтинг» — за самою оцінкою. З 21.09.2026 оцінка — це
+            // проста середня, тому й сортуємо прямо по ній, без згладжування;
+            // зіставність дає ярус за кількістю відгуків.
             'rating_desc' => $profilesQuery
-                ->orderByDesc('rating_avg')
-                ->orderByDesc('reviews_count')
-                ->orderBy('name'),
+                ->orderByRaw($tier . ' DESC')
+                ->orderByDesc('profiles.rating_avg')
+                ->orderByDesc('profiles.reviews_count')
+                ->orderBy('profiles.name'),
             'reviews_desc' => $profilesQuery
-                ->orderByDesc('reviews_count')
-                ->orderByDesc('rating_avg')
-                ->orderBy('name'),
-            'newest' => $profilesQuery->orderByDesc('created_at')->orderByDesc('id'),
-            'name_asc' => $profilesQuery->orderBy('name', 'asc'),
+                ->orderByDesc('profiles.reviews_count')
+                ->orderByDesc('profiles.rating_avg')
+                ->orderBy('profiles.name'),
+            'newest' => $profilesQuery->orderByDesc('profiles.created_at')->orderByDesc('profiles.id'),
+            'name_asc' => $profilesQuery->orderBy('profiles.name', 'asc'),
+            // «Рекомендовані» (дефолт) — якість передусім: спершу бейдж
+            // «Dovira рекомендує», далі ярус за кількістю відгуків, оцінка і вже
+            // потім популярність. Раніше цей режим викликав рівно ту саму
+            // функцію, що й «Популярні», тому вибір нічого не змінював.
             default => $profilesQuery
-                ->orderByDesc('is_pro')
-                ->orderByDesc('is_verified')
-                ->orderByDesc('popularity_score')
-                ->orderByDesc('rating_avg')
-                ->orderByDesc('reviews_count')
-                ->orderBy('name'),
+                ->orderByDesc('profiles.dovira_recommends')
+                ->orderByRaw($tier . ' DESC')
+                ->orderByDesc('profiles.rating_avg')
+                ->orderByDesc('profiles.popularity_score')
+                ->orderByDesc('profiles.reviews_count')
+                ->orderBy('profiles.name')
+                ->orderBy('profiles.id'),
         };
     }
 
-    private function buildCatalogAjaxResponse(Request $request, AbstractPaginator $profilesPaginator, array $catalogStats): JsonResponse
+    /**
+     * Апріорне середнє для байєсівського згладжування рейтингу (кешується).
+     * Джерело правди узгоджене з лідербордом і TopRatingController.
+     */
+    /**
+     * Чи є взагалі профілі з бейджем «Dovira рекомендує». Якщо жодного —
+     * не показуємо відповідний фільтр: він завжди давав «Нічого не знайдено»
+     * і виглядав як зламаний (перевірено 21.09.2026 — 0 профілів).
+     */
+    private function hasRecommendedProfiles(): bool
+    {
+        return (bool) cache()->remember(
+            'catalog:has-recommended:v1',
+            now()->addHours(6),
+            fn (): bool => Profile::query()
+                ->where('status', 'active')
+                ->where('is_published', true)
+                ->where('show_in_catalog', true)
+                ->where('dovira_recommends', true)
+                ->exists()
+        );
+    }
+
+    private function weightedRatingGlobalAvg(): float
+    {
+        return (float) cache()->remember('catalog:weighted-global-avg:v1', now()->addHours(6), function (): float {
+            return (float) rescue(fn () => Profile::query()
+                ->where('status', 'active')
+                ->where('reviews_count', '>=', 1)
+                ->avg('rating_avg'), 4.3, false) ?: 4.3;
+        });
+    }
+
+    private function buildCatalogAjaxResponse(
+        Request $request,
+        AbstractPaginator $profilesPaginator,
+        array $catalogStats,
+        ?Collection $proBlockProfiles = null
+    ): JsonResponse
     {
         $backUrl = route('catalog', collect($request->query())
             ->except(['ajax', 'append'])
@@ -1009,6 +1292,7 @@ class CatalogPageController extends Controller
 
         $html = view('static.partials.catalog-results', [
             'profiles' => $profilesPaginator,
+            'proProfiles' => $proBlockProfiles ?? collect(),
             'catalogProfileUrl' => fn (string $slug) => route('profile.show', [
                 'slug' => $slug,
             ]),
@@ -1019,13 +1303,26 @@ class CatalogPageController extends Controller
 
         $filtersHtml = view('static.partials.catalog-filters', [
             'categoryFilters' => $this->buildCategoryFilters(),
+            'hasRecommendedProfiles' => $this->hasRecommendedProfiles(),
             'regionFilters' => $this->buildRegionFilters(),
         ])->render();
 
         $hero = $this->catalogHeroContext($request);
+        $heroLandingSeo = $hero['category'] !== null
+            ? \App\Support\CatalogLandingSeo::build($hero['category'], $hero['cityName'])
+            : null;
+        if ($heroLandingSeo !== null) {
+            // Ті самі скоуплені числа, що й на server-render посадкової,
+            // інакше ajax-оновлення підміняло б їх глобальними каталогу.
+            $catalogStats = [
+                'profiles' => $heroLandingSeo['profiles_count'],
+                'reviews' => $heroLandingSeo['reviews_count'],
+            ];
+        }
         $heroHtml = view('static.partials.catalog-hero-copy', [
             'heroCategory' => $hero['category'],
             'heroCityName' => $hero['cityName'],
+            'heroLandingSeo' => $heroLandingSeo,
         ])->render();
 
         return response()->json([
@@ -1212,8 +1509,10 @@ class CatalogPageController extends Controller
      */
     public function mapCatalogProfileCard(Profile $profile): array
     {
-        $services = ($profile->relationLoaded('services') ? $profile->services : collect())
+        $loadedServices = $profile->relationLoaded('services') ? $profile->services : collect();
+        $services = $loadedServices
             ->pluck('name')->map(fn ($n) => trim((string) $n))->filter()->values();
+
         if ($services->isEmpty()) {
             $services = ($profile->relationLoaded('categories') ? $profile->categories : collect())
                 ->pluck('name')->map(fn ($n) => trim((string) $n))->filter()->values();
@@ -1223,6 +1522,17 @@ class CatalogPageController extends Controller
         $repliesCount = (int) ($profile->official_replies_count ?? 0);
         $recommendationStatus = $profile->dovira_recommendation_status ?? null;
 
+        // «% позитивних» — з розподілу оцінок рейтингової системи (4-5★),
+        // лише коли зарахованих відгуків достатньо для чесного відсотка.
+        $positivePercent = null;
+        $ratingRow = $profile->relationLoaded('rating') ? $profile->rating : null;
+        if ($ratingRow && (int) $ratingRow->reviews_counted >= 5) {
+            $positivePercent = (int) round(
+                ((int) $ratingRow->dist_4 + (int) $ratingRow->dist_5) / max(1, (int) $ratingRow->reviews_counted) * 100
+            );
+        }
+
+
         $logoImageUrl = MediaUrl::profileLogoUrl($profile, 160);
 
         return [
@@ -1230,8 +1540,15 @@ class CatalogPageController extends Controller
             'slug' => $profile->slug,
             'name' => $profile->name,
             'services' => $services->all(),
+            'positive_percent' => $positivePercent,
+            'dossier_verdict' => in_array($profile->dossier_verdict, ['red', 'yellow', 'green'], true)
+                ? $profile->dossier_verdict
+                : null,
             'recommended' => $recommendationStatus === 'recommend',
-            'not_recommended' => $recommendationStatus === 'not_recommend',
+            // Публічний негативний вердикт «Dovira не рекомендує» прибрано з усіх
+            // профілів (репутаційно-правовий ризик). Дані статусу лишаються в
+            // адмінці, але публічно бейдж «не рекомендує» більше не показуємо.
+            'not_recommended' => false,
             // "Live profile" signal: business answers at least half of its reviews.
             'responds' => $reviewsCount >= 3 && $repliesCount >= (int) ceil($reviewsCount / 2),
             'logo_url' => $logoImageUrl,
@@ -1244,8 +1561,11 @@ class CatalogPageController extends Controller
             'rating' => (float) $profile->rating_avg,
             'verified' => (bool) $profile->is_verified,
             'owner_verified' => (bool) ($profile->is_owner_verified || ($profile->has_approved_claim ?? false) || $profile->owner_user_id),
-            'pro' => (bool) $profile->is_pro,
-            'website' => $profile->is_pro ? $profile->website : null,
+            'pro' => $profile->hasActiveProSubscription(),
+            // Картка стоїть нагорі саме завдяки підписці — покази таких карток
+            // рахуємо окремо (контекст catalog_promoted).
+            'promoted' => in_array((int) $profile->id, $this->promotedIds, true),
+            'website' => $profile->website,
         ];
     }
 
@@ -1326,6 +1646,48 @@ class CatalogPageController extends Controller
      */
     private function buildRelatedProfiles(Profile $profile): Collection
     {
+        // Добірка «схожих» коштувала до 535 мс: два запити з LIKE '%місто%'
+        // (індекс не працює) на кожне відкриття профілю. Склад добірки
+        // змінюється рідко, тож тримаємо в кеші список id на годину, а самі
+        // моделі дістаємо одним швидким запитом за ключами.
+        $cacheKey = 'related-profiles:' . $profile->id;
+        $ids = rescue(
+            fn () => Cache::remember(
+                $cacheKey,
+                now()->addHour(),
+                fn () => $this->queryRelatedProfileIds($profile)
+            ),
+            fn () => $this->queryRelatedProfileIds($profile),
+            false
+        );
+
+        if (empty($ids)) {
+            return collect();
+        }
+
+        $found = Profile::query()
+            ->with(['categories', 'services'])
+            ->withProSubscriptionFlags()
+            ->withExists([
+                'claims as has_approved_claim' => fn ($claims) => $claims->where('status', 'approved'),
+            ])
+            ->whereKey($ids)
+            ->get()
+            ->keyBy('id');
+
+        // Порядок із кешу важливий (PRO і популярність попереду) — whereKey
+        // повертає рядки в довільному порядку, тож відновлюємо його вручну.
+        return collect($ids)
+            ->map(fn (int $id) => $found->get($id))
+            ->filter()
+            ->values();
+    }
+
+    /**
+     * @return array<int, int>
+     */
+    private function queryRelatedProfileIds(Profile $profile): array
+    {
         $primaryCategory = $profile->categories
             ->sortByDesc(fn (Category $category) => (int) ($category->pivot->is_primary ?? false))
             ->first();
@@ -1343,15 +1705,14 @@ class CatalogPageController extends Controller
         };
 
         $relatedQuery = fn () => Profile::query()
-            ->with(['categories', 'services'])
-            ->withExists([
-                'claims as has_approved_claim' => fn ($claims) => $claims->where('status', 'approved'),
-            ])
+            ->select(['profiles.id', 'profiles.is_pro', 'profiles.popularity_score', 'profiles.reviews_count'])
             ->where('status', 'active')
             ->whereKeyNot($profile->id)
-            ->orderByDesc('is_verified')
+            // «Схожі профілі» показуються лише на НЕ-PRO сторінках, і показ у
+            // них — окремо обіцяна перевага підписки, тому PRO тут попереду.
+            // Далі — за популярністю (та сама шкала, що в каталозі).
             ->orderByDesc('is_pro')
-            ->orderByDesc('rating_avg')
+            ->orderByDesc('popularity_score')
             ->orderByDesc('reviews_count')
             // Only the first 10 are ever used below — without this the query
             // hydrated every profile in the category (900+ rows with
@@ -1387,7 +1748,10 @@ class CatalogPageController extends Controller
             ->concat($sameCategoryAnywhere)
             ->unique('id')
             ->take(10)
-            ->values();
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->values()
+            ->all();
     }
 
     /**
@@ -1418,10 +1782,12 @@ class CatalogPageController extends Controller
         $primaryCategory = $profile->categories->first();
         $ownerProfile = $this->resolveOwnerProfileData((array) ($profile->ai_suggested_data ?? []));
         $recommendationStatus = $profile->dovira_recommendation_status ?? null;
-        // Прямі контакти (сайт, телефон, email, соцмережі, CTA-лінк) публічно
-        // відкриті лише PRO-профілям. Для решти єдиний канал звернення —
-        // лід-форма «Залишити заявку», тому CTA примусово в режимі lead_form.
-        $contactsVisible = (bool) $profile->is_pro;
+        $ownerVerified = (bool) ($profile->is_owner_verified || ($profile->has_approved_claim ?? false) || $profile->owner_user_id);
+        // Базові контакти (телефон, сайт, адреса) відкриті всім публічним
+        // профілям. Розширені канали (email, соцмережі, власний CTA-лінк)
+        // відкриті лише для PRO. Лід-форма лишається доступною завжди.
+        $fullContactsVisible = $profile->hasActiveProSubscription();
+        $basicContactsVisible = true;
 
         $logoImageUrl = MediaUrl::profileLogoUrl($profile, 240);
 
@@ -1430,17 +1796,29 @@ class CatalogPageController extends Controller
             'slug' => $profile->slug,
             'name' => $profile->name,
             'recommended' => $recommendationStatus === 'recommend',
-            'not_recommended' => $recommendationStatus === 'not_recommend',
+            // Публічний негативний вердикт «Dovira не рекомендує» прибрано з усіх
+            // профілів (репутаційно-правовий ризик). Дані статусу лишаються в
+            // адмінці, але публічно бейдж «не рекомендує» більше не показуємо.
+            'not_recommended' => false,
             'logo_url' => $logoImageUrl,
             'logo_image_url' => $logoImageUrl,
-            'seo_title' => ProfileSeo::resolvedTitle(
+            'seo_title' => ProfileSeo::resolvedSearchTitle(
                 $profile->seo_title,
                 $profile->name,
                 $primaryCategory?->name,
-                $profile->city
+                $profile->city,
+                \App\Support\RatingDisplay::visible((int) $profile->reviews_count),
+                (float) $profile->rating_avg,
+                (int) $profile->reviews_count,
+                trim((string) $profile->dossier) !== '',
+                is_array($profile->ai_review_summary) && $profile->ai_review_summary !== [],
             ),
-            // Пріоритет: крафтовий (нешаблонний) seo_description → перший абзац
-            // досьє → авто-шаблон. Крафтовий пишеться імпортом досьє або руками.
+            // Meta-опис: крафтовий (людський, нешаблонний) seo_description, інакше —
+            // генератор. Досьє → агресивний CTR-хук з вердиктом (🔴/⚠️/✅) у
+            // формулюваннях-опініях Dovira; без досьє, але з ai_review_summary →
+            // хук «AI розібрав відгуки: хвалять X, скарги на Y». Сирий текст
+            // досьє і dossier_verdict_note у сніпет НЕ виносимо ніколи: там
+            // бувають імена та прямі звинувачення (наклеп у видачі Google).
             'seo_description' => (filled($profile->seo_description) && ! ProfileSeo::isAutoGeneratedDescription(
                 $profile->seo_description,
                 $profile->name,
@@ -1449,15 +1827,27 @@ class CatalogPageController extends Controller
                 $profile->services->pluck('name')->all(),
                 $profile->short_description,
                 $profile->description
-            )) ? (string) $profile->seo_description : ($this->dossierSeoDescription($profile->dossier) ?? ProfileSeo::resolvedDescription(
+            )) ? ProfileSeo::withRatingPrefix(
+                (string) $profile->seo_description,
+                \App\Support\RatingDisplay::visible((int) $profile->reviews_count),
+                (float) $profile->rating_avg,
+                (int) $profile->reviews_count
+            ) : ProfileSeo::resolvedSearchDescription(
                 $profile->seo_description,
                 $profile->name,
                 $primaryCategory?->name,
                 $profile->city,
                 $profile->services->pluck('name')->all(),
                 $profile->short_description,
-                $profile->description
-            )),
+                $profile->description,
+                \App\Support\RatingDisplay::visible((int) $profile->reviews_count),
+                (float) $profile->rating_avg,
+                (int) $profile->reviews_count,
+                trim((string) $profile->dossier) !== '',
+                $profile->dossier_verdict,
+                null, // verdict_note лишаємо поза сніпетом: сирий текст з іменами/звинуваченнями
+                is_array($profile->ai_review_summary) ? $profile->ai_review_summary : null,
+            ),
             'city' => $profile->city,
             'district' => $profile->district,
             'reviews_count' => (int) $profile->reviews_count,
@@ -1465,13 +1855,15 @@ class CatalogPageController extends Controller
             'recommend_percent' => (int) $profile->recommend_percent,
             'verified' => (bool) $profile->is_verified,
             'dovira_recommendation_status' => $profile->dovira_recommendation_status,
-            'owner_verified' => (bool) ($profile->is_owner_verified || ($profile->has_approved_claim ?? false) || $profile->owner_user_id),
-            'pro' => (bool) $profile->is_pro,
-            'website' => $contactsVisible ? $profile->website : null,
-            'contact_cta_url' => $contactsVisible ? $profile->contact_cta_url : null,
-            'contact_cta_mode' => $contactsVisible ? (string) ($profile->contact_cta_mode ?? 'link') : 'lead_form',
+            'owner_verified' => $ownerVerified,
+            'pro' => $fullContactsVisible,
+            'basic_contacts_visible' => $basicContactsVisible,
+            'phone_visible' => $basicContactsVisible,
+            'website' => $basicContactsVisible ? $profile->website : null,
+            'contact_cta_url' => $fullContactsVisible ? $profile->contact_cta_url : null,
+            'contact_cta_mode' => $fullContactsVisible ? (string) ($profile->contact_cta_mode ?? 'link') : 'lead_form',
             'og_image_url' => \App\Support\MediaUrl::publicImageUrl($profile->og_image_url),
-            'social_links' => (! $contactsVisible ? [] : collect((array) ($profile->social_links ?? []))
+            'social_links' => (! $fullContactsVisible ? [] : collect((array) ($profile->social_links ?? []))
                 ->mapWithKeys(function ($url, $network): array {
                     $key = trim((string) $network);
                     $value = trim((string) $url);
@@ -1483,17 +1875,38 @@ class CatalogPageController extends Controller
                     return [$key => $value];
                 })
                 ->all()),
-            'email' => $contactsVisible ? $profile->email : null,
-            'phone' => $contactsVisible ? $profile->phone : null,
-            'phone_links' => $contactsVisible ? $this->mapProfilePhoneLinks((string) ($profile->phone ?? '')) : [],
-            'address' => $profile->address,
+            'email' => $fullContactsVisible ? $profile->email : null,
+            'phone' => $basicContactsVisible ? $profile->phone : null,
+            'phone_links' => $basicContactsVisible ? $this->mapProfilePhoneLinks((string) ($profile->phone ?? '')) : [],
+            'address' => $basicContactsVisible ? $profile->address : null,
             'about' => $profile->description,
             'dossier' => $profile->dossier,
             'dossier_source' => $profile->dossier_source,
             'dossier_generated_at' => $profile->dossier_generated_at,
             'dossier_verdict' => $profile->dossier_verdict,
             'dossier_verdict_note' => $profile->dossier_verdict_note,
-            'services' => $profile->services->pluck('name')->filter()->values()->all(),
+            // Прайс: обʼєкти з цінами й описами. Ціни/описи — PRO-перевага
+            // (стратегія, розділ 03), FREE віддає лише назви-теги.
+            'services' => $profile->services
+                ->sortBy([['pivot.sort_order', 'asc'], ['name', 'asc']])
+                ->map(fn ($service) => [
+                    'name' => trim((string) $service->name),
+                    'description' => $fullContactsVisible ? (string) ($service->pivot->description ?? '') : '',
+                    'price_label' => $fullContactsVisible
+                        ? \App\Support\ServicePrice::label($service->pivot->price_type, $service->pivot->price, $service->pivot->price_max)
+                        : null,
+                    // Сирі суми — для schema.org Offer (лише коли ціна реальна).
+                    'price_min' => $fullContactsVisible && in_array($service->pivot->price_type, ['fixed', 'from', 'range'], true)
+                        ? (int) $service->pivot->price
+                        : null,
+                    'price_max' => $fullContactsVisible && $service->pivot->price_type === 'range'
+                        ? (int) $service->pivot->price_max
+                        : null,
+                    'duration' => $fullContactsVisible ? (string) ($service->pivot->duration ?? '') : '',
+                ])
+                ->filter(fn (array $service) => $service['name'] !== '')
+                ->values()
+                ->all(),
             'gallery' => collect((array) ($profile->gallery ?? []))
                 ->values()
                 ->all(),
@@ -1514,7 +1927,10 @@ class CatalogPageController extends Controller
             'ai_review_status' => data_get($profile->ai_suggested_data, 'review_analysis.status'),
             'ai_review_generated_at' => data_get($profile->ai_suggested_data, 'review_analysis.generated_at'),
             'category_label' => $primaryCategory?->name ?: 'Категорія',
+            'category_slug' => $primaryCategory?->slug,
             'category_icon' => $primaryCategory?->icon ?: 'fa-solid fa-briefcase',
+            // Slug міста для breadcrumb-схеми (Каталог › Категорія › Місто › Профіль).
+            'city_slug' => \App\Support\RegionCityDirectory::citySlug($profile->city),
             'directions' => $profile->services->pluck('name')->values()->all(),
         ];
     }
@@ -1526,6 +1942,30 @@ class CatalogPageController extends Controller
      */
     private function profileIsIndexable(Profile $profile, ?int $publishedReviewsTotal = null): bool
     {
+        if (\App\Support\ProfileSeoIndexPolicy::indexesAllPublicProfiles()) {
+            return \App\Support\ProfileSeoIndexPolicy::isPublic($profile);
+        }
+
+        if (\App\Support\ProfileSeoIndexPolicy::usesReviewsDossierAi()) {
+            return \App\Support\ProfileSeoIndexPolicy::passesReviewsDossierAi($profile);
+        }
+
+        if (\App\Support\ProfileSeoIndexPolicy::usesContentSignals()) {
+            return \App\Support\ProfileSeoIndexPolicy::passesContentSignals($profile);
+        }
+
+        // Прихований з каталогу профіль не потрапляє ні в sitemap, ні у видачу
+        // сайту — тримати його в індексі Google було б непослідовно.
+        if (! $profile->is_published || ! $profile->show_in_catalog) {
+            return false;
+        }
+
+        // Суворий режим: в index лише сторінки з унікальним контентом —
+        // критерії в ProfileSeoIndexPolicy, дзеркально до фільтра sitemap.
+        if (\App\Support\ProfileSeoIndexPolicy::strictEnabled()) {
+            return \App\Support\ProfileSeoIndexPolicy::passes($profile);
+        }
+
         $reviewsCount = $publishedReviewsTotal ?? (int) $profile->reviews_count;
         if ($reviewsCount > 0) {
             return true;
@@ -1533,9 +1973,22 @@ class CatalogPageController extends Controller
 
         $description = trim(strip_tags((string) ($profile->description ?? '')));
         $shortDescription = trim(strip_tags((string) ($profile->short_description ?? '')));
-        $meaningful = mb_strlen($description) >= 120 || mb_strlen($shortDescription) >= 60;
 
-        return $meaningful;
+        if (mb_strlen($description) >= 120 || mb_strlen($shortDescription) >= 60) {
+            return true;
+        }
+
+        // Профіль без відгуків і без опису все одно вартий індексації, якщо
+        // має власний контент: досьє з реєстрів або перелік послуг. Раніше
+        // такі сторінки (≈3,3 тис.) закривались разом із порожніми картками.
+        // Порожні — лише назва й адреса — лишаються під noindex свідомо:
+        // десять тисяч однотипних сторінок без змісту тягнуть оцінку всього
+        // домену вниз, і профіль відкривається сам, щойно зʼявиться контент.
+        if (trim((string) ($profile->dossier ?? '')) !== '') {
+            return true;
+        }
+
+        return rescue(fn (): bool => $profile->services()->exists(), false, false);
     }
 
     /**
@@ -1643,6 +2096,28 @@ class CatalogPageController extends Controller
         }
 
         return null;
+    }
+
+    /**
+     * «Світлофор»-висновок досьє першим рядком мета-опису (сніпета). Показуємо
+     * лише green/yellow — позитив/нейтрал, що тягне CTR. Red не виводимо у
+     * видачу (та сама репутаційно-правова обережність, що й зі знятим публічним
+     * «не рекомендуємо»). Застосовується до опису з будь-якого джерела.
+     */
+    private function withDossierVerdictLead(string $description, ?string $verdict): string
+    {
+        $lead = match ($verdict) {
+            'green' => '✅ Записи чисті. ',
+            'yellow' => '⚠️ Є що перевірити. ',
+            default => '',
+        };
+
+        if ($lead === '' || $description === ''
+            || str_starts_with($description, '✅') || str_starts_with($description, '⚠️')) {
+            return $description;
+        }
+
+        return $lead . Str::limit($description, 160 - mb_strlen($lead), '…');
     }
 
     /**
@@ -1771,7 +2246,7 @@ class CatalogPageController extends Controller
      */
     private function mapReviewReply(ReviewReply $reply): array
     {
-        $authorName = trim((string) ($reply->author?->name ?? 'Користувач DOVIRA'));
+        $authorName = trim((string) ($reply->author?->name ?: ($reply->external_author ?: 'Користувач DOVIRA')));
         $avatar = mb_strtoupper(mb_substr($authorName, 0, 1));
 
         return [
@@ -2067,11 +2542,14 @@ class CatalogPageController extends Controller
 
         return match ($type) {
             'google_maps', 'google', 'google_business' => 'Відгук з Google',
+            'threads' => 'Відгук з Threads',
             'facebook' => 'Відгук з Facebook',
             'instagram' => 'Згадка з Instagram',
             'vidhuk' => 'Відгук з Vidhuk.ua',
             'realreviews' => 'Відгук з RealReviews',
             'list_in_ua' => 'Відгук з List.in.ua',
+            // Відгуки з uadvokat показуємо без бейджа джерела.
+            'uadvokat' => null,
             default => 'Зовнішній відгук',
         };
     }
@@ -2250,9 +2728,9 @@ class CatalogPageController extends Controller
             return $this->reviewRepliesAvailable;
         }
 
-        return $this->reviewRepliesAvailable =
+        return $this->reviewRepliesAvailable = self::schemaFeature('review_replies', fn (): bool =>
             Schema::hasTable('review_replies')
-            && Schema::hasColumns('review_replies', ['parent_id', 'status']);
+            && Schema::hasColumns('review_replies', ['parent_id', 'status']));
     }
 
     private function reviewReactionsAvailable(): bool
@@ -2261,9 +2739,9 @@ class CatalogPageController extends Controller
             return $this->reviewReactionsAvailable;
         }
 
-        return $this->reviewReactionsAvailable =
+        return $this->reviewReactionsAvailable = self::schemaFeature('review_reactions', fn (): bool =>
             Schema::hasTable('profile_review_reactions')
-            && Schema::hasColumns('profile_reviews', ['like_count', 'dislike_count']);
+            && Schema::hasColumns('profile_reviews', ['like_count', 'dislike_count']));
     }
 
     private function reviewReplyReactionsAvailable(): bool
@@ -2272,9 +2750,9 @@ class CatalogPageController extends Controller
             return $this->reviewReplyReactionsAvailable;
         }
 
-        return $this->reviewReplyReactionsAvailable =
+        return $this->reviewReplyReactionsAvailable = self::schemaFeature('reply_reactions', fn (): bool =>
             Schema::hasTable('review_reply_reactions')
-            && Schema::hasColumns('review_replies', ['like_count', 'dislike_count']);
+            && Schema::hasColumns('review_replies', ['like_count', 'dislike_count']));
     }
 
     private function officialReplyReactionsAvailable(): bool
@@ -2283,9 +2761,26 @@ class CatalogPageController extends Controller
             return $this->officialReplyReactionsAvailable;
         }
 
-        return $this->officialReplyReactionsAvailable =
+        return $this->officialReplyReactionsAvailable = self::schemaFeature('official_reply_reactions', fn (): bool =>
             Schema::hasTable('official_reply_reactions')
-            && Schema::hasColumns('official_replies', ['like_count', 'dislike_count']);
+            && Schema::hasColumns('official_replies', ['like_count', 'dislike_count']));
+    }
+
+    /**
+     * Наявність таблиць/колонок фіч кешуємо на добу: схема БД між деплоями не
+     * змінюється, а Schema::hasTable() б'є в information_schema і на віддаленій
+     * базі коштував до 180 мс — по чотири рази на кожне відкриття профілю.
+     * Після міграцій кеш скидається штатним `php artisan cache:clear`.
+     */
+    private static function schemaFeature(string $key, \Closure $probe): bool
+    {
+        // fallback передаємо ЗАМИКАННЯМ: rescue() обчислює другий аргумент
+        // одразу, тож $probe() тут виконував зайву перевірку схеми щоразу.
+        return (bool) rescue(
+            fn () => Cache::remember('schema-feature:' . $key, now()->addDay(), $probe),
+            $probe,
+            false
+        );
     }
 
     private function getTopRatingUrlForCategory(?Category $category, ?string $cityName, ?string $citySlug): ?string

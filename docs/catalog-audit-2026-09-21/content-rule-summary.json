@@ -1,0 +1,54 @@
+{
+  "captured_at": "2026-09-21T18:14:40+00:00",
+  "visible": 34228,
+  "before_allowed": 6610,
+  "after_allowed": 34224,
+  "newly_allowed": 27614,
+  "no_longer_allowed": 0,
+  "still_noindex": 4,
+  "new_examples": [
+    {
+      "id": 587,
+      "slug": "advokat-vinogradskii-anton-pavlovic"
+    },
+    {
+      "id": 588,
+      "slug": "belimenko-i-martyniuk"
+    },
+    {
+      "id": 589,
+      "slug": "veza"
+    },
+    {
+      "id": 591,
+      "slug": "advokat-kadocnikov-andrii"
+    },
+    {
+      "id": 595,
+      "slug": "advokat-kucigin-ilia-viktorovic"
+    },
+    {
+      "id": 596,
+      "slug": "advokat-kuidan-oleg-igorovic"
+    }
+  ],
+  "noindex_examples": [
+    {
+      "id": 8950,
+      "slug": "veterinarna-apteka-na-sicovix-strilciv"
+    },
+    {
+      "id": 10063,
+      "slug": "veterinarna-apteka-na-vokzalna"
+    },
+    {
+      "id": 45987,
+      "slug": "stomatologicna-klinika-na-dzerelnii"
+    },
+    {
+      "id": 251386,
+      "slug": "zabudovniki-zitlovi-kompleksi-zitomira-vidguki-adresi-ta-telefoni-na-top-20"
+    }
+  ],
+  "removed_examples": []
+}

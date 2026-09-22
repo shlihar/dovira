@@ -6,11 +6,14 @@
 
 @php
     $seoProfileUrl = route('profile.show', ['slug' => $profile['slug']]);
+    $profileContactsVisible = ! empty($profile['pro']);
+    $profileBasicContactsVisible = ! empty($profile['basic_contacts_visible']) || $profileContactsVisible;
+    $profilePhoneVisible = ! empty($profile['phone_visible']) || $profileBasicContactsVisible;
 @endphp
 
 @section('canonical', $seoProfileUrl)
 @if (empty($profile['is_indexable']))
-    {{-- Thin content: без опису й відгуків — не індексуємо, але лишаємо follow. --}}
+    {{-- Індексацією керує спільна політика публікації профілів і sitemap. --}}
     @section('robots', 'noindex, follow')
 @endif
 @section('og_type', 'profile')
@@ -28,9 +31,12 @@
 
 @push('head')
     {{-- home-main.css НЕ підключаємо: його правила scoped під .page-home-main
-         (не діють на .page-profile), а спільну карусель «Dovira рекомендує»
+         (не діють на .page-profile), а спільну карусель «Схожі профілі»
          повністю стилізує lawyer.css. Економія ~72 КБ на кожному профілі. --}}
-    <link rel="stylesheet" href="{{ asset('static/css/pages/lawyer.css') }}">
+    {{-- ?v=mtime — інакше зміни CSS чекають на прострочення кешу браузера/Cloudflare. --}}
+    <link rel="stylesheet" href="{{ asset('static/css/pages/lawyer.css') }}?v={{ @filemtime(public_path('static/css/pages/lawyer.css')) }}">
+    {{-- Лайтбокс для фото у відгуках (свайп на мобільному, зум) — самохост. --}}
+    <link rel="stylesheet" href="{{ asset('static/vendor/glightbox/css/glightbox.min.css') }}?v={{ @filemtime(public_path('static/vendor/glightbox/css/glightbox.min.css')) }}">
     <link rel="stylesheet" href="{{ asset('static/css/profile-card-catalog.css') }}">
     @php
         $seoBusinessSchema = array_filter([
@@ -41,10 +47,8 @@
             'url' => $seoProfileUrl,
             'image' => ($profile['logo_image_url'] ?? $profile['logo_url'] ?? null) ?: null,
             'description' => $profile['seo_description'] ?? null,
-            // Контакти в розмітці — лише для PRO: інакше телефон/email
-            // витікали б у сирці сторінки в обхід публічного гейтингу.
-            'telephone' => ! empty($profile['pro']) ? ($profile['phone'] ?: null) : null,
-            'email' => ! empty($profile['pro']) ? ($profile['email'] ?: null) : null,
+            'telephone' => $profilePhoneVisible ? ($profile['phone'] ?: null) : null,
+            'email' => $profileContactsVisible ? ($profile['email'] ?: null) : null,
             'address' => ($profile['city'] || $profile['address']) ? array_filter([
                 '@type' => 'PostalAddress',
                 'addressLocality' => $profile['city'] ?: null,
@@ -52,16 +56,34 @@
                 'addressCountry' => 'UA',
             ]) : null,
             'sameAs' => array_values(array_filter(array_merge(
-                array_values((array) ($profile['social_links'] ?? [])),
-                [$profile['website'] ?? null],
+                $profileContactsVisible ? array_values((array) ($profile['social_links'] ?? [])) : [],
+                $profileBasicContactsVisible ? [$profile['website'] ?? null] : [],
             ))) ?: null,
-            'knowsAbout' => !empty($profile['services']) ? array_values($profile['services']) : null,
+            'knowsAbout' => collect($profile['services'] ?? [])
+                ->map(fn ($service) => is_array($service) ? ($service['name'] ?? '') : (string) $service)
+                ->filter()
+                ->values()
+                ->all() ?: null,
             'areaServed' => $profile['city'] ?: null,
+            // Прайс у видачу: Offer для послуг із реальною ціною (PRO). Google
+            // показує ціни в сніпетах — прямий трафік на запити «послуга + ціна».
+            'makesOffer' => collect($profile['services'] ?? [])
+                ->filter(fn ($service) => is_array($service) && ! empty($service['price_min']))
+                ->map(fn (array $service) => [
+                    '@type' => 'Offer',
+                    'itemOffered' => ['@type' => 'Service', 'name' => $service['name']],
+                    'priceSpecification' => array_filter([
+                        '@type' => 'PriceSpecification',
+                        'minPrice' => $service['price_min'],
+                        'maxPrice' => $service['price_max'] ?? null,
+                        'priceCurrency' => 'UAH',
+                    ]),
+                ])
+                ->values()
+                ->all() ?: null,
         ]);
 
-        // Freshness-сигнал для AI/пошуку: найсвіжіша з дат — оновлення профілю
-        // або останній опублікований відгук. AI важить свіжість на запити
-        // «[назва] відгуки», тож віддаємо dateModified і показуємо «Оновлено».
+        // Дата оновлення стосується сторінки (WebPage), а не LocalBusiness.
         $seoDateModified = rescue(function () use ($profile, $sampleReviews) {
             $dates = collect($sampleReviews ?? [])
                 ->pluck('date_iso')
@@ -73,9 +95,15 @@
             return $dates->isNotEmpty() ? $dates->max() : null;
         }, null, false);
 
-        if ($seoDateModified) {
-            $seoBusinessSchema['dateModified'] = $seoDateModified->toIso8601String();
-        }
+        $seoWebPageSchema = array_filter([
+            '@context' => 'https://schema.org',
+            '@type' => 'WebPage',
+            '@id' => $seoProfileUrl . '#webpage',
+            'url' => $seoProfileUrl,
+            'name' => $profile['seo_title'] ?? $profile['name'],
+            'mainEntity' => ['@id' => $seoProfileUrl . '#business'],
+            'dateModified' => $seoDateModified?->toIso8601String(),
+        ]);
 
         // У розмітку йдуть лише власні відгуки платформи: імпортовані з
         // зовнішніх джерел Google забороняє віддавати як Review/AggregateRating
@@ -84,9 +112,15 @@
 
         // Розмітка має відповідати видимому контенту: коли оцінку на сторінці
         // ховаємо (замало відгуків), AggregateRating теж не віддаємо.
-        if ($seoNativeStats['count'] > 0
-            && $seoNativeStats['rating'] > 0
-            && \App\Support\RatingDisplay::visible((int) ($profile['reviews_count'] ?? 0))) {
+        // Мінімум 3 власні відгуки: середнє з одного-двох — це шум, і в
+        // розмітці воно виглядало б як «⭐1.0» у профілю з сотнями оцінок
+        // (rating рахується лише з власних, а reviewCount у Google формує
+        // очікування). Краще без зірок, ніж із такими, що шкодять бізнесу.
+        // Умова дзеркалить видимий блок «X.X за N відгуками на Dovira» біля
+        // списку відгуків — саме він є контентним відповідником розмітки.
+        // Загальний поріг RatingDisplay тут НЕ застосовуємо: він керує показом
+        // зведеного рейтингу профілю (разом з імпортом), а це інша величина.
+        if ($seoNativeStats['count'] >= 3 && $seoNativeStats['rating'] > 0) {
             $seoBusinessSchema['aggregateRating'] = [
                 '@type' => 'AggregateRating',
                 'ratingValue' => $seoNativeStats['rating'],
@@ -119,14 +153,36 @@
             $seoBusinessSchema['review'] = $seoReviewItems;
         }
 
+        // Breadcrumb-трейл: Головна › Каталог › Категорія › Місто › Профіль.
+        // Рівні категорії й міста додаємо, лише коли є валідні slug — щоб у
+        // видачі був інформативний шлях, а не просто «Каталог».
+        $seoBreadcrumbItems = [
+            ['@type' => 'ListItem', 'position' => 1, 'name' => 'Головна', 'item' => route('home')],
+            ['@type' => 'ListItem', 'position' => 2, 'name' => 'Каталог', 'item' => route('catalog')],
+        ];
+        $seoBreadcrumbPos = 3;
+        if (! empty($profile['category_slug'])) {
+            $seoBreadcrumbItems[] = [
+                '@type' => 'ListItem',
+                'position' => $seoBreadcrumbPos++,
+                'name' => $profile['category_label'] ?? 'Категорія',
+                'item' => route('catalog.landing', ['category' => $profile['category_slug']]),
+            ];
+            if (! empty($profile['city']) && ! empty($profile['city_slug'])) {
+                $seoBreadcrumbItems[] = [
+                    '@type' => 'ListItem',
+                    'position' => $seoBreadcrumbPos++,
+                    'name' => $profile['city'],
+                    'item' => route('catalog.landing.city', ['category' => $profile['category_slug'], 'city' => $profile['city_slug']]),
+                ];
+            }
+        }
+        $seoBreadcrumbItems[] = ['@type' => 'ListItem', 'position' => $seoBreadcrumbPos, 'name' => $profile['name'], 'item' => $seoProfileUrl];
+
         $seoBreadcrumbSchema = [
             '@context' => 'https://schema.org',
             '@type' => 'BreadcrumbList',
-            'itemListElement' => [
-                ['@type' => 'ListItem', 'position' => 1, 'name' => 'Головна', 'item' => route('home')],
-                ['@type' => 'ListItem', 'position' => 2, 'name' => 'Каталог', 'item' => route('catalog')],
-                ['@type' => 'ListItem', 'position' => 3, 'name' => $profile['name'], 'item' => $seoProfileUrl],
-            ],
+            'itemListElement' => $seoBreadcrumbItems,
         ];
 
         $seoProfileFaqItems = collect((array) ($profile['faq'] ?? []))
@@ -147,6 +203,7 @@
         ] : null;
     @endphp
     <script type="application/ld+json">@json($seoBusinessSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)</script>
+    <script type="application/ld+json">@json($seoWebPageSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)</script>
     <script type="application/ld+json">@json($seoBreadcrumbSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)</script>
     @if ($seoProfileFaqSchema)
         <script type="application/ld+json">@json($seoProfileFaqSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)</script>
@@ -158,6 +215,16 @@
         // Гість спершу бачить лендінг PRO з цінністю і тарифами, авторизований — кабінет.
         $lawyerProUrl = auth()->check() ? route('pro.account') : route('pro');
         $lawyerProLabel = auth()->check() ? 'Відкрити PRO кабінет' : 'Дізнатися про PRO';
+
+        // PRO-власник керує бізнесом → замість «Написати відгук» головна дія
+        // «Панель управління». Якщо він власник саме цього профілю — ведемо
+        // одразу на його керування, інакше в загальний кабінет.
+        $viewerHasPro = auth()->check() && auth()->user()->hasProAccess();
+        $viewerOwnsProfile = auth()->check()
+            && (int) ($profile['owner_user_id'] ?? 0) === (int) auth()->id();
+        $manageProfileUrl = $viewerOwnsProfile
+            ? route('pro.account', ['profile' => $profile['id']])
+            : route('pro.account');
     @endphp
 
     @php
@@ -186,6 +253,24 @@
         $two = (int) ($ratingDistribution[2] ?? 0);
         $one = (int) ($ratingDistribution[1] ?? 0);
         $distributionTotal = (int) ($profile['rating_distribution_total'] ?? $profile['reviews_count'] ?? 0);
+
+        // Дата останньої активності профілю: найновіша з правок (updated_at
+        // бампається за будь-яку зміну профілю) і останніх відгуків. Показуємо
+        // у блоці рейтингу довіри як сигнал «профіль живий».
+        $profileFreshDate = rescue(function () use ($profile, $sampleReviews) {
+            $dates = collect($sampleReviews ?? [])
+                ->pluck('date_iso')
+                ->push($profile['updated_at'] ?? null)
+                ->filter()
+                ->map(fn ($value) => \Illuminate\Support\Carbon::parse($value))
+                ->filter();
+
+            return $dates->isNotEmpty() ? $dates->max() : null;
+        }, null, false);
+
+        $profileUpdatedLabel = $profileFreshDate
+            ? $profileFreshDate->locale('uk')->translatedFormat('d F Y')
+            : null;
 
         $categoryIconMap = [
             'nova-market' => ['label' => 'Супермаркети', 'icon' => 'fa-solid fa-bag-shopping'],
@@ -263,13 +348,13 @@
             })
             ->filter(fn ($item) => is_array($item) && filled($item['url'] ?? null))
             ->values();
-        $claimProfileUrl = route('pro.account', array_filter([
-            'tab' => 'claims',
-            'claim_profile' => $profile['id'] ?? null,
-        ]));
+        // «Це ваш профіль?» веде на чисту сторінку безкоштовного підтвердження
+        // прав — без PRO і цін; підписку пропонуємо вже в кабінеті.
+        $claimProfileUrl = ! empty($profile['id'])
+            ? route('pro.account.claims.verify', ['profile' => $profile['id']])
+            : route('pro.account', ['tab' => 'claims']);
 
-        // Досьє: вердикт потрібен у трьох місцях — hero-картці довіри,
-        // тизері в «Огляді відгуків» і самому блоці досьє.
+        // Досьє: вердикт потрібен у тизері в «Огляді відгуків» і самому блоці досьє.
         $hasDossier = trim((string) ($profile['dossier'] ?? '')) !== '';
         $dossierVerdict = in_array($profile['dossier_verdict'] ?? '', ['red', 'yellow', 'green'], true) ? $profile['dossier_verdict'] : null;
         $dossierVerdictMeta = [
@@ -289,20 +374,35 @@
 
     <section class="section profile-page" data-profile-slug="{{ $profile['slug'] }}">
         <div class="container">
-            @if ($cameFromCatalog)
-                <nav class="profile-breadcrumbs" aria-label="Breadcrumbs">
+            {{-- Хлібні крихти показуємо ЗАВЖДИ, а не лише при переході з
+                 каталогу: раніше пошуковик і прямий відвідувач не бачили
+                 жодного шляху, і профіль був глухим кутом — з 21 тис. сторінок
+                 не йшло посилань на посадкові «категорія × місто». Шлях
+                 дзеркалить BreadcrumbList-розмітку вище. --}}
+            <nav class="profile-breadcrumbs" aria-label="Хлібні крихти">
+                @if ($cameFromCatalog)
                     <a href="{{ $catalogBackUrl }}">← Назад до каталогу</a>
-                    <span>›</span>
-                    <span>{{ $profile['name'] }}</span>
-                </nav>
-            @endif
+                @else
+                    <a href="{{ route('catalog') }}">Каталог</a>
+                @endif
+                @if (! empty($profile['category_slug']))
+                    <span aria-hidden="true">›</span>
+                    <a href="{{ route('catalog.landing', ['category' => $profile['category_slug']]) }}">{{ $profile['category_label'] ?? 'Категорія' }}</a>
+                    @if (! empty($profile['city']) && ! empty($profile['city_slug']))
+                        <span aria-hidden="true">›</span>
+                        <a href="{{ route('catalog.landing.city', ['category' => $profile['category_slug'], 'city' => $profile['city_slug']]) }}">{{ $profile['city'] }}</a>
+                    @endif
+                @endif
+                <span aria-hidden="true">›</span>
+                <span aria-current="page">{{ $profile['name'] }}</span>
+            </nav>
 
             <header class="profile-hero">
                 <div class="profile-hero__main">
                     <div class="profile-hero__logo-wrap">
                         <div class="profile-hero__logo review-list-card__logo {{ empty($profile['logo_image_url'] ?? $profile['logo_url']) ? 'has-random-gradient' : '' }}" data-image-fallback-shell data-seed="{{ $profile['name'] }}" aria-label="Лого {{ $profile['name'] }}">
                             @if (!empty($profile['logo_image_url'] ?? $profile['logo_url']))
-                                <img src="{{ $profile['logo_image_url'] ?? $profile['logo_url'] }}" alt="Лого {{ $profile['name'] }}" loading="lazy" onerror="window.DoviraHandleSeededImageError && window.DoviraHandleSeededImageError(this)">
+                                <img src="{{ $profile['logo_image_url'] ?? $profile['logo_url'] }}" alt="Лого {{ $profile['name'] }}" width="240" height="240" loading="lazy" onerror="window.DoviraHandleSeededImageError && window.DoviraHandleSeededImageError(this)">
                                 <span class="review-list-card__fallback" aria-hidden="true">{{ $initials }}</span>
                             @else
                                 {{ $initials }}
@@ -403,30 +503,43 @@
                     @endif
 
                     <div class="profile-hero__actions">
-                        <a
-                            class="btn btn--primary"
-                            href="#"
-                            data-open-review-popup
-                            data-profile-slug="{{ $profile['slug'] }}"
-                            data-profile-name="{{ $profile['name'] }}"
-                        >
-                            <i class="fa-regular fa-pen-to-square" aria-hidden="true"></i>
-                            <span>Написати відгук</span>
-                        </a>
-                        {{-- Друга дія — рівно одна, щоб не було трьох кнопок:
-                             є досьє → «Досьє», немає → «Відгуки» (скрол до відгуків). --}}
-                        @if ($hasDossier)
-                            <a class="btn btn--profile-contact profile-hero__actions-dossier" href="#profile-dossier" data-scroll-to="dossier">
-                                <i class="fa-solid fa-file-lines" aria-hidden="true"></i>
-                                <span>Досьє</span>
+                        @if ($viewerHasPro)
+                            <a class="btn btn--primary" href="{{ $manageProfileUrl }}">
+                                <i class="fa-solid fa-gauge-high" aria-hidden="true"></i>
+                                <span>Панель управління</span>
                             </a>
                         @else
-                            <a class="btn btn--profile-contact profile-hero__actions-reviews" href="#reviews" data-scroll-to="reviews">
-                                <i class="fa-regular fa-star" aria-hidden="true"></i>
-                                <span>Відгуки</span>
+                            <a
+                                class="btn btn--primary"
+                                href="#"
+                                data-open-review-popup
+                                data-profile-slug="{{ $profile['slug'] }}"
+                                data-profile-name="{{ $profile['name'] }}"
+                            >
+                                <i class="fa-regular fa-pen-to-square" aria-hidden="true"></i>
+                                <span>Написати відгук</span>
                             </a>
                         @endif
+                        {{-- Друга дія — «Контакти»: відкриває вкладку «Інформація»
+                             і скролить до блоку контактів угорі (для не-PRO — лід-форма).
+                             Досьє лишається доступним із картки довіри й самої вкладки. --}}
+                        <a class="btn btn--profile-contact profile-hero__actions-contacts" href="#profile-contacts-anchor" data-scroll-to="contacts">
+                            <i class="fa-solid {{ $profilePhoneVisible ? 'fa-address-book' : 'fa-paper-plane' }}" aria-hidden="true"></i>
+                            <span>{{ $profilePhoneVisible ? 'Контакти' : 'Залишити заявку' }}</span>
+                        </a>
                     </div>
+
+                    @if (empty($profile['owner_verified']))
+                        {{-- Компактний claim-лінк на першому екрані. Широку плашку
+                             прибрано, а блоки в сайдбарі й мобільному потоці лежать
+                             на 900 і 3700 px — власник з телефона їх практично не
+                             бачив. Тут рядок займає мінімум місця, але завжди в полі
+                             зору поруч із головними діями. --}}
+                        <a class="profile-hero__claim" href="{{ auth()->check() ? $claimProfileUrl : route('register', ['next' => $claimProfileUrl]) }}">
+                            <i class="fa-regular fa-circle-check" aria-hidden="true"></i>
+                            <span>Це ваш бізнес? <b>Підтвердіть безкоштовно</b></span>
+                        </a>
+                    @endif
                 </div>
 
                 <aside
@@ -478,8 +591,6 @@
                             </span>
                         </div>
                         @if ($hasDossier)
-                            {{-- Вердикт досьє — сигнал довіри, тому видно з першого
-                                 екрана; клік веде до повного досьє у вкладці «Інформація». --}}
                             <button
                                 type="button"
                                 class="profile-hero__trust-item profile-hero__trust-dossier @if ($dossierVerdict) profile-hero__trust-dossier--{{ $dossierVerdict }} @endif"
@@ -490,27 +601,76 @@
                                     <i class="fa-solid {{ $dossierVerdict ? $dossierVerdictMeta[$dossierVerdict]['icon'] : 'fa-file-shield' }}" aria-hidden="true"></i>
                                     Досьє: {{ $dossierVerdict ? $dossierVerdictMeta[$dossierVerdict]['short'] : 'факти з відкритих джерел' }}
                                 </span>
-                                <i class="fa-solid fa-chevron-right profile-hero__trust-dossier-arrow" aria-hidden="true"></i>
+                                <span class="profile-hero__trust-dossier-action">
+                                    Читати досьє повністю
+                                    <i class="fa-solid fa-chevron-right profile-hero__trust-dossier-arrow" aria-hidden="true"></i>
+                                </span>
                             </button>
+                        @endif
+                        @if ($profileUpdatedLabel)
+                            {{-- Дата останньої взаємодії з профілем (відгук чи правка) —
+                                 сигнал свіжості даних. --}}
+                            <div class="profile-hero__trust-item profile-hero__trust-item--updated">
+                                <span class="profile-hero__trust-item-left">
+                                    <i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i>
+                                    Оновлено {{ $profileUpdatedLabel }}
+                                </span>
+                            </div>
                         @endif
                     </div>
                 </aside>
             </header>
 
             @if (empty($profile['owner_verified']))
-                {{-- Unclaimed-profile status (Trustpilot pattern): tells visitors
-                     the data may be incomplete and gives the business a direct,
-                     prefilled path to claim the profile — a conversion driver. --}}
-                <div class="profile-claim-banner">
-                    <p class="profile-claim-banner__text">
-                        <i class="fa-regular fa-circle-question" aria-hidden="true"></i>
-                        <span><strong>Цей профіль ще не підтверджений власником.</strong> Інформація може бути неповною або застарілою.</span>
-                    </p>
-                    <a class="profile-claim-banner__cta" href="{{ auth()->check() ? $claimProfileUrl : route('register', ['next' => $claimProfileUrl]) }}">
-                        <span>Це ваш бізнес? Підтвердіть безкоштовно</span>
-                        <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
-                    </a>
+                {{-- Широку плашку «Цей профіль уже публічний…» прибрано:
+                     owner-CTA лишається блоком «Ви власник / представник?»
+                     у сайдбарі (десктоп), у мобільному потоці (нижче) та
+                     попапом для переходів із розсилок. --}}
+
+                {{-- Попап підтвердження для трафіку з розсилок (utm_source=outreach):
+                     власник прийшов із листа про свій профіль — показуємо явний
+                     заклик підтвердити через 4 с. Раз на 3 дні (localStorage),
+                     лише на непідтверджених профілях. --}}
+                <div class="profile-claim-popup" data-claim-popup hidden aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="claim-popup-title">
+                    <div class="profile-claim-popup__backdrop" data-claim-popup-close></div>
+                    <div class="profile-claim-popup__card">
+                        <button type="button" class="profile-claim-popup__x" data-claim-popup-close aria-label="Закрити"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+                        <span class="profile-claim-popup__badge"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i></span>
+                        <h3 class="profile-claim-popup__title" id="claim-popup-title">Це сторінка вашого бізнесу?</h3>
+                        <p class="profile-claim-popup__text">«{{ $profile['name'] }}» уже публічна: її бачать клієнти й знаходять у Google. Підтвердіть права <strong>безкоштовно за хвилину</strong> — і керуйте інформацією, досьє та відповідями на відгуки.</p>
+                        <a class="profile-claim-popup__cta" data-claim-popup-cta href="{{ auth()->check() ? $claimProfileUrl : route('register', ['next' => $claimProfileUrl]) }}">Підтвердити безкоштовно</a>
+                        <button type="button" class="profile-claim-popup__later" data-claim-popup-close>Я просто дивлюся</button>
+                    </div>
                 </div>
+                <script>
+                (() => {
+                    const popup = document.querySelector('[data-claim-popup]');
+                    if (!popup) return;
+                    if (new URLSearchParams(location.search).get('utm_source') !== 'outreach') return;
+                    const slug = document.querySelector('[data-profile-slug]')?.dataset.profileSlug || 'profile';
+                    const storeKey = 'dovira-claim-popup-' + slug;
+                    try {
+                        if (Date.now() - (+localStorage.getItem(storeKey) || 0) < 3 * 24 * 3600 * 1000) return;
+                    } catch (e) {}
+                    const close = () => {
+                        popup.hidden = true;
+                        popup.setAttribute('aria-hidden', 'true');
+                        document.body.style.overflow = '';
+                    };
+                    setTimeout(() => {
+                        popup.hidden = false;
+                        popup.setAttribute('aria-hidden', 'false');
+                        document.body.style.overflow = 'hidden';
+                        try { localStorage.setItem(storeKey, String(Date.now())); } catch (e) {}
+                        window.doviraProfileTrack?.('claim_popup_view');
+                    }, 4000);
+                    popup.querySelectorAll('[data-claim-popup-close]').forEach((el) => el.addEventListener('click', close));
+                    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+                    popup.querySelector('[data-claim-popup-cta]')?.addEventListener('click', () => {
+                        window.doviraProfileTrack?.('claim_popup_click');
+                    });
+                })();
+                </script>
             @endif
 
             @php
@@ -520,25 +680,25 @@
                             return [
                                 'name' => trim((string) ($service['name'] ?? '')),
                                 'description' => trim((string) ($service['description'] ?? '')),
-                                'category' => trim((string) ($service['category'] ?? '')),
-                                'price_from' => trim((string) ($service['price_from'] ?? '')),
+                                'price_label' => trim((string) ($service['price_label'] ?? $service['price_from'] ?? '')),
                                 'duration' => trim((string) ($service['duration'] ?? '')),
-                                'cta' => trim((string) ($service['cta'] ?? 'Залишити заявку')),
                             ];
                         }
 
-                        $value = trim((string) $service);
                         return [
-                            'name' => $value,
+                            'name' => trim((string) $service),
                             'description' => '',
-                            'category' => '',
-                            'price_from' => '',
+                            'price_label' => '',
                             'duration' => '',
-                            'cta' => 'Залишити заявку',
                         ];
                     })
                     ->filter(fn ($item) => ($item['name'] ?? '') !== '')
                     ->values();
+                // Прайс-режим: якщо хоч одна послуга має ціну чи опис —
+                // рендеримо повноцінний прайс-лист, інакше чипи як раніше.
+                $servicesHavePricing = $profileServices->contains(
+                    fn ($s) => $s['price_label'] !== '' || $s['description'] !== ''
+                );
 
                 $proGallery = collect((array) ($profile['gallery'] ?? []))
                     ->map(function ($item, $index) {
@@ -571,56 +731,7 @@
                 $proFaq = collect((array) ($profile['faq'] ?? []))
                     ->filter(fn ($item) => is_array($item) && filled($item['q'] ?? null) && filled($item['a'] ?? null))
                     ->values();
-
-                // Видимий абзац-відповідь (те, що AI-пошук цитує на «[назва] відгуки»)
-                // + freshness + чесний Google-рейтинг для імпортованих профілів.
-                $profileLeadAnswer = \App\Support\ProfileSeo::answerParagraph(
-                    $profile['name'] ?? null,
-                    $profile['category_label'] ?? null,
-                    $profile['city'] ?? null,
-                    (array) ($profile['services'] ?? []),
-                    $ratingVisible,
-                    (float) ($profile['rating'] ?? 0),
-                    (int) ($profile['reviews_count'] ?? 0)
-                );
-
-                // Свіжа дата: найновіша з оновлення профілю / останнього відгуку.
-                // Обчислюємо тут самодостатньо (не покладаємось на змінну з @push).
-                $profileFreshDate = rescue(function () use ($profile, $sampleReviews) {
-                    $dates = collect($sampleReviews ?? [])
-                        ->pluck('date_iso')
-                        ->push($profile['updated_at'] ?? null)
-                        ->filter()
-                        ->map(fn ($value) => \Illuminate\Support\Carbon::parse($value))
-                        ->filter();
-
-                    return $dates->isNotEmpty() ? $dates->max() : null;
-                }, null, false);
-
-                $profileUpdatedLabel = $profileFreshDate
-                    ? $profileFreshDate->locale('uk')->translatedFormat('d F Y')
-                    : null;
-
-                // Google-рейтинг — ЧЕСНИМ ТЕКСТОМ, не в schema (там лише нативні відгуки).
-                $googleRatingValue = (float) ($profile['google_rating'] ?? 0);
-                $googleReviewsCount = (int) ($profile['google_reviews_count'] ?? 0);
-                $profileGoogleNote = ($googleRatingValue > 0 && $googleReviewsCount > 0)
-                    ? 'За даними Google — ' . rtrim(rtrim(number_format($googleRatingValue, 1, '.', ''), '0'), '.')
-                        . ' з 5 (' . $googleReviewsCount . ' ' . \App\Support\ProfileSeo::reviewsWord($googleReviewsCount) . ').'
-                    : null;
             @endphp
-
-            @if ($profileLeadAnswer !== '')
-                <section class="profile-intro" aria-label="Коротко про профіль">
-                    <p class="profile-intro__lead">{{ $profileLeadAnswer }}</p>
-                    @if ($profileGoogleNote)
-                        <p class="profile-intro__source">{{ $profileGoogleNote }}</p>
-                    @endif
-                    @if ($profileUpdatedLabel)
-                        <p class="profile-intro__updated">Оновлено {{ $profileUpdatedLabel }}</p>
-                    @endif
-                </section>
-            @endif
 
             <div class="profile-layout">
                 <div class="profile-main">
@@ -709,6 +820,18 @@
                                     : '';
                             @endphp
 
+                            {{-- Контакти — угорі вкладки «Інформація», перед досьє.
+                                 Головний конверсійний блок: для не-PRO рендериться
+                                 лід-форма, для PRO — прямі контакти. Якір для кнопки
+                                 «Контакти» в hero (data-scroll-to="contacts"). На
+                                 десктопі приховано — там контакти в бічній колонці. --}}
+                            <div class="profile-pro-block profile-pro-block--first profile-info-contacts" id="profile-contacts-anchor">
+                                <div class="profile-pro-section-head">
+                                    <h2><i class="fa-solid fa-address-book" aria-hidden="true"></i><span>Контакти</span></h2>
+                                </div>
+                                @include('static.partials.profile-contact-actions')
+                            </div>
+
                             @if ($dossierHtml !== '')
                                 {{-- Досьє: головний контент-блок сторінки (і головний SEO-текст) --}}
                                 <div class="profile-pro-block profile-pro-block--first profile-dossier" id="profile-dossier">
@@ -725,11 +848,7 @@
                                         </div>
                                     @endif
                                     <p class="profile-dossier__meta">
-                                        @if (($profile['dossier_source'] ?? '') === 'owner')
-                                            <span class="profile-dossier__badge profile-dossier__badge--owner"><i class="fa-regular fa-pen-to-square" aria-hidden="true"></i> Відредаговано власником профілю</span>
-                                        @else
-                                            <span class="profile-dossier__badge"><i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i> Зібрано ШІ з відкритих джерел</span>
-                                        @endif
+                                        <span class="profile-dossier__badge"><i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i> Зібрано ШІ з відкритих джерел</span>
                                         @if ($dossierUpdatedLabel)
                                             <span class="profile-dossier__date">Оновлено {{ $dossierUpdatedLabel }}</span>
                                         @endif
@@ -753,11 +872,26 @@
                                     <div class="profile-about-card__text profile-dossier__text is-collapsed" data-about-text>{!! $dossierHtml !!}</div>
                                     <button type="button" class="profile-about-card__more is-hidden" data-about-toggle>Читати більше</button>
                                     <p class="profile-dossier__disclaimer">Досьє сформовано з відкритих джерел і може бути неповним чи застарілим. Це не юридична оцінка діяльності — перевіряйте критичні факти за першоджерелами.</p>
+
+                                    {{-- Owner-CTA прямо в досьє: адвокати з розсилки приземляються сюди,
+                                         тож дію «підтвердити профіль» показуємо саме тут (а не лише в hero). --}}
+                                    @if (empty($profile['owner_verified']))
+                                        <div class="profile-claim-banner profile-claim-banner--dossier" style="margin-top:16px">
+                                            <p class="profile-claim-banner__text">
+                                                <i class="fa-regular fa-circle-question" aria-hidden="true"></i>
+                                                <span><strong>Це ваш профіль?</strong> Сторінка вже публічна й показується в Google. Підтвердіть права <strong>безкоштовно</strong> — відповідайте на відгуки, додайте свій контекст до досьє й керуйте інформацією.</span>
+                                            </p>
+                                            <a class="profile-claim-banner__cta" href="{{ auth()->check() ? $claimProfileUrl : route('register', ['next' => $claimProfileUrl]) }}">
+                                                <span>Керувати профілем</span>
+                                                <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                                            </a>
+                                        </div>
+                                    @endif
                                 </div>
                             @elseif ($quickStats->isNotEmpty() || $aboutMarkup !== '')
                                 <div class="profile-pro-block profile-pro-block--first">
                                     <div class="profile-pro-section-head">
-                                        <h3><i class="fa-regular fa-id-card" aria-hidden="true"></i><span>Коротко про спеціаліста</span></h3>
+                                        <h2><i class="fa-regular fa-id-card" aria-hidden="true"></i><span>Коротко про спеціаліста</span></h2>
                                     </div>
                                     @if ($quickStats->isNotEmpty())
                                         <div class="profile-quick-stats">
@@ -783,21 +917,61 @@
                             @endif
 
                             @if ($profileServices->isNotEmpty())
-                                <div class="profile-pro-block profile-pro-block--services-inline">
-                                    <div class="profile-pro-section-head">
-                                        <h3><i class="fa-solid fa-briefcase" aria-hidden="true"></i><span>Послуги</span></h3>
-                                    </div>
-                                    <div class="profile-services-grid profile-services-grid--inline">
+                                @if ($servicesHavePricing)
+                                    {{-- Повноцінний прайс (PRO заповнив ціни/описи): назва й опис
+                                         зліва, ціна справа, топ-5 одразу, решта — за кнопкою. --}}
+                                    <div class="profile-pro-block profile-price-list" id="profile-services">
+                                        <style>
+                                            .profile-price-list__row { display: flex; align-items: baseline; gap: 14px; padding: 12px 2px; border-top: 1px solid rgba(15, 23, 42, .07); }
+                                            .profile-price-list__row:first-of-type { border-top: 0; }
+                                            .profile-price-list__row[hidden] { display: none; }
+                                            .profile-price-list__main { min-width: 0; flex: 1 1 auto; }
+                                            .profile-price-list__name { font-size: .96rem; font-weight: 650; color: var(--c-heading, #1e293b); overflow-wrap: anywhere; }
+                                            .profile-price-list__desc { margin: 2px 0 0; font-size: .84rem; line-height: 1.5; color: var(--c-muted, #64748b); }
+                                            .profile-price-list__dots { flex: 1 0 24px; border-bottom: 1px dotted rgba(100, 116, 139, .45); transform: translateY(-4px); }
+                                            .profile-price-list__price { flex: 0 0 auto; font-size: .95rem; font-weight: 750; color: var(--c-heading, #1e293b); font-variant-numeric: tabular-nums; white-space: nowrap; }
+                                            .profile-price-list__price--empty { color: #b6c2d6; font-weight: 600; }
+                                            .profile-price-list__more { margin-top: 10px; padding: 0; border: 0; background: transparent; color: var(--c-primary, #2563eb); font: inherit; font-size: .88rem; font-weight: 700; cursor: pointer; }
+                                            .profile-price-list__note { margin: 10px 0 0; font-size: .78rem; color: var(--c-muted, #94a3b8); }
+                                        </style>
+                                        <div class="profile-pro-section-head">
+                                            <h2><i class="fa-solid fa-briefcase" aria-hidden="true"></i><span>Послуги і ціни</span></h2>
+                                        </div>
                                         @foreach ($profileServices as $service)
-                                            <span class="profile-service-chip">
-                                                {{ $service['name'] }}
-                                                @if ($service['price_from'] !== '')
-                                                    <strong>від {{ $service['price_from'] }}</strong>
+                                            <div class="profile-price-list__row" @if ($loop->index >= 5) hidden data-price-row-extra @endif>
+                                                <div class="profile-price-list__main">
+                                                    <div class="profile-price-list__name">{{ $service['name'] }}</div>
+                                                    @if ($service['description'] !== '')
+                                                        <p class="profile-price-list__desc">{{ $service['description'] }}</p>
+                                                    @endif
+                                                </div>
+                                                <span class="profile-price-list__dots" aria-hidden="true"></span>
+                                                @if ($service['price_label'] !== '')
+                                                    <span class="profile-price-list__price">{{ $service['price_label'] }}</span>
+                                                @else
+                                                    <span class="profile-price-list__price profile-price-list__price--empty">за запитом</span>
                                                 @endif
-                                            </span>
+                                            </div>
                                         @endforeach
+                                        @if ($profileServices->count() > 5)
+                                            <button type="button" class="profile-price-list__more" data-price-list-more>
+                                                Показати всі послуги ({{ $profileServices->count() }})
+                                            </button>
+                                        @endif
+                                        <p class="profile-price-list__note">Ціни орієнтовні — власник оновлює їх у кабінеті. Точну вартість уточнюйте при зверненні.</p>
                                     </div>
-                                </div>
+                                @else
+                                    <div class="profile-pro-block profile-pro-block--services-inline">
+                                        <div class="profile-pro-section-head">
+                                            <h2><i class="fa-solid fa-briefcase" aria-hidden="true"></i><span>Послуги</span></h2>
+                                        </div>
+                                        <div class="profile-services-grid profile-services-grid--inline">
+                                            @foreach ($profileServices as $service)
+                                                <span class="profile-service-chip">{{ $service['name'] }}</span>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                @endif
                             @endif
 
                             @if ($experienceText !== '')
@@ -834,7 +1008,7 @@
                                             @foreach ($proGallery as $imageIndex => $image)
                                                 <button type="button" class="profile-pro-gallery__item" data-open-profile-gallery data-gallery-index="{{ $imageIndex }}">
                                                     <span class="profile-pro-gallery__media">
-                                                        <img src="{{ $image['thumb'] }}" alt="{{ $image['title'] }}" loading="lazy">
+                                                        <img src="{{ $image['thumb'] }}" width="400" height="300" alt="{{ $image['title'] }}" loading="lazy">
                                                     </span>
                                                 </button>
                                             @endforeach
@@ -860,7 +1034,7 @@
                                                 </button>
                                                 {{-- Стартовий src — мініатюра; повне фото JS підвантажить із data-gallery-url
                                                      при відкритті лайтбокса, щоб прихована галерея не тягла сотні КБ наперед. --}}
-                                                <img src="{{ $proGallery->first()['thumb'] }}" alt="{{ $proGallery->first()['title'] }}" loading="lazy" data-profile-gallery-active-image>
+                                                <img src="{{ $proGallery->first()['thumb'] }}" width="400" height="300" alt="{{ $proGallery->first()['title'] }}" loading="lazy" data-profile-gallery-active-image>
                                                 <button type="button" class="profile-gallery-popup__nav profile-gallery-popup__nav--next" aria-label="Наступне фото" data-profile-gallery-next>
                                                     <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
                                                 </button>
@@ -878,7 +1052,7 @@
                                                         aria-label="Відкрити фото {{ $imageIndex + 1 }}"
                                                         @if ($loop->first) aria-current="true" @endif
                                                     >
-                                                        <img src="{{ $image['thumb'] }}" alt="{{ $image['title'] }}" loading="lazy">
+                                                        <img src="{{ $image['thumb'] }}" width="400" height="300" alt="{{ $image['title'] }}" loading="lazy">
                                                     </button>
                                                 @endforeach
                                             </div>
@@ -1263,6 +1437,20 @@
                         @endphp
                         <div class="profile-card__head @if ($reviewsTotal > 0) has-reviews @endif">
                             <h2>Відгуки клієнтів</h2>
+                            @if (($nativeReviewStats['count'] ?? 0) >= 3 && ($nativeReviewStats['rating'] ?? 0) > 0)
+                                {{-- Видима оцінка саме з відгуків, залишених на Dovira.
+                                     Вона — джерело AggregateRating у розмітці: Google
+                                     вимагає, щоб рейтинг у структурованих даних мав
+                                     відповідник у контенті сторінки. Загальний рейтинг
+                                     профілю (з імпортом) живе окремо в шапці. --}}
+                                <p class="profile-native-rating">
+                                    <i class="fa-solid fa-star" aria-hidden="true"></i>
+                                    <strong>{{ number_format((float) $nativeReviewStats['rating'], 1) }}</strong>
+                                    <span>за {{ $nativeReviewStats['count'] }}
+                                        {{ \App\Support\Plural::uk((int) $nativeReviewStats['count'], 'відгуком', 'відгуками', 'відгуками') }}
+                                        на Dovira</span>
+                                </p>
+                            @endif
                         </div>
                         {{-- Фільтри/сортування без відгуків — контроли над порожнечею. --}}
                         @if ($reviewsTotal > 0)
@@ -1297,7 +1485,7 @@
                                     <div class="profile-mobile-review-sheet__dialog">
                                         <div class="profile-mobile-review-sheet__handle" aria-hidden="true"></div>
                                         <header class="profile-mobile-review-sheet__head">
-                                            <h3>Показувати <i class="fa-solid fa-comments" aria-hidden="true"></i></h3>
+                                            <span class="sheet-title">Показувати <i class="fa-solid fa-comments" aria-hidden="true"></i></span>
                                             <button type="button" class="profile-mobile-review-sheet__close" data-review-close-filter-sheet aria-label="Закрити">
                                                 <i class="fa-solid fa-xmark" aria-hidden="true"></i>
                                             </button>
@@ -1328,7 +1516,7 @@
                                     <div class="profile-mobile-review-sheet__dialog">
                                         <div class="profile-mobile-review-sheet__handle" aria-hidden="true"></div>
                                         <header class="profile-mobile-review-sheet__head">
-                                            <h3>Сортування <i class="fa-solid fa-arrow-down-wide-short" aria-hidden="true"></i></h3>
+                                            <span class="sheet-title">Сортування <i class="fa-solid fa-arrow-down-wide-short" aria-hidden="true"></i></span>
                                             <button type="button" class="profile-mobile-review-sheet__close" data-review-close-sort-sheet aria-label="Закрити">
                                                 <i class="fa-solid fa-xmark" aria-hidden="true"></i>
                                             </button>
@@ -1394,7 +1582,7 @@
                                         <div class="profile-review__author">
                                             <div class="profile-review__avatar review-list-card__logo {{ empty($review['avatar_url']) ? 'has-random-gradient' : '' }}" data-image-fallback-shell data-seed="{{ $review['author'] }}">
                                                 @if (!empty($review['avatar_url']))
-                                                    <img src="{{ $review['avatar_url'] }}" alt="{{ $review['author'] }}" loading="lazy" onerror="window.DoviraHandleSeededImageError && window.DoviraHandleSeededImageError(this)">
+                                                    <img src="{{ $review['avatar_url'] }}" width="128" height="128" alt="{{ $review['author'] }}" loading="lazy" onerror="window.DoviraHandleSeededImageError && window.DoviraHandleSeededImageError(this)">
                                                     <span class="review-list-card__fallback" aria-hidden="true">{{ $review['avatar'] ?? 'К' }}</span>
                                                 @else
                                                     <span class="review-list-card__fallback review-list-card__fallback--visible" aria-hidden="true">{{ $review['avatar'] ?? 'К' }}</span>
@@ -1419,16 +1607,33 @@
                                         <strong>{{ number_format($review['rating'], 1) }}</strong>
                                         @if (!empty($review['external_source_label']))
                                             @php
-                                                $sourceIcon = in_array(($review['external_source_type'] ?? ''), ['google_maps', 'google', 'google_business'], true)
-                                                    ? 'fa-brands fa-google'
-                                                    : 'fa-solid fa-link';
+                                                $sourceType = $review['external_source_type'] ?? '';
+                                                $sourceIcon = match (true) {
+                                                    in_array($sourceType, ['google_maps', 'google', 'google_business'], true) => 'fa-brands fa-google',
+                                                    $sourceType === 'threads' => 'fa-brands fa-threads',
+                                                    default => 'fa-solid fa-link',
+                                                };
+                                                // Бейдж Threads веде на пост-джерело; інші джерела (Google/top20)
+                                                // лишаємо плашкою без outbound-переходів.
+                                                $sourceHref = ($sourceType === 'threads' && !empty($review['external_source_url']))
+                                                    ? $review['external_source_url'] : null;
+                                                // Threads-гліфа нема в урізаному fa-brands сабсеті — рендеримо inline-SVG.
+                                                $sourceIconHtml = $sourceType === 'threads'
+                                                    ? view('static.partials.threads-icon')->render()
+                                                    : '<i class="'.$sourceIcon.'" aria-hidden="true"></i>';
                                             @endphp
-                                            {{-- Source is shown as a plain label — never a link (no outbound
-                                                 redirects to top20.ua / external sources from our site). --}}
-                                            <span class="profile-review__source-badge">
-                                                <i class="{{ $sourceIcon }}" aria-hidden="true"></i>
-                                                <span>{{ $review['external_source_label'] }}</span>
-                                            </span>
+                                            @if ($sourceHref)
+                                                <a class="profile-review__source-badge profile-review__source-badge--link" href="{{ $sourceHref }}" target="_blank" rel="noopener noreferrer nofollow">
+                                                    {!! $sourceIconHtml !!}
+                                                    <span>{{ $review['external_source_label'] }}</span>
+                                                    <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+                                                </a>
+                                            @else
+                                                <span class="profile-review__source-badge">
+                                                    {!! $sourceIconHtml !!}
+                                                    <span>{{ $review['external_source_label'] }}</span>
+                                                </span>
+                                            @endif
                                         @endif
                                     </div>
                                     @if (!empty($review['title']))
@@ -1448,8 +1653,8 @@
                                                 @if ($isVideo)
                                                     <video controls preload="metadata" src="{{ $mediaUrl }}"></video>
                                                 @else
-                                                    <a href="{{ $mediaUrl }}" target="_blank" rel="noopener noreferrer">
-                                                        <img src="{{ $mediaUrl }}" alt="Вкладення до відгуку" loading="lazy">
+                                                    <a class="glightbox" href="{{ $mediaUrl }}" data-gallery="review-{{ $review['id'] }}" data-type="image" target="_blank" rel="noopener noreferrer">
+                                                        <img src="{{ $mediaUrl }}" width="400" height="300" alt="Вкладення до відгуку" loading="lazy">
                                                     </a>
                                                 @endif
                                             @endforeach
@@ -1488,7 +1693,7 @@
                                                                 <div class="profile-review-comment__author">
                                                                     <div class="profile-review-comment__avatar review-list-card__logo {{ empty($reply['avatar_url']) ? 'has-random-gradient' : '' }}" data-image-fallback-shell data-seed="{{ $reply['author'] }}">
                                                                         @if (!empty($reply['avatar_url']))
-                                                                            <img src="{{ $reply['avatar_url'] }}" alt="{{ $reply['author'] }}" loading="lazy" onerror="window.DoviraHandleSeededImageError && window.DoviraHandleSeededImageError(this)">
+                                                                            <img src="{{ $reply['avatar_url'] }}" width="128" height="128" alt="{{ $reply['author'] }}" loading="lazy" onerror="window.DoviraHandleSeededImageError && window.DoviraHandleSeededImageError(this)">
                                                                             <span class="review-list-card__fallback" aria-hidden="true">{{ \Illuminate\Support\Str::upper(\Illuminate\Support\Str::substr($reply['author'] ?? 'К', 0, 1)) }}</span>
                                                                         @else
                                                                             <span class="review-list-card__fallback review-list-card__fallback--visible" aria-hidden="true">{{ \Illuminate\Support\Str::upper(\Illuminate\Support\Str::substr($reply['author'] ?? 'К', 0, 1)) }}</span>
@@ -1552,7 +1757,7 @@
                                                                         <div class="profile-review-comment__author">
                                                                             <div class="profile-review-comment__avatar review-list-card__logo {{ empty($childReply['avatar_url']) ? 'has-random-gradient' : '' }}" data-image-fallback-shell data-seed="{{ $childReply['author'] }}">
                                                                                 @if (!empty($childReply['avatar_url']))
-                                                                                    <img src="{{ $childReply['avatar_url'] }}" alt="{{ $childReply['author'] }}" loading="lazy" onerror="window.DoviraHandleSeededImageError && window.DoviraHandleSeededImageError(this)">
+                                                                                    <img src="{{ $childReply['avatar_url'] }}" width="128" height="128" alt="{{ $childReply['author'] }}" loading="lazy" onerror="window.DoviraHandleSeededImageError && window.DoviraHandleSeededImageError(this)">
                                                                                     <span class="review-list-card__fallback" aria-hidden="true">{{ \Illuminate\Support\Str::upper(\Illuminate\Support\Str::substr($childReply['author'] ?? 'К', 0, 1)) }}</span>
                                                                                 @else
                                                                                     <span class="review-list-card__fallback review-list-card__fallback--visible" aria-hidden="true">{{ \Illuminate\Support\Str::upper(\Illuminate\Support\Str::substr($childReply['author'] ?? 'К', 0, 1)) }}</span>
@@ -1715,38 +1920,112 @@
                                 Показати ще
                             </button>
                         </div>
-                        <div class="profile-reviews-sentinel" data-reviews-sentinel aria-hidden="true"></div>
+                        <div class="profile-reviews-sentinel @if($reviewsHasMore) is-tall @endif" data-reviews-sentinel aria-hidden="true"></div>
 
                         <div class="profile-reviews-mobile-extras" aria-label="Додаткові контакти профілю">
                             <div class="profile-side-card" id="profile-mobile-contacts">
-                                <h3>Контакти</h3>
+                                <h2>Контакти</h2>
                                 @include('static.partials.profile-contact-actions')
                             </div>
 
-                            {{-- Мобільний дубль «Це ваш профіль?» прибрано — owner-CTA
-                                 на сторінці один: банер «Це ваш бізнес?» зверху. --}}
+                            {{-- Owner-CTA для мобільних: сайдбар із таким блоком
+                                 на телефоні прихований, а широку плашку зверху
+                                 прибрано — без цього дубля власник на мобільному
+                                 не бачив би заклику підтвердити профіль узагалі. --}}
+                            @if (empty($profile['owner_verified']))
+                                <div class="profile-side-owner profile-side-owner--mobile">
+                                    <b>Ви власник / представник?</b>
+                                    <p>Керуйте сторінкою, відповідайте на відгуки та залучайте клієнтів.</p>
+                                    <a href="{{ auth()->check() ? $claimProfileUrl : route('register', ['next' => $claimProfileUrl]) }}">Отримати доступ</a>
+                                </div>
+                            @endif
                         </div>
                     </section>
                     </section>
 
                 </div>
 
+                {{-- Порядок сайдбару: Контакти → Схожі → «Ви власник?».
+                     Контакти першими, бо це цільова дія відвідувача, який
+                     прийшов перевірити конкретний бізнес; конкуренти й B2B-CTA
+                     — після неї, щоб не перехоплювати клік до дзвінка. --}}
                 <aside class="profile-side">
+                    <div class="profile-side__inner" data-side-inner>
                     <div class="profile-side-card profile-side-card--contacts-desktop" id="profile-contacts-aside-anchor">
-                        <h3>Контакти</h3>
+                        <h2>Контакти</h2>
                         @include('static.partials.profile-contact-actions')
-                        <a class="profile-side-card__claim-link" href="{{ $claimProfileUrl }}">Володієте цією компанією?</a>
                     </div>
-                    {{-- Картку «Маєте свій бізнес?» прибрано: на сторінці профілю
-                         лишається один owner-CTA (банер «Це ваш бізнес?» зверху)
-                         + тихий лінк «Володієте цією компанією?» в контактах. --}}
 
+                    {{-- Підтвердження профілю — одразу під контактами, щоб у sticky-колонці
+                         воно було видно завжди; рекомендації — нижче, як найменш важливе. --}}
+                    @if (empty($profile['owner_verified']))
+                        <div class="profile-side-owner">
+                            <b>Ви власник / представник?</b>
+                            <p>Відповідайте на відгуки й керуйте сторінкою.</p>
+                            <a href="{{ auth()->check() ? $claimProfileUrl : route('register', ['next' => $claimProfileUrl]) }}">Отримати доступ</a>
+                        </div>
+                    @else
+                        <div class="profile-side-verified">
+                            <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+                            <div>
+                                <b>Перевірений акаунт</b>
+                                <span>Власник підтвердив права на цю сторінку</span>
+                            </div>
+                        </div>
+                    @endif
+
+                    @if (empty($profile['pro']) && ! empty($relatedProfiles))
+                        <div class="profile-side-card profile-side-related">
+                            <h2>Рекомендації</h2>
+                            <ul class="profile-side-related__list">
+                                @foreach (collect($relatedProfiles)->take(3) as $sideProfile)
+                                    @php
+                                        $sideRating = (float) ($sideProfile['rating'] ?? 0);
+                                        $sideReviews = (int) ($sideProfile['reviews_count'] ?? 0);
+                                        $sideRatingVisible = \App\Support\RatingDisplay::visible($sideReviews);
+                                    @endphp
+                                    <li>
+                                        <a href="{{ $relatedProfileUrl($sideProfile['slug']) }}">
+                                            <span class="profile-side-related__logo" aria-hidden="true">
+                                                @if (! empty($sideProfile['logo_url']))
+                                                    <img src="{{ $sideProfile['logo_url'] }}" alt="" width="96" height="96" loading="lazy" onerror="this.remove()">
+                                                @else
+                                                    <b>{{ mb_strtoupper(mb_substr((string) $sideProfile['name'], 0, 1)) }}</b>
+                                                @endif
+                                            </span>
+                                            <span class="profile-side-related__meta">
+                                                <b>{{ $sideProfile['name'] }}</b>
+                                                <span class="profile-side-related__sub">
+                                                    @if ($sideRatingVisible && $sideRating > 0)
+                                                        <i class="fa-solid fa-star" aria-hidden="true"></i>
+                                                        <strong>{{ number_format($sideRating, 1) }}</strong>
+                                                        <span>· {{ $sideReviews }} {{ \App\Support\Plural::uk($sideReviews, 'відгук', 'відгуки', 'відгуків') }}</span>
+                                                    @elseif ($sideReviews > 0)
+                                                        <span>{{ $sideReviews }} {{ \App\Support\Plural::uk($sideReviews, 'відгук', 'відгуки', 'відгуків') }}</span>
+                                                    @endif
+                                                </span>
+                                            </span>
+                                        </a>
+                                    </li>
+                                @endforeach
+                            </ul>
+                            @if (! empty($profile['category_slug']))
+                                <a class="profile-side-related__all" href="{{ route('catalog.landing', ['category' => $profile['category_slug']]) }}">Усі в категорії</a>
+                            @endif
+                        </div>
+                    @endif
+                                    </div>
                 </aside>
             </div>
 
+            {{-- Захист трафіку PRO: на профілі з активною підпискою конкурентів
+                 не показуємо взагалі — це одна з платних переваг. --}}
+            @if (empty($profile['pro']) && ! empty($relatedProfiles))
             <section class="section best-lawyers" aria-labelledby="profile-related-title">
                 <div class="home-intents__head">
-                    <h2 id="profile-related-title" class="h2 home-section-title">Dovira рекомендує</h2>
+                    {{-- «Схожі профілі», а не «Dovira рекомендує»: рекомендація —
+                         це бейдж із методології рейтингу, і секція з ним плуталась. --}}
+                    <h2 id="profile-related-title" class="h2 home-section-title">Схожі профілі</h2>
                     <div class="home-intents__actions">
                         <button type="button" class="home-intents__nav home-intents__nav--prev" aria-label="Попередні профілі" data-carousel-prev="best-lawyers-related">
                             <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
@@ -1764,17 +2043,186 @@
                     @endforeach
                 </div>
             </section>
+            @endif
+
+            {{-- Лінк-хаб на посадкові: показуємо ВСІМ профілям, включно з PRO —
+                 це навігація по каталогу, а не показ конкурентів. --}}
+            @include('static.partials.profile-link-hub')
         </div>
     </section>
 @endsection
 
 @push('scripts')
+<script>
+    // Сайдбар закріплюється так само, як у перевіреному тесті /side-test.html:
+    // position: fixed, стилі пишуться ЛИШЕ в момент переходу, а під час скролу
+    // виконується сама арифметика з window.scrollY.
+    //
+    // Головне, що тут легко зламати (і що ламало раніше): коли на сторінці
+    // дорощуються відгуки, змінюється висота колонки. Попередня версія на кожну
+    // таку зміну ВІДКРІПЛЮВАЛА блок, переміряла й закріплювала знову — під час
+    // скролу відгуки довантажуються постійно, тому блок постійно смикався на
+    // піксель. Тепер розміри знімаються БЕЗ відкріплення: ширина й ліва межа
+    // беруться з колонки (вона завжди в потоці), а висота блоку не залежить від
+    // того, закріплений він чи ні.
+    (() => {
+        const inner = document.querySelector('[data-side-inner]');
+        const aside = inner && inner.parentElement;
+        if (!inner || !aside) return;
+        const desktop = window.matchMedia('(min-width: 901px)');
+        const headerEl = document.querySelector('.header');
+        const gap = 16;
+        const snap = (value) => {
+            const dpr = window.devicePixelRatio || 1;
+
+            return Math.round(value * dpr) / dpr;
+        };
+
+        // Підстраховка до CSS-правила вище: у браузерах без :has() знімаємо
+        // обрізання переповнення з предків, інакше Safari дрижить закріпленим блоком.
+        const unclip = () => {
+            if (!desktop.matches) return;
+            document.documentElement.style.overflowX = 'visible';
+            document.body.style.overflowX = 'visible';
+            const main = document.querySelector('main');
+            if (main) main.style.overflowX = 'visible';
+        };
+        unclip();
+
+        let asideTop = 0, asideH = 0, innerH = 0, headerH = 48, left = 0, width = 0;
+        let pinned = false, ended = false;
+
+        const measure = () => {
+            const box = aside.getBoundingClientRect();
+            asideTop = box.top + window.scrollY;
+            asideH = aside.offsetHeight;
+            // scrollHeight, а не offsetHeight: коли блок вищий за екран, ми
+            // обмежуємо його max-height, і offsetHeight показав би вже обрізану висоту.
+            innerH = inner.scrollHeight;
+            left = snap(box.left);
+            width = snap(box.width);
+            // Висоту шапки беремо з елемента: змінна --header-h задана через
+            // calc(), і parseFloat від такого рядка дає NaN.
+            const h = headerEl ? headerEl.getBoundingClientRect().height : 0;
+            headerH = h > 0 ? h : 48;
+        };
+
+        const unpin = () => {
+            if (!pinned && !ended) return;
+            inner.style.position = '';
+            inner.style.top = '';
+            inner.style.left = '';
+            inner.style.width = '';
+            inner.style.transform = '';
+            inner.style.backfaceVisibility = '';
+            inner.style.maxHeight = '';
+            inner.style.overflowY = '';
+            pinned = false;
+            ended = false;
+        };
+
+        const apply = () => {
+            if (!desktop.matches) {
+                unpin();
+
+                return;
+            }
+            const line = headerH + gap;
+            // Доступна висота під шапкою. Якщо сайдбар вищий — закріплюємо все одно
+            // (саме цього чекає користувач), просто обмежуємо висоту й дозволяємо
+            // прокрутку всередині блоку. Раніше тут був вихід «не вміщається —
+            // лишаємо в потоці», і на вузькому за висотою вікні сайдбар просто
+            // ніколи не закріплювався.
+            const avail = window.innerHeight - line - gap;
+            const shownH = Math.min(innerH, avail);
+            const boxTop = asideTop - window.scrollY;
+            // Верх колонки ще не дійшов до лінії, або колонка вже закінчується —
+            // блок у звичайному потоці (в кінці він так само не налазить на футер).
+            if (avail < 200 || boxTop >= line || boxTop + asideH - shownH <= line) {
+                unpin();
+
+                return;
+            }
+            if (!pinned) {
+                inner.style.position = 'fixed';
+                inner.style.top = snap(line) + 'px';
+                inner.style.left = left + 'px';
+                inner.style.width = width + 'px';
+                inner.style.transform = 'translateZ(0)';
+                inner.style.backfaceVisibility = 'hidden';
+                pinned = true;
+            }
+            if (pinned) {
+                const cap = innerH > avail;
+                inner.style.maxHeight = cap ? avail + 'px' : '';
+                inner.style.overflowY = cap ? 'auto' : '';
+            }
+        };
+
+        // Переміряти можна БЕЗ відкріплення: колонка лишається в потоці, а
+        // ширина блоку задана явно, тож його висота не змінюється від режиму.
+        const remeasure = () => {
+            const wasLeft = left, wasWidth = width;
+            measure();
+            if (pinned && (left !== wasLeft || width !== wasWidth)) {
+                inner.style.left = left + 'px';
+                inner.style.width = width + 'px';
+            }
+            apply();
+        };
+
+        // Діагностика за ?side-debug=1 — щоб побачити реальні числа в браузері
+        // користувача (без неї нічого зайвого не створюється).
+        let dbg = null, switches = 0, wasPinned = false;
+        if (/(^|[?&])side-debug=1/.test(location.search)) {
+            dbg = document.createElement('div');
+            dbg.style.cssText = 'position:fixed;left:8px;bottom:8px;z-index:9999;background:#0b1b3a;color:#fff;font:12px/1.45 ui-monospace,monospace;padding:10px 12px;border-radius:10px;white-space:pre;box-shadow:0 8px 20px rgba(0,0,0,.3)';
+            document.body.appendChild(dbg);
+        }
+        const report = () => {
+            if (!dbg) return;
+            if (pinned !== wasPinned) { switches++; wasPinned = pinned; }
+            dbg.textContent = [
+                'вікно: ' + window.innerWidth + '×' + window.innerHeight + '  масштаб ' + (window.devicePixelRatio || 1),
+                'шапка: ' + headerH.toFixed(1) + '   лінія: ' + (headerH + gap).toFixed(1),
+                'сайдбар: ' + innerH + 'px   колонка: ' + asideH + 'px',
+                'стан: ' + (pinned ? 'ЗАКРІПЛЕНО' : 'у потоці') + '   перемикань: ' + switches,
+                'position: ' + getComputedStyle(inner).position + '   top: ' + inner.getBoundingClientRect().top.toFixed(1),
+                'scrollY: ' + Math.round(window.scrollY)
+            ].join('\n');
+        };
+
+        measure();
+        apply();
+        report();
+        window.addEventListener('scroll', () => { apply(); report(); }, { passive: true });
+        window.addEventListener('resize', () => { unpin(); measure(); apply(); });
+        window.addEventListener('load', remeasure);
+        // Висота колонки росте, коли довантажуються відгуки; висота самого
+        // сайдбара — коли підвантажились шрифти чи лого рекомендацій.
+        if ('ResizeObserver' in window) {
+            const ro = new ResizeObserver(() => remeasure());
+            ro.observe(aside);
+            ro.observe(inner);
+        }
+    })();
+</script>
 @include('static.partials.profile-lead-popup', ['profile' => $profile])
 
+<script src="{{ asset('static/vendor/glightbox/js/glightbox.min.js') }}?v={{ @filemtime(public_path('static/vendor/glightbox/js/glightbox.min.js')) }}"></script>
 <script>
 (() => {
     const root = document.querySelector('.profile-page');
     if (!root) return;
+
+    // Лайтбокс фото у відгуках: свайп (мобільний), зум, стрілки/клавіатура.
+    // reload() викликаємо після довантаження нових відгуків.
+    const reviewLightbox = (typeof GLightbox === 'function')
+        ? GLightbox({ selector: '.glightbox', touchNavigation: true, loop: true, zoomable: true, openEffect: 'fade', closeEffect: 'fade' })
+        : null;
+
+    // Іконка Threads як inline-SVG (гліфа нема в урізаному fa-brands сабсеті).
+    const THREADS_ICON_SVG = @json(view('static.partials.threads-icon')->render());
 
     const heroTitle = root.querySelector('.profile-hero__title');
     if (heroTitle) {
@@ -1840,6 +2288,26 @@
     triggers.forEach((btn) => {
         btn.addEventListener('click', () => setTab(btn.dataset.profileTabTrigger || 'info'));
     });
+
+    // Прийшли за прямим посиланням на досьє (розсилка: хеш #profile-dossier
+    // або ?tab=info) — одразу відкриваємо вкладку «Інформація» і скролимо до
+    // досьє, бо за замовчуванням активні «Відгуки» й досьє ніхто не бачить.
+    (() => {
+        const params = new URLSearchParams(location.search);
+        const wantsInfo = location.hash === '#profile-dossier' || location.hash === '#info' || params.get('tab') === 'info';
+        if (!wantsInfo) return;
+        if (!panels.some((panel) => panel.dataset.profileTabPanel === 'info')) return;
+        setTab('info');
+        // Скрол після того, як панель розкрилась і відпрацював нативний перехід
+        // по хешу (інакше браузер скидає позицію). Враховуємо липку шапку.
+        const scrollToDossier = () => {
+            const el = document.querySelector('#profile-dossier') || document.querySelector('#profile-tab-info');
+            if (!el) return;
+            const top = el.getBoundingClientRect().top + window.pageYOffset - 72;
+            window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+        };
+        setTimeout(scrollToDossier, 350);
+    })();
 
     const tabJumpButtons = Array.from(root.querySelectorAll('[data-profile-tab-jump]'));
     tabJumpButtons.forEach((button) => {
@@ -2275,6 +2743,7 @@
                     ? loaded < total
                     : visibleCount < filterTotal;
                 reviewsLoadMoreButton.classList.toggle('is-hidden', !hasMore);
+                if (reviewsSentinel) reviewsSentinel.classList.toggle('is-tall', hasMore);
                 reviewsLoadMoreButton.disabled = isLoadingMore;
             }
         };
@@ -2310,8 +2779,9 @@
             );
         };
 
-        const renderReviewMedia = (media) => {
+        const renderReviewMedia = (media, reviewId) => {
             if (!Array.isArray(media) || media.length === 0) return '';
+            const gallery = 'review-' + (reviewId ?? Math.random().toString(36).slice(2));
             const items = media.map((url) => {
                 const mediaUrl = escapeHtml(url);
                 const lower = String(url).toLowerCase();
@@ -2319,7 +2789,7 @@
                 if (isVideo) {
                     return `<video controls preload="metadata" src="${mediaUrl}"></video>`;
                 }
-                return `<a href="${mediaUrl}" target="_blank" rel="noopener noreferrer"><img src="${mediaUrl}" alt="Вкладення до відгуку" loading="lazy"></a>`;
+                return `<a class="glightbox" href="${mediaUrl}" data-gallery="${gallery}" data-type="image" target="_blank" rel="noopener noreferrer"><img src="${mediaUrl}" alt="Вкладення до відгуку" loading="lazy"></a>`;
             }).join('');
             return `<div class="profile-review__media">${items}</div>`;
         };
@@ -2328,9 +2798,15 @@
             if (!review.external_source_label) return '';
             const label = escapeHtml(review.external_source_label);
             const type = String(review.external_source_type || '');
-            const icon = ['google_maps', 'google', 'google_business'].includes(type) ? 'fa-brands fa-google' : 'fa-solid fa-link';
-            // Plain label only — never link out to the external source.
-            return `<span class="profile-review__source-badge"><i class="${icon}" aria-hidden="true"></i><span>${label}</span></span>`;
+            const icon = ['google_maps', 'google', 'google_business'].includes(type) ? 'fa-brands fa-google'
+                : (type === 'threads' ? 'fa-brands fa-threads' : 'fa-solid fa-link');
+            // Бейдж Threads веде на пост-джерело; решта — плашка без outbound.
+            const href = (type === 'threads' && review.external_source_url) ? String(review.external_source_url) : '';
+            const iconHtml = (type === 'threads') ? THREADS_ICON_SVG : `<i class="${icon}" aria-hidden="true"></i>`;
+            if (href) {
+                return `<a class="profile-review__source-badge profile-review__source-badge--link" href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer nofollow">${iconHtml}<span>${label}</span><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></a>`;
+            }
+            return `<span class="profile-review__source-badge">${iconHtml}<span>${label}</span></span>`;
         };
 
         const renderCommentForm = (parentId = null, hidden = false, replyAuthor = '') => {
@@ -2497,7 +2973,7 @@
                     </div>
                     ${title}
                     <p>${escapeHtml(review.text || '')}</p>
-                    ${renderReviewMedia(review.media)}
+                    ${renderReviewMedia(review.media, review.id)}
                     ${renderReviewEngagement(review)}
                 </article>
             `;
@@ -2848,6 +3324,7 @@
             if (added > 0) {
                 applyReviewAvatarGradients(reviewsContainer);
                 bindAllCommentForms(reviewsContainer);
+                if (reviewLightbox) reviewLightbox.reload();
             }
             return added;
         };
@@ -3416,7 +3893,10 @@
             }, {
                 root: null,
                 threshold: 0.35,
-                rootMargin: '0px 0px 120px 0px',
+                // Вантажимо на екран раніше: інакше колонка відгуків закінчується,
+                // sticky-сайдбар упирається в її кінець і їде вгору, а після
+                // довантаження стрибає назад (виглядало як «дьоргання»).
+                rootMargin: '0px 0px 900px 0px',
             });
             loadMoreObserver.observe(reviewsSentinel);
         }

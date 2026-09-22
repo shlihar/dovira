@@ -93,6 +93,17 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
         return $this->hasMany(Profile::class, 'owner_user_id');
     }
 
+    /**
+     * Чи має користувач доступ до PRO-панелі: володіє хоча б одним профілем
+     * з активним PRO. Спираємось на денормалізований is_pro (його тримають у
+     * синху обсервер Profile та команда експірації підписок), тож перевірка —
+     * один дешевий exists-запит для хедера й сторінки профілю.
+     */
+    public function hasProAccess(): bool
+    {
+        return $this->ownedProfiles()->where('is_pro', true)->exists();
+    }
+
     public function profileReviews(): HasMany
     {
         return $this->hasMany(ProfileReview::class, 'user_id');

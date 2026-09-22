@@ -8,24 +8,139 @@
     $pathIndexable = $pathIndexable ?? true;
     $pathCanonical = $pathCanonical ?? null;
     $pathRelated = $pathRelated ?? [];
-    $catSeoTitle = $pathCategory
-        ? $pathCategory->name . ($pathCityName ? ' — ' . $pathCityName : '') . ' — відгуки та рейтинги — DOVIRA'
-        : 'Каталог компаній і спеціалістів України з відгуками — DOVIRA';
+    $landingSeo = $landingSeo ?? null;
+
+    $catNum = fn (int $n): string => number_format($n, 0, '.', ' ');
+    $catLower = $pathCategory ? mb_strtolower((string) $pathCategory->name) : null;
+    $catCityLocative = $pathCityName ? \App\Support\RegionCityDirectory::cityLocative($pathCityName) : null;
+    $catPlace = $catCityLocative ?? 'в Україні';
+    $catYear = now()->year;
+    $catProfilesTotal = (int) ($landingSeo['profiles_count'] ?? 0);
+    $catReviewsTotal = (int) ($landingSeo['reviews_count'] ?? 0);
+    $catAvgRating = (float) ($landingSeo['avg_rating'] ?? 0);
+
+    // Title/description посадкової: конкретика (числа, рік) підіймає CTR у
+    // видачі; «Найкращі …» — під частотний запит, коли реально є з чого обирати.
+    if ($pathCategory && $catProfilesTotal >= 3) {
+        $catSeoTitle = 'Найкращі ' . $catLower . ' ' . $catPlace . ' — рейтинг ' . $catYear
+            . ($catReviewsTotal > 0
+                ? ' за ' . $catNum($catReviewsTotal) . ' ' . \App\Support\Plural::uk($catReviewsTotal, 'відгуком', 'відгуками', 'відгуками')
+                : ', ' . $catNum($catProfilesTotal) . ' профілів')
+            . ' | DOVIRA';
+        $catSeoDescription = '⭐ ' . $pathCategory->name . ' ' . $catPlace . ': ' . $catNum($catProfilesTotal)
+            . ' ' . \App\Support\Plural::uk($catProfilesTotal, 'профіль', 'профілі', 'профілів')
+            . ($catReviewsTotal > 0 ? ', ' . $catNum($catReviewsTotal) . ' ' . \App\Support\Plural::uk($catReviewsTotal, 'реальний відгук', 'реальні відгуки', 'реальних відгуків') : '')
+            . ($catAvgRating > 0 ? ', середній рейтинг ' . number_format($catAvgRating, 1) : '')
+            . '. Порівняйте всіх і оберіть перевіреного — безкоштовний рейтинг DOVIRA ' . $catYear . '.';
+    } elseif ($pathCategory) {
+        $catSeoTitle = $pathCategory->name . ($pathCityName ? ' — ' . $pathCityName : '') . ' — відгуки та рейтинги — DOVIRA';
+        $catSeoDescription = 'Відгуки, рейтинги й перевірені профілі в категорії «' . $pathCategory->name . '»' . ($pathCityName ? ' у місті ' . $pathCityName : '') . ' на DOVIRA.';
+    } else {
+        $catSeoTitle = 'Каталог компаній і спеціалістів України з відгуками — DOVIRA';
+        $catSeoDescription = 'Каталог перевірених компаній, магазинів, сервісів і спеціалістів України. Реальні відгуки клієнтів, рейтинги, фільтри за категоріями та містами.';
+    }
+
+    // FAQ посадкової: видимий блок і FAQPage-schema з одного джерела.
+    $catFaqItems = [];
+    if ($pathCategory && $catProfilesTotal >= 3) {
+        $catFaqItems[] = [
+            'q' => 'Скільки профілів у категорії «' . $pathCategory->name . '» ' . ($catCityLocative ? 'є ' . $catCityLocative : 'є в Україні') . '?',
+            'a' => 'На DOVIRA зібрано ' . $catNum($catProfilesTotal) . ' ' . \App\Support\Plural::uk($catProfilesTotal, 'профіль', 'профілі', 'профілів')
+                . ' у категорії «' . $pathCategory->name . '» ' . $catPlace
+                . ($catReviewsTotal > 0 ? ' та ' . $catNum($catReviewsTotal) . ' ' . \App\Support\Plural::uk($catReviewsTotal, 'відгук', 'відгуки', 'відгуків') . ' клієнтів' : '')
+                . '. Список поповнюється щодня.',
+        ];
+        $catTopProfile = $landingSeo['top_profiles'][0] ?? null;
+        if ($catTopProfile && (int) $catTopProfile['reviews_count'] >= 3) {
+            $catFaqItems[] = [
+                'q' => 'Хто має найвищий рейтинг у категорії «' . $pathCategory->name . '» ' . ($catCityLocative ?? 'в Україні') . '?',
+                'a' => 'Найвищу позицію рейтингу за відгуками наразі має ' . $catTopProfile['name'] . ' — '
+                    . number_format((float) $catTopProfile['rating'], 1) . ' з 5 на основі '
+                    . $catNum((int) $catTopProfile['reviews_count']) . ' ' . \App\Support\Plural::uk((int) $catTopProfile['reviews_count'], 'відгуку', 'відгуків', 'відгуків')
+                    . '. Позиції в рейтингу залежать і від оцінок, і від кількості відгуків.',
+            ];
+        }
+        $catFaqItems[] = [
+            'q' => 'Як обрати надійного виконавця в категорії «' . $pathCategory->name . '»?',
+            'a' => 'Дивіться не лише на середню оцінку: важлива кількість відгуків, відповіді бізнесу на критику та позначка «Підтверджено власником». Обовʼязково читайте негативні відгуки — вони показують, як компанія розвʼязує проблеми клієнтів.',
+        ];
+        $catFaqItems[] = [
+            'q' => 'Як залишити відгук на DOVIRA?',
+            'a' => 'Відкрийте профіль компанії чи спеціаліста та натисніть «Залишити відгук». Це безкоштовно, реєстрація не обовʼязкова; відгук публікується після модерації.',
+        ];
+    }
 @endphp
 
 @section('title', $catSeoTitle)
-@section('description', $pathCategory
-    ? 'Відгуки, рейтинги й перевірені профілі в категорії «' . $pathCategory->name . '»' . ($pathCityName ? ' у місті ' . $pathCityName : '') . ' на DOVIRA.'
-    : 'Каталог перевірених компаній, магазинів, сервісів і спеціалістів України. Реальні відгуки клієнтів, рейтинги, фільтри за категоріями та містами.')
+@section('description', $catSeoDescription)
 @section('canonical', $pathCanonical ?? route('catalog'))
 @section('body_class', 'page-catalog')
-@if ($pathCategory && ! $pathIndexable)
+@if (! $pathIndexable)
     @section('robots', 'noindex, follow')
 @endif
 
+@if ($pathCategory && $pathIndexable)
+    @push('head')
+        @php
+            $catBreadcrumbItems = [
+                ['@type' => 'ListItem', 'position' => 1, 'name' => 'Каталог', 'item' => route('catalog')],
+                ['@type' => 'ListItem', 'position' => 2, 'name' => (string) $pathCategory->name, 'item' => route('catalog.landing', ['category' => $pathCategory->slug])],
+            ];
+            if ($pathCityName && ($pathCitySlug ?? null)) {
+                $catBreadcrumbItems[] = ['@type' => 'ListItem', 'position' => 3, 'name' => (string) $pathCityName, 'item' => route('catalog.landing.city', ['category' => $pathCategory->slug, 'city' => $pathCitySlug])];
+            }
+
+            // ItemList — профілі першої сторінки видачі (імена + URL, без
+            // рейтингів: у розмітку йдуть лише нативні відгуки платформи).
+            $catItemList = $profiles->getCollection()
+                ->values()
+                ->map(fn (array $profile, int $index) => [
+                    '@type' => 'ListItem',
+                    'position' => $index + 1,
+                    'name' => (string) ($profile['name'] ?? ''),
+                    'url' => route('profile.show', ['slug' => $profile['slug']]),
+                ])
+                ->all();
+
+            $catLandingSchema = [
+                '@context' => 'https://schema.org',
+                '@graph' => array_values(array_filter([
+                    [
+                        '@type' => 'BreadcrumbList',
+                        'itemListElement' => $catBreadcrumbItems,
+                    ],
+                    [
+                        '@type' => 'CollectionPage',
+                        'name' => html_entity_decode($catSeoTitle, ENT_QUOTES, 'UTF-8'),
+                        'url' => $pathCanonical ?? url()->current(),
+                        'inLanguage' => 'uk',
+                        'isPartOf' => ['@id' => url('/') . '#website'],
+                        'mainEntity' => [
+                            '@type' => 'ItemList',
+                            'numberOfItems' => $catProfilesTotal,
+                            'itemListElement' => $catItemList,
+                        ],
+                    ],
+                    $catFaqItems !== [] ? [
+                        '@type' => 'FAQPage',
+                        'mainEntity' => collect($catFaqItems)->map(fn (array $item) => [
+                            '@type' => 'Question',
+                            'name' => $item['q'],
+                            'acceptedAnswer' => ['@type' => 'Answer', 'text' => $item['a']],
+                        ])->all(),
+                    ] : null,
+                ])),
+            ];
+        @endphp
+        <script type="application/ld+json">@json($catLandingSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)</script>
+    @endpush
+@endif
+
 @push('head')
-    <link rel="stylesheet" href="{{ asset('static/css/pages/catalog.css') }}">
-    <link rel="stylesheet" href="{{ asset('static/css/profile-card-catalog.css') }}">
+    {{-- ?v=filemtime: без версії браузери тримали стару копію стилів каталогу
+         після кожного деплою (решта ассетів версіонується так само). --}}
+    <link rel="stylesheet" href="{{ asset('static/css/pages/catalog.css') }}?v={{ @filemtime(public_path('static/css/pages/catalog.css')) }}">
+    <link rel="stylesheet" href="{{ asset('static/css/profile-card-catalog.css') }}?v={{ @filemtime(public_path('static/css/profile-card-catalog.css')) }}">
 @endpush
 
 @section('content')
@@ -120,6 +235,35 @@
     <section class="section reviews-page">
         <div class="container">
             <div class="reviews-page__layout">
+                {{-- H1 + лід-абзац стоять ПЕРЕД сайдбаром у DOM: розмітка
+                     фільтрів важить ~84 КБ, і головний заголовок сторінки
+                     опинявся аж на 36% файлу — Google бачив спершу стіну
+                     фільтрів, а не тему сторінки. Візуально блок лишається
+                     зверху на всю ширину (grid-column: 1 / -1). --}}
+                <div class="catalog-hero">
+                    <div class="catalog-hero__copy" data-catalog-hero-copy>
+                        @include('static.partials.catalog-hero-copy', ['heroCategory' => $pathCategory, 'heroCityName' => $pathCityName, 'heroLandingSeo' => $landingSeo])
+                    </div>
+                    <div class="catalog-hero__aside">
+                        <div class="catalog-hero__stats" aria-label="Статистика каталогу">
+                            <div class="catalog-stat">
+                                <span class="catalog-stat__icon"><i class="fa-solid fa-users" aria-hidden="true"></i></span>
+                                <strong data-catalog-stat="profiles">{{ number_format((int) ($catalogStats['profiles'] ?? 0), 0, '.', ' ') }}+</strong>
+                                <small>профілів</small>
+                            </div>
+                            <div class="catalog-stat">
+                                <span class="catalog-stat__icon catalog-stat__icon--star"><i class="fa-solid fa-star" aria-hidden="true"></i></span>
+                                <strong data-catalog-stat="reviews">{{ number_format((int) ($catalogStats['reviews'] ?? 0), 0, '.', ' ') }}+</strong>
+                                <small>відгуків</small>
+                            </div>
+                        </div>
+                        <a class="catalog-add-profile-btn" href="{{ $catalogAddProfileUrl }}">
+                            <i class="fa-solid fa-plus" aria-hidden="true"></i>
+                            <span>Додати профіль</span>
+                        </a>
+                    </div>
+                </div>
+
                 <aside class="reviews-sidebar" aria-label="Фільтри">
                     <div class="catalog-filter-card">
                         <div class="catalog-filter-card__head">
@@ -136,38 +280,6 @@
                 </aside>
 
                 <div class="reviews-content">
-                    <div class="catalog-hero">
-                        <div class="catalog-hero__copy" data-catalog-hero-copy>
-                            @include('static.partials.catalog-hero-copy', ['heroCategory' => $pathCategory, 'heroCityName' => $pathCityName])
-                        </div>
-                        <div class="catalog-hero__aside">
-                            <div class="catalog-hero__stats" aria-label="Статистика каталогу">
-                                <div class="catalog-stat">
-                                    <span class="catalog-stat__icon"><i class="fa-solid fa-users" aria-hidden="true"></i></span>
-                                    <strong data-catalog-stat="profiles">{{ number_format((int) ($catalogStats['profiles'] ?? 0), 0, '.', ' ') }}+</strong>
-                                    <small>профілів</small>
-                                </div>
-                                <div class="catalog-stat">
-                                    <span class="catalog-stat__icon catalog-stat__icon--star"><i class="fa-solid fa-star" aria-hidden="true"></i></span>
-                                    <strong data-catalog-stat="reviews">{{ number_format((int) ($catalogStats['reviews'] ?? 0), 0, '.', ' ') }}+</strong>
-                                    <small>відгуків</small>
-                                </div>
-                                {{-- «0 перевірених» — антиреклама; показуємо лише коли є що показати. --}}
-                                @if ((int) ($catalogStats['verified'] ?? 0) > 0)
-                                    <div class="catalog-stat">
-                                        <span class="catalog-stat__icon catalog-stat__icon--shield"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i></span>
-                                        <strong data-catalog-stat="verified">{{ number_format((int) ($catalogStats['verified'] ?? 0), 0, '.', ' ') }}</strong>
-                                        <small>перевірених</small>
-                                    </div>
-                                @endif
-                            </div>
-                            <a class="catalog-add-profile-btn" href="{{ $catalogAddProfileUrl }}">
-                                <i class="fa-solid fa-plus" aria-hidden="true"></i>
-                                <span>Додати профіль</span>
-                            </a>
-                        </div>
-                    </div>
-
                     <div class="catalog-toolbar">
                         <div class="reviews-primary-search reviews-sidebar__search-wrap catalog-toolbar__search catalog-toolbar__search--desktop">
                             <form
@@ -336,6 +448,77 @@
                                 </span>
                             </a>
                         </div>
+                    @endif
+
+                    @if ($pathCategory && ! empty($catFaqItems))
+                        <section class="catalog-faq" aria-labelledby="catalog-faq-title">
+                            <h2 class="catalog-seo-links__title" id="catalog-faq-title">Часті питання</h2>
+                            @foreach ($catFaqItems as $faqItem)
+                                <details class="catalog-faq__item" @if($loop->first) open @endif>
+                                    <summary class="catalog-faq__question">{{ $faqItem['q'] }}</summary>
+                                    <p class="catalog-faq__answer">{{ $faqItem['a'] }}</p>
+                                </details>
+                            @endforeach
+                        </section>
+                    @endif
+
+                    @php
+                        // Лінки на посадкові рівня послуги («пластика носа у Києві»):
+                        // лише для міських сторінок категорій зі словника service_landings.
+                        $catServiceLinks = ($pathCategory && $pathCityName && ($pathCitySlug ?? null))
+                            ? \App\Support\ServiceLandingSeo::servicesInCity($pathCategory, $pathCityName)
+                            : [];
+                    @endphp
+                    @if ($catServiceLinks !== [])
+                        <nav class="catalog-seo-links" aria-label="Популярні послуги">
+                            <h2 class="catalog-seo-links__title">Популярні послуги: {{ mb_strtolower((string) $pathCategory->name) }} {{ $catCityLocative ?? $pathCityName }} — відгуки</h2>
+                            <div class="catalog-seo-links__list">
+                                @foreach ($catServiceLinks as $svcLink)
+                                    <a class="catalog-active-filter catalog-seo-links__item" href="{{ route('catalog.landing.service', ['category' => $pathCategory->slug, 'city' => $pathCitySlug, 'service' => $svcLink['slug']]) }}">{{ $svcLink['name'] }} <span>({{ $svcLink['count'] }})</span></a>
+                                @endforeach
+                            </div>
+                        </nav>
+                    @endif
+
+                    @if ($pathCategory && ! empty($landingSeo['city_links']))
+                        {{-- Хаб міст категорії: на сторінці міста — «в інших містах»,
+                             на сторінці категорії — повний список міст із лічильниками. --}}
+                        <nav class="catalog-seo-links" aria-label="{{ $pathCategory->name }} за містами">
+                            <h2 class="catalog-seo-links__title">{{ $pathCategory->name }} {{ $pathCityName ? 'в інших містах' : 'за містами' }}</h2>
+                            <div class="catalog-seo-links__list">
+                                @foreach ($landingSeo['city_links'] as $cityLink)
+                                    <a class="catalog-active-filter catalog-seo-links__item" href="{{ route('catalog.landing.city', ['category' => $pathCategory->slug, 'city' => $cityLink['slug']]) }}">
+                                        <span>{{ $cityLink['name'] }} ({{ $cityLink['count'] }})</span>
+                                    </a>
+                                @endforeach
+                            </div>
+                        </nav>
+                    @endif
+
+                    @if ($pathCategory && $pathCityName && ! empty($landingSeo['city_categories']))
+                        <nav class="catalog-seo-links" aria-label="Інші категорії {{ $catCityLocative ?? $pathCityName }}">
+                            <h2 class="catalog-seo-links__title">Інші послуги {{ $catCityLocative ?? 'у місті ' . $pathCityName }}</h2>
+                            <div class="catalog-seo-links__list">
+                                @foreach ($landingSeo['city_categories'] as $cityCategory)
+                                    <a class="catalog-active-filter catalog-seo-links__item" href="{{ route('catalog.landing.city', ['category' => $cityCategory['slug'], 'city' => $pathCitySlug]) }}">
+                                        <span>{{ $cityCategory['name'] }} ({{ $cityCategory['count'] }})</span>
+                                    </a>
+                                @endforeach
+                            </div>
+                        </nav>
+                    @endif
+
+                    @if ($pathCategory && ! $pathCityName && ! empty($pathRelated))
+                        <nav class="catalog-seo-links" aria-label="Суміжні категорії">
+                            <h2 class="catalog-seo-links__title">Суміжні категорії</h2>
+                            <div class="catalog-seo-links__list">
+                                @foreach ($pathRelated as $relatedCategory)
+                                    <a class="catalog-active-filter catalog-seo-links__item" href="{{ route('catalog.landing', ['category' => $relatedCategory->slug]) }}">
+                                        <span>{{ $relatedCategory->name }}</span>
+                                    </a>
+                                @endforeach
+                            </div>
+                        </nav>
                     @endif
 
                     @if (!empty($seoLandingCategories))

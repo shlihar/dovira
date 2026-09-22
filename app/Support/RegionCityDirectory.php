@@ -40,6 +40,57 @@ class RegionCityDirectory
     ];
 
     /**
+     * Місцевий відмінок з прийменником для SEO-заголовків посадкових
+     * («Адвокати у Вінниці»). Прийменник у складі значення, бо чергується в/у.
+     *
+     * @var array<string, string>
+     */
+    private const CITY_LOCATIVES = [
+        'Київ' => 'у Києві',
+        'Харків' => 'у Харкові',
+        'Одеса' => 'в Одесі',
+        'Дніпро' => 'у Дніпрі',
+        'Львів' => 'у Львові',
+        'Запоріжжя' => 'у Запоріжжі',
+        'Вінниця' => 'у Вінниці',
+        'Полтава' => 'у Полтаві',
+        'Миколаїв' => 'у Миколаєві',
+        'Черкаси' => 'у Черкасах',
+        'Чернігів' => 'у Чернігові',
+        'Чернівці' => 'у Чернівцях',
+        'Житомир' => 'у Житомирі',
+        'Суми' => 'у Сумах',
+        'Рівне' => 'у Рівному',
+        'Тернопіль' => 'у Тернополі',
+        'Хмельницький' => 'у Хмельницькому',
+        'Луцьк' => 'у Луцьку',
+        'Ужгород' => 'в Ужгороді',
+        'Івано-Франківськ' => 'в Івано-Франківську',
+        'Кропивницький' => 'у Кропивницькому',
+        'Кривий Ріг' => 'у Кривому Розі',
+    ];
+
+    /**
+     * «у Вінниці» / «в Одесі»; для невідомого міста — нейтральне «у місті X».
+     */
+    public static function cityLocative(?string $city): ?string
+    {
+        $canonical = self::canonicalCity($city);
+        if ($canonical === null || $canonical === '') {
+            return null;
+        }
+
+        $normalized = self::normalizeCity($canonical);
+        foreach (self::CITY_LOCATIVES as $name => $locative) {
+            if (self::normalizeCity($name) === $normalized) {
+                return $locative;
+            }
+        }
+
+        return 'у місті ' . $canonical;
+    }
+
+    /**
      * @return array<string, string>
      */
     public static function citySlugMap(): array
@@ -64,6 +115,58 @@ class RegionCityDirectory
         foreach (self::CITY_SLUGS as $slug => $name) {
             if (self::normalizeCity($name) === self::normalizeCity($canonical)) {
                 return $slug;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public static function registeredCities(): array
+    {
+        $configuredRegions = (array) config('ukraine_locations.regions', []);
+        $aliases = (array) config('ukraine_locations.city_aliases', []);
+
+        return collect($configuredRegions)
+            ->flatMap(fn (array $cities): array => $cities)
+            ->merge(array_values($aliases))
+            ->merge(array_values(self::CITY_SLUGS))
+            ->map(fn ($city): string => trim((string) $city))
+            ->filter()
+            ->unique(fn (string $city): string => self::normalizeCity($city))
+            ->sort()
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function registeredCityOptions(): array
+    {
+        return collect(self::registeredCities())
+            ->mapWithKeys(fn (string $city): array => [$city => $city])
+            ->all();
+    }
+
+    public static function isRegisteredCity(?string $city): bool
+    {
+        return self::canonicalRegisteredCity($city) !== null;
+    }
+
+    public static function canonicalRegisteredCity(?string $city): ?string
+    {
+        $canonical = self::canonicalCity($city);
+        if ($canonical === null) {
+            return null;
+        }
+
+        $normalized = self::normalizeCity($canonical);
+        foreach (self::registeredCities() as $registeredCity) {
+            if (self::normalizeCity($registeredCity) === $normalized) {
+                return $registeredCity;
             }
         }
 

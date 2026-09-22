@@ -45,6 +45,14 @@
 
         if (!referrer) return 'direct';
 
+        // Перехід із нашої ж сторінки — внутрішня навігація, а не «referral»
+        // (інакше клік профіль→профіль роздував би зовнішні реферали).
+        try {
+            if (new URL(referrer).host === window.location.host) return 'internal';
+        } catch (error) {
+            // Некоректний referrer — ігноруємо й класифікуємо далі.
+        }
+
         const lowerRef = referrer.toLowerCase();
         if (lowerRef.includes('google.')) return 'google';
         if (lowerRef.includes('facebook.')) return 'facebook';
@@ -66,6 +74,7 @@
     const sendPageView = () => {
         const params = new URLSearchParams(window.location.search);
         const referrer = document.referrer || '';
+        ensureVisitorId();
 
         const payload = {
             event_type: 'site_page_view',
@@ -212,4 +221,3 @@
         });
     });
 })();
-

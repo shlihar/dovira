@@ -201,6 +201,7 @@ class ProAccountPageDataBuilder
         $notificationGroups = $this->notificationGroups();
         $trendDisplays = [
             'views' => $this->formatTrendDisplay(['current' => 0, 'previous' => 0, 'diff_percent' => 0.0, 'is_up' => true], 'За 30 днів'),
+            'impressions' => $this->formatTrendDisplay(['current' => 0, 'previous' => 0, 'diff_percent' => 0.0, 'is_up' => true], 'За 30 днів'),
             'website_clicks' => $this->formatTrendDisplay(['current' => 0, 'previous' => 0, 'diff_percent' => 0.0, 'is_up' => true], 'За 30 днів'),
             'contact_clicks' => $this->formatTrendDisplay(['current' => 0, 'previous' => 0, 'diff_percent' => 0.0, 'is_up' => true], 'За 30 днів'),
             'reviews' => $this->formatTrendDisplay(['current' => 0, 'previous' => 0, 'diff_percent' => 0.0, 'is_up' => true], 'За 30 днів'),
@@ -218,10 +219,13 @@ class ProAccountPageDataBuilder
                 ->first();
 
             $completionPercent = $currentProfile->completenessPercent();
+            // Робота з відгуками (офіційні відповіді, скарги на модерацію) і повне
+            // редагування профілю лишаються платними PRO. Після безкоштовного
+            // підтвердження прав власник може змінити лише назву (див. в'ю) та
+            // бачить аналітику переглядів безкоштовно (з 10.08.2026).
             $canManageReviewModeration = $currentProfile->hasActiveProSubscription();
-            if ($tab === 'analytics' && ! $canManageReviewModeration) {
-                $tab = 'billing';
-            }
+            $canEditFullProfile = $currentProfile->hasActiveProSubscription();
+            $canViewAnalytics = true;
             $overviewTrustMeta = [
                 ...$this->buildTrustMeta($currentProfile),
                 ...$this->buildTrustVisualMeta($currentProfile),
@@ -320,7 +324,7 @@ class ProAccountPageDataBuilder
                         ->get()
                 );
 
-                if ($canManageReviewModeration) {
+                if ($canViewAnalytics) {
                     $analytics = $this->analyticsService->analyticsSummary($currentProfile, $analyticsPeriod);
                     $reviewsMetric = $this->buildPublishedReviewsMetric(
                         $currentProfile,
@@ -329,15 +333,25 @@ class ProAccountPageDataBuilder
                     );
                     $trendDisplays = [
                         'views' => $this->formatTrendDisplay((array) data_get($analytics, 'metrics.views', []), (string) data_get($analytics, 'period.short_label', 'За 30 днів')),
+                        'impressions' => $this->formatTrendDisplay((array) data_get($analytics, 'metrics.impressions', []), (string) data_get($analytics, 'period.short_label', 'За 30 днів')),
+                        'promoted_impressions' => $this->formatTrendDisplay((array) data_get($analytics, 'metrics.promoted_impressions', []), (string) data_get($analytics, 'period.short_label', 'За 30 днів')),
                         'website_clicks' => $this->formatTrendDisplay((array) data_get($analytics, 'metrics.website_clicks', []), (string) data_get($analytics, 'period.short_label', 'За 30 днів')),
                         'contact_clicks' => $this->formatTrendDisplay((array) data_get($analytics, 'metrics.contact_clicks', []), (string) data_get($analytics, 'period.short_label', 'За 30 днів')),
                         'reviews' => $this->formatTrendDisplay($reviewsMetric, (string) data_get($analytics, 'period.short_label', 'За 30 днів')),
                     ];
 
+                    // «Показів разом» = покази картки (каталог/рейтинги/рекомендації)
+                    // + перегляди сторінки профілю: скільки разів бізнес узагалі
+                    // бачили, а не лише відкривали профіль.
+                    $impressionsCurrent = (int) data_get($analytics, 'metrics.impressions.current', 0);
                     $overviewStats = [
                         [
+                            'value' => number_format($impressionsCurrent + (int) ($analytics['views'] ?? 0), 0, '.', ' '),
+                            'label' => 'показів разом ' . mb_strtolower((string) data_get($analytics, 'period.short_label', 'за 30 днів')),
+                        ],
+                        [
                             'value' => number_format((int) ($analytics['views'] ?? 0), 0, '.', ' '),
-                            'label' => 'переглядів ' . mb_strtolower((string) data_get($analytics, 'period.short_label', 'за 30 днів')),
+                            'label' => 'переглядів профілю',
                         ],
                         [
                             'value' => number_format((int) ($analytics['unique'] ?? 0), 0, '.', ' '),
@@ -374,7 +388,7 @@ class ProAccountPageDataBuilder
 
         return [
             'user' => $user,
-            'leadsData' => $leadsData ?? ['available' => false, 'total' => 0, 'unread' => 0, 'items' => [], 'is_pro' => false],
+            'leadsData' => $leadsData ?? ['available' => false, 'total' => 0, 'unread' => 0, 'status_counts' => ['new' => 0, 'in_progress' => 0, 'done' => 0], 'items' => [], 'is_pro' => false],
             'tab' => $tab,
             'ownedProfiles' => $ownedProfiles,
             'currentProfile' => $currentProfile,
@@ -408,6 +422,8 @@ class ProAccountPageDataBuilder
             'reviewsMetric' => $reviewsMetric,
             'trendDisplays' => $trendDisplays,
             'canManageReviewModeration' => $canManageReviewModeration,
+            'canViewAnalytics' => $canViewAnalytics ?? false,
+            'canEditFullProfile' => $canEditFullProfile ?? false,
             'overviewTrustMeta' => $overviewTrustMeta,
             'notificationPreferences' => $notificationPreferences,
             'notificationUnreadCount' => $notificationUnreadCount,
@@ -511,6 +527,7 @@ class ProAccountPageDataBuilder
                 'items' => [
                     ['key' => 'in_app_enabled', 'label' => 'У кабінеті', 'description' => 'Показувати сповіщення всередині PRO-кабінету.'],
                     ['key' => 'email_enabled', 'label' => 'Email', 'description' => 'Надсилати ключові події на email власника акаунта.'],
+                    ['key' => 'telegram_enabled', 'label' => 'Telegram', 'description' => 'Нові заявки й відгуки в Telegram-бот (потрібно підключити бота нижче).'],
                     ['key' => 'digest_weekly_enabled', 'label' => 'Щотижневий дайджест', 'description' => 'Зводка по аналітиці, відгуках і статусу профілю.'],
                 ],
             ],
@@ -1198,7 +1215,7 @@ class ProAccountPageDataBuilder
     private function buildLeadsData(Profile $profile, bool $isActivePro): array
     {
         if (! Schema::hasTable('profile_leads')) {
-            return ['available' => false, 'total' => 0, 'unread' => 0, 'items' => [], 'is_pro' => $isActivePro];
+            return ['available' => false, 'total' => 0, 'unread' => 0, 'status_counts' => ['new' => 0, 'in_progress' => 0, 'done' => 0], 'items' => [], 'is_pro' => $isActivePro];
         }
 
         $isPro = $isActivePro || (bool) ($profile->is_pro ?? false);
@@ -1207,17 +1224,33 @@ class ProAccountPageDataBuilder
         $total = (clone $base)->count();
         $unread = (clone $base)->where('is_read', false)->count();
 
+        // Воронка заявки: new → in_progress → done. Все, що не done і не
+        // in_progress (старі записи, дефолт), вважаємо новим.
+        $byStatus = (clone $base)->selectRaw('status, COUNT(*) as qty')->groupBy('status')->pluck('qty', 'status');
+        $statusCounts = [
+            'new' => (int) $byStatus->except(['in_progress', 'done'])->sum(),
+            'in_progress' => (int) ($byStatus['in_progress'] ?? 0),
+            'done' => (int) ($byStatus['done'] ?? 0),
+        ];
+
         $items = (clone $base)->latest()->limit(50)->get()->map(fn ($lead): array => [
             'id' => $lead->id,
             'name' => $isPro ? $lead->name : $this->maskName((string) $lead->name),
             'phone' => $isPro ? $lead->phone : $this->maskPhone((string) $lead->phone),
             'message' => $isPro ? $lead->message : null,
-            'status' => $lead->status,
+            'status' => in_array($lead->status, ['in_progress', 'done'], true) ? $lead->status : 'new',
             'is_read' => (bool) $lead->is_read,
             'date' => $lead->created_at?->translatedFormat('d M Y, H:i') ?: $lead->created_at?->format('d.m.Y H:i'),
         ])->all();
 
-        return ['available' => true, 'total' => $total, 'unread' => $unread, 'items' => $items, 'is_pro' => $isPro];
+        return [
+            'available' => true,
+            'total' => $total,
+            'unread' => $unread,
+            'status_counts' => $statusCounts,
+            'items' => $items,
+            'is_pro' => $isPro,
+        ];
     }
 
     private function maskName(string $name): string

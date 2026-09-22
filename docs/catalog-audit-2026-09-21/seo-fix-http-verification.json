@@ -1,0 +1,86 @@
+[
+  {
+    "path": "/catalog/advokaty/kyiv",
+    "status": 200,
+    "robots": [
+      "<meta name=\"robots\" content=\"index, follow, max-image-preview:large, max-snippet:-1\">"
+    ]
+  },
+  {
+    "path": "/catalog/stomatologiyi/kyiv",
+    "status": 200,
+    "robots": [
+      "<meta name=\"robots\" content=\"index, follow, max-image-preview:large, max-snippet:-1\">"
+    ]
+  },
+  {
+    "path": "/catalog/restorani/lviv",
+    "status": 200,
+    "robots": [
+      "<meta name=\"robots\" content=\"index, follow, max-image-preview:large, max-snippet:-1\">"
+    ]
+  },
+  {
+    "path": "/catalog/advokaty",
+    "status": 200,
+    "robots": [
+      "<meta name=\"robots\" content=\"index, follow, max-image-preview:large, max-snippet:-1\">"
+    ]
+  },
+  {
+    "path": "/catalog/catalog-yurydychni-poslugy/kyiv",
+    "status": 200,
+    "robots": [
+      "<meta name=\"robots\" content=\"index, follow, max-image-preview:large, max-snippet:-1\">"
+    ]
+  },
+  {
+    "path": "/catalog/advokaty/kyiv?sort=newest",
+    "status": 200,
+    "robots": [
+      "<meta name=\"robots\" content=\"noindex, follow\">"
+    ]
+  },
+  {
+    "path": "/catalog/advokaty/kyiv?page=2",
+    "status": 200,
+    "robots": [
+      "<meta name=\"robots\" content=\"noindex, follow\">"
+    ]
+  },
+  {
+    "path": "/catalog/advokaty/kyiv?sub=other",
+    "status": 200,
+    "robots": [
+      "<meta name=\"robots\" content=\"noindex, follow\">"
+    ]
+  },
+  {
+    "path": "/catalog/advokaty/kyiv?tab=verified",
+    "status": 200,
+    "robots": [
+      "<meta name=\"robots\" content=\"noindex, follow\">"
+    ]
+  },
+  {
+    "path": "/catalog?q=test",
+    "status": 200,
+    "robots": [
+      "<meta name=\"robots\" content=\"noindex, follow\">"
+    ]
+  },
+  {
+    "path": "/profiles/dim-muliarovix-restoraciia",
+    "status": 200,
+    "robots": [
+      "<meta name=\"robots\" content=\"noindex, follow\">"
+    ]
+  },
+  {
+    "path": "/catalog/stomatologiyi/kyiv/implantaciia-zubiv",
+    "status": 200,
+    "robots": [
+      "<meta name=\"robots\" content=\"index, follow, max-image-preview:large, max-snippet:-1\">"
+    ]
+  }
+]

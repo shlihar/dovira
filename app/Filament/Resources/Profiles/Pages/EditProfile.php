@@ -23,6 +23,8 @@ class EditProfile extends EditRecord
 
     protected ?int $subcategoryId = null;
 
+    protected ?int $previousOwnerId = null;
+
     /**
      * @var array<int, int>
      */
@@ -46,6 +48,66 @@ class EditProfile extends EditRecord
                 ->icon('heroicon-o-arrow-top-right-on-square')
                 ->url(fn () => route('profile.show', ['slug' => $this->record->slug]))
                 ->openUrlInNewTab(),
+            // Швидкі посилання для підтримки/продажів: оплата, підтвердження
+            // прав (signed, 30 днів), збір відгуків + QR. Все з копіюванням.
+            Action::make('quick_links')
+                ->label('Посилання')
+                ->icon('heroicon-o-link')
+                ->color('gray')
+                ->modalHeading(fn () => 'Посилання · ' . $this->record->name)
+                ->modalSubmitAction(false)
+                ->modalContent(function () {
+                    // Посилання завжди на публічний домен: адмінку можуть
+                    // відкривати локально, а лінки йдуть клієнтам. Signed-підпис
+                    // рахується від повного URL, тому домен важливий і для нього.
+                    $publicBase = rtrim((string) config('outreach.public_url', 'https://mydovira.com'), '/');
+                    \Illuminate\Support\Facades\URL::forceRootUrl($publicBase);
+                    if (str_starts_with($publicBase, 'https://')) {
+                        // Signed-підпис рахується від повного URL — без https
+                        // клієнт отримав би 403 на валідації підпису.
+                        \Illuminate\Support\Facades\URL::forceScheme('https');
+                    }
+
+                    $links = [
+                        'pay' => route('pro.account.billing.pay', ['profile' => $this->record->id]),
+                        'claim' => \Illuminate\Support\Facades\URL::temporarySignedRoute(
+                            'profile.claim-link',
+                            now()->addDays(30),
+                            ['profile' => $this->record->id]
+                        ),
+                        'review' => route('profile.review-link', ['slug' => $this->record->slug]),
+                    ];
+
+                    \Illuminate\Support\Facades\URL::forceRootUrl((string) config('app.url'));
+
+                    // Готові повідомлення клієнту — з реальною ціною (знижка
+                    // за бейдж врахована) і поштою акаунта власника для входу.
+                    $discount = \App\Support\ProDiscount::price($this->record, \App\Support\ProPricing::DISPLAY_CURRENT);
+                    $priceLine = ! empty($discount['has_discount'])
+                        ? number_format((int) $discount['amount'], 0, '', ' ') . ' грн за 6 місяців (з урахуванням знижки −' . (int) $discount['discount_percent'] . '% за розміщення бейджа; базова ціна ' . number_format((int) $discount['base_amount'], 0, '', ' ') . ' грн)'
+                        : number_format((int) $discount['amount'], 0, '', ' ') . ' грн за 6 місяців';
+                    $ownerEmail = $this->record->owner_user_id
+                        ? (string) \App\Models\User::query()->whereKey($this->record->owner_user_id)->value('email')
+                        : '';
+
+                    $messages = [
+                        'pay' => "Доброго дня! Ваш профіль «{$this->record->name}» на Dovira підтверджено — можна активувати PRO: керування сторінкою, відповіді на відгуки, контакти та аналітика.\n\n"
+                            . "Посилання на оплату: {$links['pay']}\n"
+                            . "Вартість: {$priceLine}.\n\n"
+                            . ($ownerEmail !== '' ? "Якщо сайт попросить увійти — використайте пошту {$ownerEmail}. " : '')
+                            . 'Якщо виникнуть питання — просто відповідайте на цей лист.',
+                        'claim' => "Доброго дня! Сторінка «{$this->record->name}» вже опублікована на Dovira: клієнти бачать її на платформі та знаходять у Google.\n\n"
+                            . "Підтвердіть права на профіль безкоштовно — одне натискання за посиланням (без реєстрації, діє 30 днів):\n{$links['claim']}\n\n"
+                            . 'Після підтвердження відкриється кабінет зі статистикою переглядів вашої сторінки.',
+                        'review' => "Дякуємо, що звернулися до «{$this->record->name}»! Будемо вдячні за короткий відгук про нашу роботу — це займе близько хвилини:\n{$links['review']}",
+                    ];
+
+                    return view('filament.profiles.quick-links', [
+                        'links' => $links,
+                        'messages' => $messages,
+                        'profile' => $this->record,
+                    ]);
+                }),
             Action::make('refresh_ai_review_analysis')
                 ->label('Оновити AI-аналіз відгуків')
                 ->icon('heroicon-o-sparkles')
@@ -192,6 +254,10 @@ class EditProfile extends EditRecord
         $this->subcategoryId = isset($data['subcategory_id']) ? (int) $data['subcategory_id'] : null;
         $this->serviceIds = collect($data['service_ids'] ?? [])->map(fn ($id) => (int) $id)->filter()->values()->all();
 
+        // Запамʼятовуємо власника ДО збереження, щоб у afterSave помітити ручну
+        // привʼязку і надіслати сповіщення (власнику + адміну в Telegram).
+        $this->previousOwnerId = $this->record->owner_user_id ? (int) $this->record->owner_user_id : null;
+
         unset($data['category_id'], $data['subcategory_id'], $data['service_ids']);
 
         if (blank($data['type'] ?? null)) {
@@ -249,5 +315,21 @@ class EditProfile extends EditRecord
         }
 
         $this->record->services()->sync($allowedServiceIds);
+
+        // Власника призначили/змінили вручну через форму → шлемо ті самі
+        // сповіщення, що й при підтвердженні заявки (in-app + email власнику,
+        // Telegram адміну, слід у «Заявках»).
+        $newOwnerId = $this->record->owner_user_id ? (int) $this->record->owner_user_id : null;
+        if ($newOwnerId !== null && $newOwnerId !== $this->previousOwnerId) {
+            $owner = \App\Models\User::query()->find($newOwnerId);
+            if ($owner) {
+                app(\App\Services\ProfileClaimReviewService::class)->linkOwnerManually($this->record, $owner);
+
+                Notification::make()
+                    ->title('Власника привʼязано — сповіщення надіслано')
+                    ->success()
+                    ->send();
+            }
+        }
     }
 }

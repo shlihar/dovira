@@ -1,0 +1,152 @@
+[
+    {
+        "profile_id": 3821,
+        "full_name": "Балансір, консалтингова компанія",
+        "city": "Вінниця",
+        "category": "Аудит фінансової звітності",
+        "profile_url": "https://mydovira.com/profiles/balansir-konsaltingova-kompaniia",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Келецька, 126а",
+            "phone": "(067) 430 78 94, (0432) 60 34 83",
+            "type": "company",
+            "rating_avg": 4.76,
+            "reviews_count": 17
+        }
+    },
+    {
+        "profile_id": 3846,
+        "full_name": "ПрофБухСервіс, бухгалтерська компанія",
+        "city": "Хмельницький",
+        "category": "Аудит фінансової звітності",
+        "profile_url": "https://mydovira.com/profiles/profbuxservis-buxgalterska-kompaniia",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "вул. Гетьмана Мазепи, 33",
+            "phone": "(096) 218 97 87",
+            "type": "company",
+            "rating_avg": 5,
+            "reviews_count": 16
+        }
+    },
+    {
+        "profile_id": 3893,
+        "full_name": "А-Баланс, агентство економічних послуг",
+        "city": "Львів",
+        "category": "Аудит фінансової звітності",
+        "profile_url": "https://mydovira.com/profiles/a-balans-agentstvo-ekonomicnix-poslug",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Зелена, 131",
+            "phone": "(097) 448 81 34",
+            "type": "company",
+            "rating_avg": 5,
+            "reviews_count": 15
+        }
+    },
+    {
+        "profile_id": 3820,
+        "full_name": "VIN Service PLUS, бухгалтерські послуги для ОСББ",
+        "city": "Вінниця",
+        "category": "Аудит фінансової звітності",
+        "profile_url": "https://mydovira.com/profiles/vin-service-plus-buxgalterski-poslugi-dlia-osbb",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "вулиця Театральна, 10",
+            "phone": "(096) 043 29 11",
+            "type": "company",
+            "rating_avg": 5,
+            "reviews_count": 12
+        }
+    },
+    {
+        "profile_id": 3822,
+        "full_name": "Сніш, консалтингові послуги",
+        "city": "Вінниця",
+        "category": "Аудит фінансової звітності",
+        "profile_url": "https://mydovira.com/profiles/snis-konsaltingovi-poslugi",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Замостянська, 35, офіс 315",
+            "phone": "(097) 495 91 56, (067) 433 20 97",
+            "type": "company",
+            "rating_avg": 5,
+            "reviews_count": 9
+        }
+    },
+    {
+        "profile_id": 3838,
+        "full_name": "Євротерм, опалення вентиляції та кондиціювання",
+        "city": "Тернопіль",
+        "category": "Аудит фінансової звітності",
+        "profile_url": "https://mydovira.com/profiles/jevroterm-opalennia-ventiliaciyi-ta-kondiciiuvannia",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Об'їзна, 19",
+            "phone": "(067) 350 44 00",
+            "type": "company",
+            "rating_avg": 4.11,
+            "reviews_count": 9
+        }
+    },
+    {
+        "profile_id": 3882,
+        "full_name": "Лідер, консалтингова компанія",
+        "city": "Дніпро",
+        "category": "Аудит фінансової звітності",
+        "profile_url": "https://mydovira.com/profiles/lider-konsaltingova-kompaniia",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "пл. Десантників, 1, офіс 513, 515",
+            "phone": "(050) 154 46 24, (098) 572 24 00, (056) 37 34 00 2",
+            "type": "company",
+            "rating_avg": 5,
+            "reviews_count": 9
+        }
+    },
+    {
+        "profile_id": 3895,
+        "full_name": "Львівська торгово-промислова палата",
+        "city": "Львів",
+        "category": "Аудит фінансової звітності",
+        "profile_url": "https://mydovira.com/profiles/lvivska-torgovo-promislova-palata",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Шевченка бульвар, 14",
+            "phone": "(032) 27 64 61 1",
+            "type": "company",
+            "rating_avg": 4.71,
+            "reviews_count": 7
+        }
+    },
+    {
+        "profile_id": 3823,
+        "full_name": "Аксіома, аудиторська компанія",
+        "city": "Вінниця",
+        "category": "Аудит фінансової звітності",
+        "profile_url": "https://mydovira.com/profiles/aksioma-auditorska-kompaniia",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Келецька, 99, офіс 109",
+            "phone": "(0432) 46 65 41, (0432) 46 93 98",
+            "type": "company",
+            "rating_avg": 4.4,
+            "reviews_count": 5
+        }
+    },
+    {
+        "profile_id": 3847,
+        "full_name": "АудитСофт, автоматизація обліку",
+        "city": "Хмельницький",
+        "category": "Аудит фінансової звітності",
+        "profile_url": "https://mydovira.com/profiles/auditsoft-avtomatizaciia-obliku",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "вулиця Свободи, 18/2",
+            "phone": "(0800) 21 31 88",
+            "type": "company",
+            "rating_avg": 4.2,
+            "reviews_count": 5
+        }
+    }
+]

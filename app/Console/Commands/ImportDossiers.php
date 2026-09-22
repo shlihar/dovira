@@ -103,7 +103,14 @@ class ImportDossiers extends Command
             $verdict = strtolower(trim((string) ($row['verdict'] ?? '')));
             if (in_array($verdict, ['red', 'yellow', 'green'], true)) {
                 $fill['dossier_verdict'] = $verdict;
-                $fill['dossier_verdict_note'] = \Illuminate\Support\Str::limit(trim((string) ($row['verdict_note'] ?? '')), 250, '');
+                // Обрізаємо лише як запобіжник і ПО МЕЖІ СЛОВА з «…» (колонка тепер TEXT).
+                $noteRaw = trim((string) ($row['verdict_note'] ?? ''));
+                if (mb_strlen($noteRaw) > 600) {
+                    $cut = mb_substr($noteRaw, 0, 600);
+                    $lastSpace = mb_strrpos($cut, ' ');
+                    $noteRaw = rtrim($lastSpace !== false ? mb_substr($cut, 0, $lastSpace) : $cut, " ,.;:—-").'…';
+                }
+                $fill['dossier_verdict_note'] = $noteRaw;
                 $extras[] = 'verdict:'.$verdict;
             }
 

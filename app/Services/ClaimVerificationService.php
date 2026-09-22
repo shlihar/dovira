@@ -26,11 +26,18 @@ class ClaimVerificationService
 
     private const MAX_PER_HOUR = 6;
 
+    /**
+     * SMS-канал тимчасово вимкнено (рішення 2026-08-25): підтвердження лише
+     * через email або підтримку. Інфраструктура SMS лишається — щоб повернути,
+     * достатньо перемкнути прапорець.
+     */
+    private const SMS_CHANNEL_ENABLED = false;
+
     public function __construct(private SmsService $sms) {}
 
     /**
      * Канали, доступні для цього профілю (email завжди, телефон — лише коли
-     * налаштований SMS-провайдер).
+     * увімкнено SMS-канал і налаштований SMS-провайдер).
      *
      * @return array<int, array{channel: string, masked: string, destination_key: string}>
      */
@@ -42,16 +49,18 @@ class ClaimVerificationService
         if ($email !== '' && filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $channels[] = [
                 'channel' => 'email',
-                'masked' => $this->maskEmail($email),
+                // Email, як і телефон, показуємо ПОВНІСТЮ: це контакт бізнесу
+                // з публічного профілю, власнику треба бачити, куди прийде код.
+                'masked' => $email,
                 'destination_key' => $this->destinationKey($email),
             ];
         }
 
-        if ($this->sms->enabled()) {
+        if (self::SMS_CHANNEL_ENABLED && $this->sms->enabled()) {
             foreach ($this->phoneDestinations($profile) as $phone) {
                 $channels[] = [
                     'channel' => 'phone',
-                    'masked' => $this->maskPhone($phone),
+                    'masked' => $this->formatPhone($phone),
                     'destination_key' => $this->destinationKey($phone),
                 ];
             }
@@ -171,6 +180,9 @@ class ClaimVerificationService
 
         app(ProfileClaimReviewService::class)->approveViaVerification($claim, $record->channel);
 
+        // Після безкоштовного підтвердження ведемо власника В КАБІНЕТ (огляд зі
+        // статистикою переглядів + керування назвою), а не на оплату — спершу
+        // людина бачить цінність, і лише потім вирішує щодо PRO.
         return [
             'ok' => true,
             'redirect' => route('pro.account', ['tab' => 'overview', 'profile' => $profile->id]),
@@ -195,20 +207,19 @@ class ClaimVerificationService
         return hash('sha256', $code . '|' . config('app.key'));
     }
 
-    private function maskEmail(string $email): string
-    {
-        [$local, $domain] = array_pad(explode('@', $email, 2), 2, '');
-        $head = mb_substr($local, 0, 1);
-        $tail = mb_strlen($local) > 2 ? mb_substr($local, -1) : '';
-
-        return $head . '***' . $tail . '@' . $domain;
-    }
-
-    private function maskPhone(string $phone): string
+    /**
+     * Телефон показуємо ПОВНІСТЮ: це контакт бізнесу з публічного профілю,
+     * а власнику зручніше бачити, на який саме номер прийде код.
+     */
+    private function formatPhone(string $phone): string
     {
         $digits = preg_replace('/\D+/', '', $phone) ?? '';
 
-        return '••• ••• ' . mb_substr($digits, -2);
+        if (strlen($digits) === 12 && str_starts_with($digits, '380')) {
+            return '+380 ' . substr($digits, 3, 2) . ' ' . substr($digits, 5, 3) . ' ' . substr($digits, 8, 2) . ' ' . substr($digits, 10, 2);
+        }
+
+        return '+' . $digits;
     }
 
     /**
@@ -229,9 +240,27 @@ class ClaimVerificationService
         return collect($parts)
             ->map(fn (string $phone): ?string => $this->sms->normalize($phone))
             ->filter()
+            ->filter(fn (string $digits): bool => $this->canReceiveSms($digits))
             ->unique()
             ->values()
             ->all();
+    }
+
+    /**
+     * SMS доходить лише на мобільні номери: стаціонарні (380 + код міста,
+     * напр. 044/041) відсіюємо, щоб не пропонувати канал, який не спрацює.
+     */
+    private function canReceiveSms(string $digits): bool
+    {
+        if (strlen($digits) !== 12 || ! str_starts_with($digits, '380')) {
+            // Неукраїнський формат — не класифікуємо, лишаємо як є.
+            return true;
+        }
+
+        return in_array(substr($digits, 3, 2), [
+            '39', '50', '63', '66', '67', '68', '73', '75', '77', '89',
+            '91', '92', '93', '94', '95', '96', '97', '98', '99',
+        ], true);
     }
 
     private function destinationForChannel(Profile $profile, string $channel, string $destinationKey): string

@@ -1351,6 +1351,24 @@ body.page-platform .platform-faq {
   padding: 44px 0 52px;
 }
 
+/* CTA-банер без телефону — проста центрована смуга (як на головній). */
+body.page-platform .cta-hero-callout__card {
+  grid-template-columns: 1fr;
+  min-height: 0;
+  padding: clamp(28px, 4vw, 44px);
+  text-align: center;
+}
+body.page-platform .cta-hero-callout__card > .cta-hero-callout__orb {
+  display: none;
+}
+body.page-platform .cta-hero-callout__content {
+  max-width: 640px;
+  margin: 0 auto;
+}
+body.page-platform .cta-hero-callout__actions {
+  justify-content: center;
+}
+
 body.page-platform .trust-proof,
 body.page-platform .platform-reviews,
 body.page-platform .pro-highlight,

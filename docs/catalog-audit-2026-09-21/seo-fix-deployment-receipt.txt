@@ -1,0 +1,44 @@
+No syntax errors detected in /home/nu625309/dovira-seo-fix-RQ31q5PY/app/Http/Controllers/CatalogPageController.php
+No syntax errors detected in /home/nu625309/dovira-seo-fix-RQ31q5PY/app/Http/Controllers/SeoController.php
+No syntax errors detected in /home/nu625309/dovira-seo-fix-RQ31q5PY/app/Support/CatalogLandingSeo.php
+No syntax errors detected in /home/nu625309/dovira-seo-fix-RQ31q5PY/app/Support/ProfileSeoIndexPolicy.php
+No syntax errors detected in /home/nu625309/dovira-seo-fix-RQ31q5PY/app/Support/SitemapCache.php
+No syntax errors detected in /home/nu625309/dovira-seo-fix-RQ31q5PY/config/seo.php
+
+   INFO  Configuration cached successfully.  
+
+{
+  "stage": "/home/nu625309/dovira-seo-fix-RQ31q5PY",
+  "deployed": [
+    {
+      "path": "app/Http/Controllers/CatalogPageController.php",
+      "before": "7c2a09cd72e7b3632413f087ebc226bef536eaf466d09ef00b67df9f08f9ecae",
+      "after": "e398cf33752c2dc8cede932f23c26e8d66411b4bdfadde669cfddf53e4151c41"
+    },
+    {
+      "path": "app/Http/Controllers/SeoController.php",
+      "before": "ddae3ceaf5d12c9dcb50d2ed62fceb05c025c558a954ffc8f45cf299be891f59",
+      "after": "c1659b8e96d0ae2cd0853db6043d9237e4639e65f9db6c6ffbc7db00d3cb481d"
+    },
+    {
+      "path": "app/Support/CatalogLandingSeo.php",
+      "before": "db55dcb55de87b3d643f9638f1be95f130accabace89dec64bf300c714461a7b",
+      "after": "d8a733f945457eca727c43bd86228cd5b3710d9f75c77ecb5d81652dbf2d87c1"
+    },
+    {
+      "path": "app/Support/ProfileSeoIndexPolicy.php",
+      "before": "e48d4dec1f0a446ccad748d9f2e93bdd28903ee7acff9ed891218a6f85a7586b",
+      "after": "7d561f79af028b9460dac11dbd0783b3c308af3a429419a2272a0b9341b5275e"
+    },
+    {
+      "path": "app/Support/SitemapCache.php",
+      "before": "8892e5ae6b9cc831e605db601a10c174ef146c2f7a9f8d827404d98a8c29c890",
+      "after": "105774c4003ef4eacf19e713869b7682c6da8b7db0ab1d362542d41d9a2c270d"
+    },
+    {
+      "path": "config/seo.php",
+      "before": "334fcc2fd9a9b4befe2b4074df3002b95b7b4142d23c1528bbcf9e31d3d714e9",
+      "after": "e423deb40a8dcd21c2628c0b8452956a8c7d90ac6fd3a965a42c591f9ef75e6a"
+    }
+  ]
+}

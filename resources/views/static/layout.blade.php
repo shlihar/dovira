@@ -7,17 +7,45 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+
+    {{-- Microsoft Clarity: теплові карти й записи сесій. Вмикається самим
+         наявним ідентифікатором (env CLARITY_ID): на бойовому сервері він є,
+         локально й на тестах його немає — і скрипт не підключається.
+         Перевірку на APP_ENV навмисно НЕ робимо: бойовий сервер працює з
+         APP_ENV=local, тож вона б назавжди вимикала лічильник. --}}
+    @if (filled(config('services.clarity.id')))
+        <script type="text/javascript">
+            (function(c,l,a,r,i,t,y){
+                c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+                t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+                y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+            })(window, document, "clarity", "script", "{{ config('services.clarity.id') }}");
+        </script>
+    @endif
     @php
-        $seoTitle = trim($__env->yieldContent('title', 'Dovira — реальні відгуки, рейтинги та перевірені профілі бізнесу'));
-        $seoDescription = trim($__env->yieldContent('description', 'Відгуки про компанії, магазини й спеціалістів України. Обирайте бізнес за реальними оцінками клієнтів, перевіреними профілями та рейтингами.'));
+        // yieldContent на inline-секціях (@section('title', $value)) уже застосовує
+        // e() до значення. Розкодовуємо один раз, щоб {{ }} нижче екранувало рівно
+        // раз — інакше лапки в назвах виходили подвійно екранованими (&amp;quot;).
+        $seoTitle = html_entity_decode(trim($__env->yieldContent('title', 'Dovira — реальні відгуки, рейтинги та перевірені профілі бізнесу')), ENT_QUOTES, 'UTF-8');
+        $seoDescription = html_entity_decode(trim($__env->yieldContent('description', 'Відгуки про компанії, магазини й спеціалістів України. Обирайте бізнес за реальними оцінками клієнтів, перевіреними профілями та рейтингами.')), ENT_QUOTES, 'UTF-8');
         $seoCanonical = trim($__env->yieldContent('canonical', url()->current()));
         $seoOgImage = trim($__env->yieldContent('og_image', asset('static/assets/dovira_banner_transparent_full_head.png')));
         $seoOgType = trim($__env->yieldContent('og_type', 'website'));
         $seoRobots = trim($__env->yieldContent('robots', 'index, follow, max-image-preview:large, max-snippet:-1'));
         $siteContactEmail = config('site_contacts.email', 'info@mydovira.com');
-        $siteContactPhone = config('site_contacts.phone', '+380937269578');
+        $siteContactPhone = trim((string) config('site_contacts.phone'));
         $siteSupportTelegramUsername = ltrim((string) config('site_contacts.telegram_username', 'dovira_support'), '@');
         $siteSupportTelegramUrl = 'https://t.me/' . $siteSupportTelegramUsername;
+        $seoContactPoint = [
+            '@type' => 'ContactPoint',
+            'contactType' => 'customer support',
+            'email' => $siteContactEmail,
+            'url' => $siteSupportTelegramUrl,
+            'availableLanguage' => 'uk',
+        ];
+        if ($siteContactPhone !== '') {
+            $seoContactPoint['telephone'] = $siteContactPhone;
+        }
 
         $seoSiteSchema = [
             '@context' => 'https://schema.org',
@@ -29,14 +57,7 @@
                     'url' => url('/'),
                     'logo' => asset('static/assets/dovira_banner_transparent_full_head.png'),
                     'description' => 'DOVIRA — українська платформа відгуків про компанії, магазини, сервіси та спеціалістів. Каталог перевірених профілів із рейтингами й реальними відгуками клієнтів.',
-                    'contactPoint' => [
-                        '@type' => 'ContactPoint',
-                        'contactType' => 'customer support',
-                        'email' => $siteContactEmail,
-                        'telephone' => $siteContactPhone,
-                        'url' => $siteSupportTelegramUrl,
-                        'availableLanguage' => 'uk',
-                    ],
+                    'contactPoint' => $seoContactPoint,
                 ],
                 [
                     '@type' => 'WebSite',
@@ -61,10 +82,12 @@
     <meta name="description" content="{{ $seoDescription }}">
     <meta name="robots" content="{{ $seoRobots }}">
     <link rel="canonical" href="{{ $seoCanonical }}">
-    <link rel="icon" type="image/svg+xml" href="{{ asset('static/favicon.svg') }}">
-    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('static/favicon-32.png') }}">
-    <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
-    <link rel="apple-touch-icon" href="{{ asset('static/apple-touch-icon.png') }}">
+    <link rel="icon" type="image/png" sizes="96x96" href="{{ asset('static/favicon-96.png') }}">
+    <link rel="icon" type="image/svg+xml" href="{{ asset('static/favicon.svg') }}?v={{ @filemtime(public_path('static/favicon.svg')) }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('static/favicon-32.png') }}?v={{ @filemtime(public_path('static/favicon-32.png')) }}">
+    <link rel="icon" href="{{ asset('favicon.ico') }}?v={{ @filemtime(public_path('favicon.ico')) }}" sizes="any">
+    <link rel="manifest" href="{{ asset('static/site.webmanifest') }}">
+    <link rel="apple-touch-icon" href="{{ asset('static/apple-touch-icon.png') }}?v={{ @filemtime(public_path('static/apple-touch-icon.png')) }}">
     <meta property="og:site_name" content="DOVIRA">
     <meta property="og:locale" content="uk_UA">
     <meta property="og:type" content="{{ $seoOgType }}">
@@ -81,7 +104,13 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ asset('static/styles.css') }}?v={{ @filemtime(public_path('static/styles.css')) }}">
+    {{-- Три базові стилі підключаємо прямими лінками з версією файлу, а не через
+         @import у styles.css: @import не мав ?v, тому Cloudflare і браузери
+         віддавали серпневу копію base.css місяцями (правки просто не доїжджали).
+         Прямі лінки ще й вантажаться паралельно, а не ланцюжком. --}}
+    @foreach (['css/base.css', 'css/layout.css', 'css/components.css'] as $baseStyle)
+        <link rel="stylesheet" href="{{ asset('static/' . $baseStyle) }}?v={{ @filemtime(public_path('static/' . $baseStyle)) }}">
+    @endforeach
     {{-- Self-hosted, subset FontAwesome (only the ~165 icons the site uses) —
          fonts trimmed from ~300 KB to ~32 KB, no external CDN request. --}}
     <link rel="stylesheet" href="{{ asset('static/vendor/fontawesome/css/all.min.css') }}?v={{ @filemtime(public_path('static/vendor/fontawesome/css/all.min.css')) }}">
@@ -186,9 +215,9 @@
                 <span class="site-profile-toast__badge">Безкоштовно</span>
             </div>
             <strong class="site-profile-toast__title">Керуєте бізнесом?</strong>
-            <p class="site-profile-toast__text">Створіть профіль — і клієнти знайдуть вас на Dovira та в Google.</p>
+            <p class="site-profile-toast__text">Ваш профіль може вже бути на Dovira та в Google. PRO — {{ \App\Support\ProPricing::launchCohortLabel() }}. {{ \App\Support\ProPricing::launchCohortLockLine() }}</p>
             <a class="site-profile-toast__cta" href="{{ $profileToastUrl }}">
-                <span>Створити профіль</span>
+                <span>Керувати профілем</span>
                 <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
             </a>
         </aside>

@@ -1,0 +1,217 @@
+{
+    "profiles": [
+        {
+            "id": 1044,
+            "status": "draft",
+            "is_published": 0,
+            "show_in_catalog": 0
+        },
+        {
+            "id": 1052,
+            "status": "draft",
+            "is_published": 0,
+            "show_in_catalog": 0
+        },
+        {
+            "id": 1676,
+            "status": "draft",
+            "is_published": 0,
+            "show_in_catalog": 0
+        },
+        {
+            "id": 1841,
+            "status": "draft",
+            "is_published": 0,
+            "show_in_catalog": 0
+        },
+        {
+            "id": 1847,
+            "status": "draft",
+            "is_published": 0,
+            "show_in_catalog": 0
+        },
+        {
+            "id": 1856,
+            "status": "draft",
+            "is_published": 0,
+            "show_in_catalog": 0
+        },
+        {
+            "id": 2228,
+            "status": "draft",
+            "is_published": 0,
+            "show_in_catalog": 0
+        },
+        {
+            "id": 2852,
+            "status": "draft",
+            "is_published": 0,
+            "show_in_catalog": 0
+        },
+        {
+            "id": 3070,
+            "status": "draft",
+            "is_published": 0,
+            "show_in_catalog": 0
+        },
+        {
+            "id": 6501,
+            "status": "draft",
+            "is_published": 0,
+            "show_in_catalog": 0
+        },
+        {
+            "id": 7159,
+            "status": "draft",
+            "is_published": 0,
+            "show_in_catalog": 0
+        },
+        {
+            "id": 7180,
+            "status": "draft",
+            "is_published": 0,
+            "show_in_catalog": 0
+        },
+        {
+            "id": 7225,
+            "status": "draft",
+            "is_published": 0,
+            "show_in_catalog": 0
+        },
+        {
+            "id": 7577,
+            "status": "draft",
+            "is_published": 0,
+            "show_in_catalog": 0
+        },
+        {
+            "id": 8399,
+            "status": "draft",
+            "is_published": 0,
+            "show_in_catalog": 0
+        },
+        {
+            "id": 8435,
+            "status": "draft",
+            "is_published": 0,
+            "show_in_catalog": 0
+        },
+        {
+            "id": 8496,
+            "status": "draft",
+            "is_published": 0,
+            "show_in_catalog": 0
+        },
+        {
+            "id": 8575,
+            "status": "draft",
+            "is_published": 0,
+            "show_in_catalog": 0
+        },
+        {
+            "id": 8628,
+            "status": "draft",
+            "is_published": 0,
+            "show_in_catalog": 0
+        },
+        {
+            "id": 9491,
+            "status": "draft",
+            "is_published": 0,
+            "show_in_catalog": 0
+        },
+        {
+            "id": 9867,
+            "status": "draft",
+            "is_published": 0,
+            "show_in_catalog": 0
+        },
+        {
+            "id": 9915,
+            "status": "draft",
+            "is_published": 0,
+            "show_in_catalog": 0
+        },
+        {
+            "id": 15905,
+            "status": "draft",
+            "is_published": 0,
+            "show_in_catalog": 0
+        },
+        {
+            "id": 16268,
+            "status": "draft",
+            "is_published": 0,
+            "show_in_catalog": 0
+        },
+        {
+            "id": 32302,
+            "status": "draft",
+            "is_published": 0,
+            "show_in_catalog": 0
+        },
+        {
+            "id": 33513,
+            "status": "draft",
+            "is_published": 0,
+            "show_in_catalog": 0
+        },
+        {
+            "id": 35710,
+            "status": "draft",
+            "is_published": 0,
+            "show_in_catalog": 0
+        },
+        {
+            "id": 39626,
+            "status": "draft",
+            "is_published": 0,
+            "show_in_catalog": 0
+        },
+        {
+            "id": 43915,
+            "status": "draft",
+            "is_published": 0,
+            "show_in_catalog": 0
+        },
+        {
+            "id": 47192,
+            "status": "draft",
+            "is_published": 0,
+            "show_in_catalog": 0
+        },
+        {
+            "id": 177323,
+            "status": "draft",
+            "is_published": 0,
+            "show_in_catalog": 0
+        }
+    ],
+    "reviews_preserved": 1874,
+    "sources_preserved": 120,
+    "visible_remaining": 34228,
+    "review_columns": [
+        {
+            "Field": "verification_type",
+            "Type": "varchar(32)",
+            "Null": "YES",
+            "Key": "",
+            "Default": null,
+            "Extra": ""
+        },
+        {
+            "Field": "external_source_type",
+            "Type": "varchar(64)",
+            "Null": "YES",
+            "Key": "",
+            "Default": null,
+            "Extra": ""
+        }
+    ],
+    "code_hashes": {
+        "app\/Services\/Top20BulkImportService.php": "9f024cdab9fb6b2bf89acafbad1ad3b028a40ef011d75c33ac4c8862eed1c240",
+        "app\/Console\/Commands\/ImportGoogleMapsPlaces.php": "73f14c6c7cb3afef7d3063269cd7d6520f10bf717d9fb5bdb02dda74a2c479ff",
+        "app\/Support\/ImportedProfileIdentity.php": "d74516ced797db3fd9ee73a3645f1a00ca8fc88134c76c4407d88c79693a9230",
+        "app\/Console\/Commands\/QuarantineMixedProfiles.php": "5a158cf1dc0c853061bb4e516aaee1b2c2729cd95eec51ccdd12672db526e39e"
+    }
+}

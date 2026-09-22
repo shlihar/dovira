@@ -1,0 +1,58 @@
+[
+    {
+        "profile_id": 1045,
+        "full_name": "English Prime, школа англійської мови",
+        "city": "Київ",
+        "category": "Мовні школи",
+        "profile_url": "https://mydovira.com/profiles/english-prime-skola-angliiskoyi-movi",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Оболонський проспект, 16",
+            "phone": "(044) 228 44 12, (044) 22 84 21 2, (067) 506 29 52, (095) 275 04 33, (073) 310 13 39",
+            "type": "company",
+            "rating_avg": 4.95,
+            "reviews_count": 632
+        }
+    },
+    {
+        "profile_id": 5158,
+        "full_name": "Take It Easy, школа іноземних мов",
+        "city": "Вінниця",
+        "category": "Мовні школи",
+        "profile_url": "https://mydovira.com/profiles/take-it-easy-skola-inozemnix-mov",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Архітектора Артинова, 12, офіс 11",
+            "phone": "(097) 441 53 90, (063) 727 52 19, (099) 003 00 49",
+            "type": "company",
+            "rating_avg": 4.98,
+            "reviews_count": 48
+        }
+    },
+    {
+        "profile_id": 5665,
+        "full_name": "Nesol Ukraine, онлайн-школа англійської мови",
+        "city": "Вінниця",
+        "category": "Мовні школи",
+        "profile_url": "https://mydovira.com/profiles/nesol-ukraine-onlain-skola-angliiskoyi-movi",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Максимовича, 4",
+            "phone": "(068) 399 28 00",
+            "type": "company"
+        }
+    },
+    {
+        "profile_id": 5669,
+        "full_name": "Perfect Plus, школа англійської та німецької мов",
+        "city": "Вінниця",
+        "category": "Мовні школи",
+        "profile_url": "https://mydovira.com/profiles/perfect-plus-skola-angliiskoyi-ta-nimeckoyi-mov",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Соборна, 91",
+            "phone": "(097) 350 06 58, (093) 201 14 08",
+            "type": "company"
+        }
+    }
+]

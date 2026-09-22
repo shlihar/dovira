@@ -1,0 +1,152 @@
+[
+    {
+        "profile_id": 8871,
+        "full_name": "Артмедіка, клініка пластичної хірургії",
+        "city": "Дніпро",
+        "category": "Пластичні хірурги",
+        "profile_url": "https://mydovira.com/profiles/artmedika-klinika-plasticnoyi-xirurgiyi",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Антоновича, 5 / 3",
+            "phone": "(056) 77 01 00 2, (056) 77 01 44 4, (0567) 70 12 98, (056) 77 01 29 8, (067) 632 09 48, (095) 230 07 07",
+            "type": "company",
+            "rating_avg": 4.86,
+            "reviews_count": 7
+        }
+    },
+    {
+        "profile_id": 4395,
+        "full_name": "Пластичний хірург Костянтин Володимирович Добряков",
+        "city": "Київ",
+        "category": "Пластичні хірурги",
+        "profile_url": "https://mydovira.com/profiles/plasticnii-xirurg-kostiantin-volodimirovic-dobriakov",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Берестейський проспект, 67",
+            "phone": "(067) 916 64 53",
+            "type": "company",
+            "rating_avg": 4.33,
+            "reviews_count": 6
+        }
+    },
+    {
+        "profile_id": 8872,
+        "full_name": "Клініка пластичної хірургії доктора Матея В.",
+        "city": "Дніпро",
+        "category": "Пластичні хірурги",
+        "profile_url": "https://mydovira.com/profiles/klinika-plasticnoyi-xirurgiyi-doktora-mateia-v",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Артьома, 29 / 3",
+            "phone": "(067) 560 62 65",
+            "type": "company",
+            "rating_avg": 2.6,
+            "reviews_count": 5
+        }
+    },
+    {
+        "profile_id": 8882,
+        "full_name": "ExtraMed, центр пластичної хірургії",
+        "city": "Миколаїв",
+        "category": "Пластичні хірурги",
+        "profile_url": "https://mydovira.com/profiles/extramed-centr-plasticnoyi-xirurgiyi",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Адмірала Макарова, 1",
+            "phone": "(050) 337 10 26",
+            "type": "company",
+            "rating_avg": 3.8,
+            "reviews_count": 5
+        }
+    },
+    {
+        "profile_id": 8860,
+        "full_name": "Центр сучасної пластичної хірургії",
+        "city": "Харків",
+        "category": "Пластичні хірурги",
+        "profile_url": "https://mydovira.com/profiles/centr-sucasnoyi-plasticnoyi-xirurgiyi",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Шевченко, 142",
+            "phone": "(050) 323 29 83",
+            "type": "company",
+            "rating_avg": 5,
+            "reviews_count": 4
+        }
+    },
+    {
+        "profile_id": 8851,
+        "full_name": "Хаустов Сергій Олександрович, пластичний хірург",
+        "city": "Одеса",
+        "category": "Пластичні хірурги",
+        "profile_url": "https://mydovira.com/profiles/xaustov-sergii-oleksandrovic-plasticnii-xirurg",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "дача Ковалевського, 91",
+            "phone": "(050) 336 28 84, (094) 946 50 00",
+            "type": "company",
+            "rating_avg": 4.67,
+            "reviews_count": 3
+        }
+    },
+    {
+        "profile_id": 8859,
+        "full_name": "Естет-медікал, медичний центр пластичної та відновлювальної хірургії",
+        "city": "Харків",
+        "category": "Пластичні хірурги",
+        "profile_url": "https://mydovira.com/profiles/estet-medikal-medicnii-centr-plasticnoyi-ta-vidnovliuvalnoyi-xirurgiyi",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Професорська, 98а",
+            "phone": "(095) 763 66 27",
+            "type": "company",
+            "rating_avg": 5,
+            "reviews_count": 3
+        }
+    },
+    {
+        "profile_id": 8891,
+        "full_name": "Клініка пластичної та естетичної хірургії лікаря Сафонова",
+        "city": "Суми",
+        "category": "Пластичні хірурги",
+        "profile_url": "https://mydovira.com/profiles/klinika-plasticnoyi-ta-esteticnoyi-xirurgiyi-likaria-safonova",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "вулиця Героїв Небесної сотні, 4",
+            "phone": "(0542) 77 09 47",
+            "type": "company",
+            "rating_avg": 3,
+            "reviews_count": 2
+        }
+    },
+    {
+        "profile_id": 8842,
+        "full_name": "Пластична хірургія",
+        "city": "Тернопіль",
+        "category": "Пластичні хірурги",
+        "profile_url": "https://mydovira.com/profiles/plasticna-xirurgiia",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "вул. Шпитальна, 2",
+            "phone": "(067) 353 28 33",
+            "type": "company",
+            "rating_avg": 5,
+            "reviews_count": 1
+        }
+    },
+    {
+        "profile_id": 8870,
+        "full_name": "Центр пластичної хірургії на Княгині Ольги",
+        "city": "Дніпро",
+        "category": "Пластичні хірурги",
+        "profile_url": "https://mydovira.com/profiles/centr-plasticnoyi-xirurgiyi-na-kniagini-olgi",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Княгині Ольги, 16",
+            "phone": "(097) 573 89 46",
+            "type": "company",
+            "rating_avg": 5,
+            "reviews_count": 1
+        }
+    }
+]

@@ -42,6 +42,16 @@ class MediaUrlTest extends TestCase
         );
     }
 
+    public function test_public_image_url_resolves_legacy_private_admin_profile_logos(): void
+    {
+        Storage::disk('local')->put('profiles/logos/legacy-admin-logo.jpg', 'demo');
+
+        $this->assertSame(
+            '/media/profiles/logos/legacy-admin-logo.jpg',
+            MediaUrl::publicImageUrl('profiles/logos/legacy-admin-logo.jpg')
+        );
+    }
+
     public function test_thumb_url_is_relative_and_not_tied_to_app_url(): void
     {
         config(['app.url' => 'http://localhost']);

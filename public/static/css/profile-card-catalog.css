@@ -183,10 +183,14 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  color: #2e8b62;
+  color: #5c74a1;
   font-size: 12.5px;
-  font-weight: 700;
+  font-weight: 500;
   line-height: 1.2;
+}
+
+.dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__responds i {
+  color: #2e8b62;
 }
 
 .dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__responds i {
@@ -689,3 +693,27 @@
     min-width: 178px;
   }
 }
+
+/* ===== Світлофор досьє на картці (мокап стратегії, розділ 04) ===== */
+.dovira-catalog-card__dossier {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 2px 0 0;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: #5c74a1;
+}
+
+.dovira-catalog-card__dossier-dot {
+  flex: 0 0 auto;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.dovira-catalog-card__dossier--green .dovira-catalog-card__dossier-dot { background: #22a06b; }
+.dovira-catalog-card__dossier--yellow .dovira-catalog-card__dossier-dot { background: #e0a94b; }
+.dovira-catalog-card__dossier--red .dovira-catalog-card__dossier-dot { background: #d9564a; }
+/* Червоний кейс — єдиний, де текст теж підфарбовуємо: це сигнал безпеки. */
+.dovira-catalog-card__dossier--red { color: #b3453b; font-weight: 600; }

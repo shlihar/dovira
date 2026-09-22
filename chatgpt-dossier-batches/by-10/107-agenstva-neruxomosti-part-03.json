@@ -1,0 +1,152 @@
+[
+    {
+        "profile_id": 11299,
+        "full_name": "Park Lane, агентство нерухомості",
+        "city": "Київ",
+        "category": "Агенства нерухомості",
+        "profile_url": "https://mydovira.com/profiles/park-lane-agentstvo-neruxomosti",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Генерала Алмазова, 46221",
+            "phone": "(095) 262 62 22, (044) 39 22 22 2, (098) 392 22 22, (044) 392 22 22",
+            "type": "company",
+            "rating_avg": 4.17,
+            "reviews_count": 90
+        }
+    },
+    {
+        "profile_id": 12028,
+        "full_name": "Кит, агентство нерухомості",
+        "city": "Харків",
+        "category": "Агенства нерухомості",
+        "profile_url": "https://mydovira.com/profiles/kit-agentstvo-neruxomosti",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Чернишевська, 66",
+            "phone": "(050) 518 94 50",
+            "type": "company",
+            "rating_avg": 4.96,
+            "reviews_count": 90
+        }
+    },
+    {
+        "profile_id": 12287,
+        "full_name": "Вектор, агентство нерухомості",
+        "city": "Черкаси",
+        "category": "Агенства нерухомості",
+        "profile_url": "https://mydovira.com/profiles/vektor-agentstvo-neruxomosti-2",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Дашковича, 34",
+            "phone": "(067) 830 88 97, (096) 263 41 55",
+            "type": "company",
+            "rating_avg": 4.96,
+            "reviews_count": 90
+        }
+    },
+    {
+        "profile_id": 12449,
+        "full_name": "Центральне Агентство Нерухомості",
+        "city": "Чернівці",
+        "category": "Агенства нерухомості",
+        "profile_url": "https://mydovira.com/profiles/centralne-agentstvo-neruxomosti-2",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Міцкевича, 2",
+            "phone": "(050) 036 80 08",
+            "type": "company",
+            "rating_avg": 4.96,
+            "reviews_count": 90
+        }
+    },
+    {
+        "profile_id": 10086,
+        "full_name": "Власна нерухомість, агентство нерухомості",
+        "city": "Вінниця",
+        "category": "Агенства нерухомості",
+        "profile_url": "https://mydovira.com/profiles/vlasna-neruxomist-agentstvo-neruxomosti",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Пирогова, 8",
+            "phone": "(067) 433 57 99",
+            "type": "company",
+            "rating_avg": 5,
+            "reviews_count": 89
+        }
+    },
+    {
+        "profile_id": 10808,
+        "full_name": "Premium, агенція нерухомості",
+        "city": "Кропивницький",
+        "category": "Агенства нерухомості",
+        "profile_url": "https://mydovira.com/profiles/premium-agenciia-neruxomosti",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Тарковського, 44",
+            "phone": "(066) 969 92 99",
+            "type": "company",
+            "rating_avg": 5,
+            "reviews_count": 89
+        }
+    },
+    {
+        "profile_id": 11288,
+        "full_name": "Mikele, агентство нерухомості",
+        "city": "Київ",
+        "category": "Агенства нерухомості",
+        "profile_url": "https://mydovira.com/profiles/mikele-agentstvo-neruxomosti",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Саксаганського, 22-Б, оф. 28",
+            "phone": "(099) 760 06 07",
+            "type": "company",
+            "rating_avg": 4.58,
+            "reviews_count": 89
+        }
+    },
+    {
+        "profile_id": 11706,
+        "full_name": "РіелтСервіс, агенство нерухомості",
+        "city": "Полтава",
+        "category": "Агенства нерухомості",
+        "profile_url": "https://mydovira.com/profiles/rieltservis-agenstvo-neruxomosti",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Гоголя, 12",
+            "phone": "(066) 058 88 87, (099) 564 10 11",
+            "type": "company",
+            "rating_avg": 4.91,
+            "reviews_count": 89
+        }
+    },
+    {
+        "profile_id": 11759,
+        "full_name": "Борислава, агентство нерухомості",
+        "city": "Рівне",
+        "category": "Агенства нерухомості",
+        "profile_url": "https://mydovira.com/profiles/borislava-agentstvo-neruxomosti-2",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Пластова, 10",
+            "phone": "(096) 500 28 33",
+            "type": "company",
+            "rating_avg": 4.87,
+            "reviews_count": 89
+        }
+    },
+    {
+        "profile_id": 11761,
+        "full_name": "Прем'єр, агентство нерухомості",
+        "city": "Рівне",
+        "category": "Агенства нерухомості",
+        "profile_url": "https://mydovira.com/profiles/premjer-agentstvo-neruxomosti-2",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Іллінська, 10",
+            "phone": "(050) 363 15 43",
+            "type": "company",
+            "rating_avg": 4.82,
+            "reviews_count": 89
+        }
+    }
+]

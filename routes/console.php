@@ -247,3 +247,159 @@ Schedule::command('dovira:ai-enrichment:recover --minutes=20')
 Schedule::command('dovira:pro:expire-subscriptions')
     ->hourly()
     ->withoutOverlapping();
+
+// Пошуковий індекс профілів (запити за потребою: «вакцинація тварин»,
+// «виплати за загиблих»). Збирає назву, категорії, послуги й ключові слова з
+// відгуків у profile_search_terms; на сервері повний прогін ~20 секунд.
+Schedule::command('dovira:search:rebuild --reviews=200')
+    ->dailyAt('04:10')
+    ->withoutOverlapping()
+    ->runInBackground();
+
+// Перебудова збігів для сервісних посадкових (LIKE по 700 тис. відгуків): десятки
+// LIKE-запитів по відгуках не мають виконуватись у веб-запиті.
+Schedule::command('dovira:service-landings:rebuild')
+    ->dailyAt('03:40')
+    ->withoutOverlapping()
+    ->runInBackground();
+
+// Прогрів кешу головної кожні 4 год (TTL 6 год): щоб реальний відвідувач
+// ніколи не платив ~8 с за холодну перебудову важких секцій.
+Schedule::command('dovira:warm-home')
+    ->everyFourHours()
+    ->withoutOverlapping()
+    ->runInBackground();
+
+// Щоденний диспетчер розсилок: спільний ліміт ~150 листів/день ділиться за
+// пріоритетом — спершу гарячі сегменти (перегляди), потім другі дотики з
+// паузою >=3 днів, і рештою добирається холодна база «Знайомство».
+// Дедуп по email_logs гарантує: двічі той самий лист нікому не піде.
+Artisan::command('dovira:outreach:daily {--cap=150} {--dry-run}', function () {
+    $cap = max(1, (int) $this->option('cap'));
+    $dryRun = (bool) $this->option('dry-run');
+    // Адресатів активних кампаній «Статистика» і «top-profiles» не чіпаємо
+    // іншими листами (теми з «%» — шаблони, бо містять назву профілю).
+    $excludeStats = [
+        'Статистика вашого профілю на Dovira за 30 днів',
+        'Нагадуємо: статистика вашого профілю на Dovira',
+        'Хто керує сторінкою%',
+        '%на DOVIRA — а сторінкою ніхто не керує',
+    ];
+
+    $steps = [
+        // 1. Другий дотик «Перегляди» — найгарячіший фолоу-ап (3+ днів, без переходу).
+        ['label' => 'views · дотик 2', 'params' => ['--sequence' => 'views', '--touch' => 2, '--audience' => 'emailed', '--only-not-visited' => true, '--views-min' => 5, '--min-days-since' => 3]],
+        // 2. Перший дотик «Перегляди» — нові профілі, що набрали >=5 переглядів.
+        ['label' => 'views · дотик 1', 'params' => ['--sequence' => 'views', '--touch' => 1, '--audience' => 'new', '--views-min' => 5]],
+        // 3. Другий дотик «Знайомство» (3+ днів після першого, без переходу).
+        ['label' => 'intro · дотик 2', 'params' => ['--sequence' => 'intro', '--touch' => 2, '--audience' => 'emailed', '--only-not-visited' => true, '--min-days-since' => 3, '--exclude-subject' => $excludeStats]],
+        // 4. Холодна база: перший дотик «Знайомство» — добирає решту ліміту.
+        ['label' => 'intro · дотик 1', 'params' => ['--sequence' => 'intro', '--touch' => 1, '--audience' => 'new', '--exclude-subject' => $excludeStats]],
+    ];
+
+    $totalSent = 0;
+    foreach ($steps as $step) {
+        if ($cap <= 0) {
+            break;
+        }
+        $params = $step['params'] + ['--category' => 'all', '--limit' => $cap];
+        if ($dryRun) {
+            $params['--dry-run'] = true;
+        }
+        $this->info('▶ ' . $step['label'] . ' (ліміт ' . $cap . ')');
+        Artisan::call('dovira:outreach:email-campaign', $params, $this->output);
+        $sent = \App\Console\Commands\SendOutreachEmailCampaign::$lastSentCount;
+        $cap -= $sent;
+        $totalSent += $sent;
+    }
+
+    $this->newLine();
+    $this->info(($dryRun ? '[dry-run] ' : '') . 'Диспетчер: разом ' . $totalSent . ' листів, невикористаний ліміт ' . max(0, $cap) . '.');
+})->purpose('Щоденна email-розсилка: гарячі сегменти + фолоу-апи + холодна база в межах спільного ліміту');
+
+Schedule::command('dovira:outreach:daily')
+    ->dailyAt('08:00')
+    ->withoutOverlapping();
+
+// Post-claim nurture: щодня рухаємо не-PRO профілі по листах (day 2/5/9/14).
+Schedule::command('dovira:pro:nurture-claimed')
+    ->dailyAt('10:00')
+    ->withoutOverlapping();
+
+// Дайджест «Вас шукали»: раз на місяць, 1-го числа.
+Schedule::command('dovira:pro:views-digest')
+    ->monthlyOn(1, '10:00')
+    ->withoutOverlapping();
+
+// Нічний перерахунок рейтингів і популярності: категорійні середні → ваги
+// відгуків → рейтинг + позиція, дзеркалиться в profiles. Бейдж «Dovira
+// рекомендує» перераховується разом (з відстрочкою втрати 14 днів).
+Schedule::command('rating:recalculate')
+    ->dailyAt('03:00')
+    ->withoutOverlapping()
+    ->runInBackground();
+
+// Страховка від загублених monopay-вебхуків: кожні 30 хв звіряємо pending-
+// замовлення зі статусом інвойсу (кейс 27.08: оплата пройшла, вебхук зник,
+// PRO не активувався). Успіх → штатний фулфілмент; expired/failure → failed.
+// Кожні 5 хв із min-age=3: клієнт, чий вебхук загубився, чекає на PRO
+// хвилини, а не пів години (кейс 14.09.2026 — оплата без активації).
+Schedule::command('dovira:payments:reconcile --min-age=3')
+    ->everyFiveMinutes()
+    ->withoutOverlapping();
+
+// Автопродовження PRO: списання зі збереженої картки за день до завершення
+// підписки (ретраї щодня, грейс 3 дні — деталі в команді).
+Schedule::command('dovira:pro:renew-subscriptions')
+    ->dailyAt('09:30')
+    ->withoutOverlapping();
+
+// Нагадування про завершення PRO — хвилі за 7/3/1 день до ends_at.
+// Дедуп по темі листа в email_logs; режим міграції — PRO_RENEWAL_MANUAL_MODE.
+Schedule::command('dovira:pro:renewal-reminders')
+    ->dailyAt('09:00')
+    ->withoutOverlapping();
+
+// ЗУПИНЕНО 14.09.2026. Кампанія стверджувала «відгук без вашої відповіді»,
+// але імпорт Google бере лише відгуки й НЕ бере відповіді власника — бізнеси,
+// що вже відповіли у Google, отримували докір за бездіяльність (скарга
+// «Мережі права»). Увімкнути лише після імпорту відповідей власника.
+// Schedule::command('dovira:outreach:negative-backlog --days=3650 --views-min=0 --limit=60')
+//     ->dailyAt('10:15')
+//     ->withoutOverlapping();
+
+// Вертикаль «Адвокати» (станом на 13.09: 1 752 без першого дотику; досьє-
+// послідовність по своїй аудиторії вже відпрацьована — тут загальна email-
+// послідовність e1→e2→e3). Фолоу-апи йдуть першими, добовий обсяг ≤200.
+// Дедуп по темі в email_logs усередині команди.
+Schedule::command('dovira:outreach:email-campaign --sequence=email --touch=3 --audience=emailed --only-not-visited --min-days-since=7 --category=Адвокати --limit=50')
+    ->dailyAt('11:00')
+    ->withoutOverlapping();
+Schedule::command('dovira:outreach:email-campaign --sequence=email --touch=2 --audience=emailed --only-not-visited --min-days-since=3 --category=Адвокати --limit=50')
+    ->dailyAt('11:20')
+    ->withoutOverlapping();
+Schedule::command('dovira:outreach:email-campaign --sequence=email --touch=1 --audience=new --category=Адвокати --limit=100')
+    ->dailyAt('11:40')
+    ->withoutOverlapping();
+
+// Разова реєстрація вебхука Telegram-бота (сповіщення власників: /start, /stop).
+// Потрібні env: TELEGRAM_BOT_TOKEN і TELEGRAM_WEBHOOK_SECRET.
+Artisan::command('dovira:telegram-set-webhook', function () {
+    $token = (string) config('services.telegram.bot_token');
+    $secret = (string) config('services.telegram.webhook_secret');
+    if ($token === '' || $secret === '') {
+        $this->error('Порожній TELEGRAM_BOT_TOKEN або TELEGRAM_WEBHOOK_SECRET у .env.');
+
+        return 1;
+    }
+
+    $response = \Illuminate\Support\Facades\Http::asForm()->post("https://api.telegram.org/bot{$token}/setWebhook", [
+        'url' => route('webhooks.telegram'),
+        'secret_token' => $secret,
+        'allowed_updates' => json_encode(['message']),
+    ]);
+
+    $this->line($response->body());
+
+    return $response->json('ok') === true ? 0 : 1;
+})->purpose('Зареєструвати вебхук Telegram-бота для сповіщень власників');

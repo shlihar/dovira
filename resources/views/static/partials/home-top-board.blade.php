@@ -30,7 +30,9 @@
         [
             'title' => 'Адвокати',
             'icon' => 'fa-solid fa-scale-balanced',
-            'href' => route('catalog', ['sub' => 'Адвокати', 'sort' => 'popular']),
+            // На повний рейтинг «Топ адвокатів» (/top/advokaty), а не фільтр
+            // каталогу: дає programmatic-SEO-сторінці пряме посилання з головної.
+            'href' => route('top.rating', ['category' => 'advokaty']),
             'items' => $topLawyers,
             'trending' => false,
         ],

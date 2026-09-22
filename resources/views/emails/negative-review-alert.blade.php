@@ -13,7 +13,10 @@
                     @if ($forOwner)
                         Новий негативний відгук про «{{ $profileName }}»
                     @else
-                        Про «{{ $profileName }}» залишили негативний відгук
+                        {{-- НЕ стверджувати «без вашої відповіді»: імпорт Google бере
+                             відгуки, але не відповіді власника, тож бізнес міг уже
+                             відповісти у Google (скарга «Мережі права», 14.09.2026). --}}
+                        Негативний відгук про «{{ $profileName }}» видно на DOVIRA
                     @endif
                 </h1>
 
@@ -22,19 +25,32 @@
                     <p style="margin:0;font-size:14px;line-height:1.5;color:#4a3238;">{{ $reviewBody }}</p>
                 </div>
 
+                @if (!empty($viewsLast30))
+                    <p style="margin:0 0 18px;padding:12px 16px;background:#eef4ff;border-radius:10px;font-size:14px;line-height:1.5;color:#1f3b7a;">
+                        За останні 30 днів сторінку «{{ $profileName }}» на Dovira переглянули
+                        <b>{{ number_format($viewsLast30, 0, '', ' ') }}</b> разів.
+                        Кожен, хто відкриє її зараз, побачить цей відгук — і вашу відповідь, якщо вона там буде.
+                    </p>
+                @endif
+
                 @if ($forOwner)
                     <p style="margin:0 0 18px;font-size:14px;line-height:1.5;color:#42537a;">
-                        Швидка й ввічлива офіційна відповідь показує майбутнім клієнтам, що ви дбаєте про сервіс.
-                        Відповісти можна у вашому PRO-кабінеті.
+                        Відгук уже опубліковано, і він лишиться на сторінці. Єдине, що ви контролюєте, —
+                        чи стоятиме поруч офіційна відповідь компанії. Спокійна відповідь по суті працює
+                        на вас довше, ніж сам відгук: її читає кожен наступний клієнт.
                     </p>
                     <a href="{{ $ctaUrl }}" style="display:inline-block;background:#2f6df4;color:#fff;text-decoration:none;font-weight:700;font-size:15px;padding:13px 26px;border-radius:12px;">Відповісти на відгук →</a>
                 @else
                     <p style="margin:0 0 18px;font-size:14px;line-height:1.5;color:#42537a;">
-                        Ваш профіль на Dovira бачать клієнти, коли шукають вас у Google. Підтвердіть право
-                        власності <b>безкоштовно</b>, а PRO-підписка відкриє офіційну відповідь на цей відгук
-                        і керування репутацією.
+                        Сторінка «{{ $profileName }}» на Dovira публічна: її бачать у каталозі та знаходять
+                        у Google за назвою. Відгуки на ній зібрані з відкритих джерел, тож ваші відповіді,
+                        залишені деінде, сюди не переносяться. Підтвердьте права на профіль — це безкоштовно
+                        й одразу відкриє аналітику переглядів. А офіційна відповідь від імені компанії
+                        просто тут, на DOVIRA, і керування сторінкою відкриються з PRO.
+                        {{ \App\Support\ProPricing::launchCohortPriceLine() }}
+                        За бейдж DOVIRA на сайті або в соцмережах діє знижка 20%.
                     </p>
-                    <a href="{{ $ctaUrl }}" style="display:inline-block;background:#2f6df4;color:#fff;text-decoration:none;font-weight:700;font-size:15px;padding:13px 26px;border-radius:12px;">Підтвердити профіль →</a>
+                    <a href="{{ $ctaUrl }}" style="display:inline-block;background:#2f6df4;color:#fff;text-decoration:none;font-weight:700;font-size:15px;padding:13px 26px;border-radius:12px;">Відповісти від імені компанії →</a>
                 @endif
             </div>
         </div>

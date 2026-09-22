@@ -1,0 +1,152 @@
+[
+    {
+        "profile_id": 4069,
+        "full_name": "Центр-В, лікувально-діагностичний центр",
+        "city": "Вінниця",
+        "category": "Приватні клініки",
+        "profile_url": "https://mydovira.com/profiles/centr-v-likuvalno-diagnosticnii-centr",
+        "company_url": "https://centrv.com.ua",
+        "additional_identity_data": {
+            "address": "вул. Космонавтів, 53",
+            "phone": "(068) 103 11 03, (063) 103 11 03, (0432) 50 70 03, (0432) 50 70 04, (0432) 50 70 05",
+            "type": "company",
+            "rating_avg": 4.92,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 4074,
+        "full_name": "Ангіолайт, медичний центр",
+        "city": "Вінниця",
+        "category": "Приватні клініки",
+        "profile_url": "https://mydovira.com/profiles/angiolait-medicnii-centr",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "вул. Пирогова, 112а",
+            "phone": "(096) 161 25 61, (063) 711 96 00",
+            "type": "company",
+            "rating_avg": 4.99,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 4078,
+        "full_name": "Aesculap, медцентр",
+        "city": "Житомир",
+        "category": "Приватні клініки",
+        "profile_url": "https://mydovira.com/profiles/aesculap-centr-esteticnoyi-kosmetologiyi",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Соборна, 91а",
+            "phone": "(073) 143 09 00, (095) 152 83 58",
+            "type": "company",
+            "rating_avg": 4.86,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 4094,
+        "full_name": "Асклепій, медичний центр",
+        "city": "Житомир",
+        "category": "Приватні клініки",
+        "profile_url": "https://mydovira.com/profiles/asklepii-medicnii-centr",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Покровська, 31",
+            "phone": "(098) 046 33 03, (095) 010 31 03, (093) 170 01 03",
+            "type": "company",
+            "rating_avg": 4.18,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 4095,
+        "full_name": "Медібор, медичний центр",
+        "city": "Житомир",
+        "category": "Приватні клініки",
+        "profile_url": "https://mydovira.com/profiles/medibor-medicnii-centr",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Велика Бердичівська, 47",
+            "phone": "(067) 509 97 33, (067) 411 96 67, (067) 299 73 48, (067) 411 44 36, (067) 299 73 53",
+            "type": "company",
+            "rating_avg": 4.4,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 4106,
+        "full_name": "Verum expert clinic, медичний центр",
+        "city": "Київ",
+        "category": "Приватні клініки",
+        "profile_url": "https://mydovira.com/profiles/verum-expert-clinic-medicnii-centr",
+        "company_url": "https://verum.ua",
+        "additional_identity_data": {
+            "address": "Деміївська, 13, оф. 3 вхід з боку Деміївська",
+            "phone": "(097) 383 59 59, (066) 383 59 59, (0443) 83 59 59",
+            "type": "company",
+            "rating_avg": 4.64,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 4130,
+        "full_name": "Medhelsi, медичний центр",
+        "city": "Київ",
+        "category": "Приватні клініки",
+        "profile_url": "https://mydovira.com/profiles/medhelsi-medicnii-centr",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Івасюка, 20",
+            "phone": "(095) 173 03 03, (063) 173 03 03, (080) 033 32 53",
+            "type": "company",
+            "rating_avg": 4.84,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 4164,
+        "full_name": "Оберіг, універсальна клініка",
+        "city": "Київ",
+        "category": "Приватні клініки",
+        "profile_url": "https://mydovira.com/profiles/oberig-universalna-klinika",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Зоологічна, 3, корп. Г,В",
+            "phone": "(044) 52 13 00 3",
+            "type": "company",
+            "rating_avg": 5,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 4236,
+        "full_name": "ADONIS, медичний центр здоров'я сім'ї",
+        "city": "Київ",
+        "category": "Приватні клініки",
+        "profile_url": "https://mydovira.com/profiles/adonis-medicnii-centr-zdorovia-simyi",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Раїси Окіпної, 8Б",
+            "phone": "(0800) 70 77 07, (067) 419 72 98",
+            "type": "company",
+            "rating_avg": 4.81,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 4320,
+        "full_name": "Лелека, пологовий будинок і багатопрофільний медичний центр",
+        "city": "Київ",
+        "category": "Приватні клініки",
+        "profile_url": "https://mydovira.com/profiles/leleka-pologovii-budinok-i-bagatoprofilnii-medicnii-centr",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Квітки Цісик, 56",
+            "phone": "(044) 39 03 44 4, (044) 39 03 22 2",
+            "type": "company",
+            "rating_avg": 4.19,
+            "reviews_count": 100
+        }
+    }
+]

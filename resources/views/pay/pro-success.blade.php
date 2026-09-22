@@ -23,14 +23,27 @@
 @section('content')
 <div class="pay-page">
     <div class="pay-card">
+        @php
+            $paidBeforeOwnership = $order->isPaid() && (int) $profile->owner_user_id !== (int) auth()->id();
+        @endphp
+
         @if ($order->isPaid())
             <div class="pay-status__icon pay-status__icon--paid"><i class="fa-solid fa-check" aria-hidden="true"></i></div>
-            <h1>PRO активовано</h1>
-            <p>Оплату отримано. Підписка для профілю «{{ $profile->name }}» активна.</p>
-            <a class="pay-action" href="{{ $product['success_url'] }}" data-no-prefetch>
-                <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
-                Перейти до управління PRO
-            </a>
+            @if ($paidBeforeOwnership)
+                <h1>Оплату отримано</h1>
+                <p>Підписку для профілю «{{ $profile->name }}» зафіксовано. Керування відкриється після підтвердження прав підтримкою.</p>
+                <a class="pay-action" href="{{ route('pro.account', ['tab' => 'claims', 'claim_profile' => $profile->id]) }}" data-no-prefetch>
+                    <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                    Переглянути статус заявки
+                </a>
+            @else
+                <h1>PRO активовано</h1>
+                <p>Оплату отримано. Підписка для профілю «{{ $profile->name }}» активна.</p>
+                <a class="pay-action" href="{{ $product['success_url'] }}" data-no-prefetch>
+                    <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                    Перейти до управління PRO
+                </a>
+            @endif
         @else
             <div class="pay-status__icon pay-status__icon--pending"><i class="fa-solid fa-hourglass-half" aria-hidden="true"></i></div>
             <h1>Очікуємо підтвердження оплати</h1>

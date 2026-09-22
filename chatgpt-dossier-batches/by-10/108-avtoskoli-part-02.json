@@ -1,0 +1,152 @@
+[
+    {
+        "profile_id": 16491,
+        "full_name": "Автоакадемія",
+        "city": "Хмельницький",
+        "category": "Автошколи",
+        "profile_url": "https://mydovira.com/profiles/avtoakademiia",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Подільська, 93 / 1 офісний центр КУБ",
+            "phone": "(067) 382 82 44",
+            "type": "company",
+            "rating_avg": 4.93,
+            "reviews_count": 91
+        }
+    },
+    {
+        "profile_id": 16511,
+        "full_name": "Driver, автошкола",
+        "city": "Чернігів",
+        "category": "Автошколи",
+        "profile_url": "https://mydovira.com/profiles/driver-avtoskola",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "вул. Молодшого (вулиця Оборонців Чернігова), 44, 2 поверх",
+            "phone": "(073) 032 62 07",
+            "type": "company",
+            "rating_avg": 4.92,
+            "reviews_count": 91
+        }
+    },
+    {
+        "profile_id": 16562,
+        "full_name": "Driver, автошкола",
+        "city": "Київ",
+        "category": "Автошколи",
+        "profile_url": "https://mydovira.com/profiles/driver-avtoskola-2",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Печерський узвіз, 13 А",
+            "phone": "(073) 463 71 34",
+            "type": "company",
+            "rating_avg": 4.82,
+            "reviews_count": 91
+        }
+    },
+    {
+        "profile_id": 16566,
+        "full_name": "Майстер, мережа автошкіл",
+        "city": "Київ",
+        "category": "Автошколи",
+        "profile_url": "https://mydovira.com/profiles/maister-mereza-avtoskil",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Вербицького, 267",
+            "phone": "(097) 640 30 30, (063) 578 00 59, (097) 139 89 68, (044) 57 80 05 9, (099) 475 75 85",
+            "type": "company",
+            "rating_avg": 4.82,
+            "reviews_count": 91
+        }
+    },
+    {
+        "profile_id": 16567,
+        "full_name": "Avto Siti, автошкола",
+        "city": "Київ",
+        "category": "Автошколи",
+        "profile_url": "https://mydovira.com/profiles/avto-siti-avtoskola",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Героїв України, 21А",
+            "phone": "(073) 478 53 18, (068) 743 03 32, (098) 339 94 30",
+            "type": "company",
+            "rating_avg": 4.96,
+            "reviews_count": 91
+        }
+    },
+    {
+        "profile_id": 16569,
+        "full_name": "Кубенкова, автошкола",
+        "city": "Київ",
+        "category": "Автошколи",
+        "profile_url": "https://mydovira.com/profiles/kubenkova-avtoskola",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Шевченка, 2 / 4",
+            "phone": "(095) 949 41 50",
+            "type": "company",
+            "rating_avg": 4.96,
+            "reviews_count": 91
+        }
+    },
+    {
+        "profile_id": 16575,
+        "full_name": "Twist, автошкола",
+        "city": "Київ",
+        "category": "Автошколи",
+        "profile_url": "https://mydovira.com/profiles/twist-avtoskola",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "вул. Срібнокільська, 1А",
+            "phone": "(063) 405 40 04, (098) 405 40 04",
+            "type": "company",
+            "rating_avg": 4.97,
+            "reviews_count": 91
+        }
+    },
+    {
+        "profile_id": 16584,
+        "full_name": "Автошкола цільової підготовки",
+        "city": "Київ",
+        "category": "Автошколи",
+        "profile_url": "https://mydovira.com/profiles/onjega-avtoskola",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "вулиця Амвросія Бучми, 5",
+            "phone": "(050) 100 60 47, (063) 671 83 18, (063) 233 15 26, (099) 432 42 22, (063) 353 88 00, (073) 355 60 80, (063) 247 09 47, (066) 342 42 22, (066) 355 00 55, (063) 578 25 52, (063) 237 55 11, (063) 247 96 92, (044) 432 98 95, (063) 233 12 55, (096) 489 74 43, ",
+            "type": "company",
+            "rating_avg": 4.55,
+            "reviews_count": 91
+        }
+    },
+    {
+        "profile_id": 16588,
+        "full_name": "Київська міська автомобільна школа Всеукраїнської спілки автомобілістів",
+        "city": "Київ",
+        "category": "Автошколи",
+        "profile_url": "https://mydovira.com/profiles/kiyivska-miska-avtomobilna-skola-vseukrayinskoyi-spilki-avtomobilistiv",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Маяковського проспект, 26",
+            "phone": "(067) 240 40 03, (044) 48 32 31 8, (050) 820 60 02, (044) 45 70 95 4, (068) 856 99 17, (050) 988 20 25",
+            "type": "company",
+            "rating_avg": 4.93,
+            "reviews_count": 91
+        }
+    },
+    {
+        "profile_id": 16599,
+        "full_name": "Джаст, автошкола",
+        "city": "Київ",
+        "category": "Автошколи",
+        "profile_url": "https://mydovira.com/profiles/dzast-avtoskola",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Стратегічне шосе, 11",
+            "phone": "(096) 566 45 45, (050) 566 45 45, (063) 265 69 59",
+            "type": "company",
+            "rating_avg": 4.96,
+            "reviews_count": 91
+        }
+    }
+]

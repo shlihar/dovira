@@ -1,0 +1,152 @@
+[
+    {
+        "profile_id": 8956,
+        "full_name": "Ветеринарна клініка зоокомплекса Троїцький",
+        "city": "Дніпро",
+        "category": "Ветеринари та ветеринарні клініки",
+        "profile_url": "https://mydovira.com/profiles/veterinarna-klinika-zookompleksa-troyickii",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Афіна Грецька, 21А",
+            "phone": "(050) 302 68 60, (067) 112 11 76, (050) 320 83 64, (056) 23 18 88 2",
+            "type": "company",
+            "rating_avg": 3.61,
+            "reviews_count": 93
+        }
+    },
+    {
+        "profile_id": 9021,
+        "full_name": "Добродій, ветеринарна клініка",
+        "city": "Запоріжжя",
+        "category": "Ветеринари та ветеринарні клініки",
+        "profile_url": "https://mydovira.com/profiles/dobrodii-veterinarna-klinika",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Кругова, 165",
+            "phone": "(067) 833 99 86",
+            "type": "company",
+            "rating_avg": 3.85,
+            "reviews_count": 93
+        }
+    },
+    {
+        "profile_id": 9125,
+        "full_name": "Ветеринарний центр швидкої допомоги",
+        "city": "Київ",
+        "category": "Ветеринари та ветеринарні клініки",
+        "profile_url": "https://mydovira.com/profiles/veterinarnii-centr-svidkoyi-dopomogi",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Миколайчука, 15а",
+            "phone": "(073) 656 26 01, (098) 656 26 01, (050) 656 26 01",
+            "type": "company",
+            "rating_avg": 3.85,
+            "reviews_count": 93
+        }
+    },
+    {
+        "profile_id": 9336,
+        "full_name": "Vet planet, ветеринарна клініка",
+        "city": "Луцьк",
+        "category": "Ветеринари та ветеринарні клініки",
+        "profile_url": "https://mydovira.com/profiles/vet-planet-veterinarna-klinika",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Липинського, 9",
+            "phone": "(095) 094 45 97, (068) 973 25 88",
+            "type": "company",
+            "rating_avg": 3.97,
+            "reviews_count": 93
+        }
+    },
+    {
+        "profile_id": 9340,
+        "full_name": "Олтан-вет, ветеринарна клініка",
+        "city": "Луцьк",
+        "category": "Ветеринари та ветеринарні клініки",
+        "profile_url": "https://mydovira.com/profiles/oltan-vet-veterinarna-klinika",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "проспект Грушевського, 27",
+            "phone": "(066) 412 31 97",
+            "type": "company",
+            "rating_avg": 3.84,
+            "reviews_count": 93
+        }
+    },
+    {
+        "profile_id": 9358,
+        "full_name": "Лев, ветеринарна клініка",
+        "city": "Львів",
+        "category": "Ветеринари та ветеринарні клініки",
+        "profile_url": "https://mydovira.com/profiles/lev-veterinarna-klinika",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "проспект Академіка Курчатова, 24 / 2",
+            "phone": "(068) 535 45 45",
+            "type": "company",
+            "rating_avg": 4.18,
+            "reviews_count": 93
+        }
+    },
+    {
+        "profile_id": 9363,
+        "full_name": "Ветсервіс, ветеринарна клініка",
+        "city": "Львів",
+        "category": "Ветеринари та ветеринарні клініки",
+        "profile_url": "https://mydovira.com/profiles/vetservis-veterinarna-klinika-2",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "вулиця Гната Хоткевича, 8",
+            "phone": "(097) 131 74 28, (098) 717 29 34, (097) 131 74 35, (067) 743 86 40",
+            "type": "company",
+            "rating_avg": 4,
+            "reviews_count": 93
+        }
+    },
+    {
+        "profile_id": 9372,
+        "full_name": "Ветіко, ветеринарна клініка",
+        "city": "Львів",
+        "category": "Ветеринари та ветеринарні клініки",
+        "profile_url": "https://mydovira.com/profiles/praid-veterinarna-klinika-2",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Смілянська, 25 / 1",
+            "phone": "(067) 737 28 45, (098) 110 01 18, (098) 110 01 19, (097) 701 08 09",
+            "type": "company",
+            "rating_avg": 3.54,
+            "reviews_count": 93
+        }
+    },
+    {
+        "profile_id": 9383,
+        "full_name": "Львівська міська державна дільнична ветеринарна лікарня №1",
+        "city": "Львів",
+        "category": "Ветеринари та ветеринарні клініки",
+        "profile_url": "https://mydovira.com/profiles/lvivska-miska-derzavna-likarnia-veterinarnoyi-medicini",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "проспект Академіка Курчатова, 8 / 1",
+            "phone": "(032) 25 22 72 4, (032) 23 32 20 0",
+            "type": "company",
+            "rating_avg": 3.12,
+            "reviews_count": 93
+        }
+    },
+    {
+        "profile_id": 9497,
+        "full_name": "Vip-сервіс, ветеринарна клініка",
+        "city": "Полтава",
+        "category": "Ветеринари та ветеринарні клініки",
+        "profile_url": "https://mydovira.com/profiles/vip-servis-veterinarna-klinika-2",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Панянка, 75",
+            "phone": "(099) 345 87 86",
+            "type": "company",
+            "rating_avg": 2.81,
+            "reviews_count": 93
+        }
+    }
+]

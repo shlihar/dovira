@@ -1,0 +1,152 @@
+[
+    {
+        "profile_id": 4069,
+        "full_name": "Центр-В, лікувально-діагностичний центр",
+        "city": "Вінниця",
+        "category": "Косметолог",
+        "profile_url": "https://mydovira.com/profiles/centr-v-likuvalno-diagnosticnii-centr",
+        "company_url": "https://centrv.com.ua",
+        "additional_identity_data": {
+            "address": "вул. Космонавтів, 53",
+            "phone": "(068) 103 11 03, (063) 103 11 03, (0432) 50 70 03, (0432) 50 70 04, (0432) 50 70 05",
+            "type": "company",
+            "rating_avg": 4.92,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 4078,
+        "full_name": "Aesculap, медцентр",
+        "city": "Житомир",
+        "category": "Косметолог",
+        "profile_url": "https://mydovira.com/profiles/aesculap-centr-esteticnoyi-kosmetologiyi",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Соборна, 91а",
+            "phone": "(073) 143 09 00, (095) 152 83 58",
+            "type": "company",
+            "rating_avg": 4.86,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 4088,
+        "full_name": "Meditrina, стоматологічна клініка",
+        "city": "Житомир",
+        "category": "Косметолог",
+        "profile_url": "https://mydovira.com/profiles/meditrina-stomatologicna-klinika",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Чуднівська, 113а",
+            "phone": "(067) 595 00 94, (073) 888 33 77",
+            "type": "company",
+            "rating_avg": 4.12,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 4095,
+        "full_name": "Медібор, медичний центр",
+        "city": "Житомир",
+        "category": "Косметолог",
+        "profile_url": "https://mydovira.com/profiles/medibor-medicnii-centr",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Велика Бердичівська, 47",
+            "phone": "(067) 509 97 33, (067) 411 96 67, (067) 299 73 48, (067) 411 44 36, (067) 299 73 53",
+            "type": "company",
+            "rating_avg": 4.4,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 5670,
+        "full_name": "Oxford Medical, медичний центр",
+        "city": "Тернопіль",
+        "category": "Косметолог",
+        "profile_url": "https://mydovira.com/profiles/oksford-medikal-medicnii-centr",
+        "company_url": "http://ternopil.oxford-med.com.ua",
+        "additional_identity_data": {
+            "address": "вул. Качали, 5",
+            "phone": "(068) 752 52 52",
+            "type": "company",
+            "rating_avg": 4.84,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 5740,
+        "full_name": "AVIDA, приватна клініка",
+        "city": "Тернопіль",
+        "category": "Косметолог",
+        "profile_url": "https://mydovira.com/profiles/avida-privatna-klinika",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Петлюри, 1А/4 пов.",
+            "phone": "(097) 703 73 03",
+            "type": "company",
+            "rating_avg": 4.86,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 5750,
+        "full_name": "Профімед-VG, медичний центр",
+        "city": "Тернопіль",
+        "category": "Косметолог",
+        "profile_url": "https://mydovira.com/profiles/profimed-vg-medicnii-centr",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Брюкнера, 3",
+            "phone": "(067) 900 92 92, (0352) 42 28 92",
+            "type": "company",
+            "rating_avg": 4.8,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 5786,
+        "full_name": "Лазерхауз, центр лазерної епіляції та косметології",
+        "city": "Тернопіль",
+        "category": "Косметолог",
+        "profile_url": "https://mydovira.com/profiles/lazerxauz-centr-lazernoyi-epiliaciyi-ta-kosmetologiyi-2",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Героїв Євромайдану, 9",
+            "phone": "(093) 177 16 27",
+            "type": "company",
+            "rating_avg": 4.72,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 5798,
+        "full_name": "Лорімед, медичний центр",
+        "city": "Тернопіль",
+        "category": "Косметолог",
+        "profile_url": "https://mydovira.com/profiles/lorimed-medicnii-centr",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Генерала Тарнавського, 2а",
+            "phone": "(098) 040 40 90, (097) 040 40 90",
+            "type": "company",
+            "rating_avg": 4.72,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 7078,
+        "full_name": "Марія kids, дитячий медичний центр",
+        "city": "Хмельницький",
+        "category": "Косметолог",
+        "profile_url": "https://mydovira.com/profiles/mariia-medicnii-centr",
+        "company_url": "http://medcenter-maria.com",
+        "additional_identity_data": {
+            "address": "вул. Степана Бандери, 49/1",
+            "phone": "(067) 400 09 91, (067) 400 09 92, (067) 004 47 74, (067) 004 47 75, (067) 380 55 99",
+            "type": "company",
+            "rating_avg": 4.66,
+            "reviews_count": 100
+        }
+    }
+]

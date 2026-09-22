@@ -1,0 +1,152 @@
+[
+    {
+        "profile_id": 4224,
+        "full_name": "Gold Laser, косметологічний центр",
+        "city": "Київ",
+        "category": "Косметологічні клініки",
+        "profile_url": "https://mydovira.com/profiles/gold-laser-kosmetologicnii-centr",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Павла Скоропадського, 9а",
+            "phone": "(067) 235 71 96, (044) 33 81 28 9",
+            "type": "company",
+            "rating_avg": 4.69,
+            "reviews_count": 86
+        }
+    },
+    {
+        "profile_id": 4380,
+        "full_name": "Аура, косметологічний центр",
+        "city": "Київ",
+        "category": "Косметологічні клініки",
+        "profile_url": "https://mydovira.com/profiles/aura-klinika-lazernoyi-medicini",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "проспект Голосіївський, 27",
+            "phone": "(050) 409 55 67, (095) 412 77 66",
+            "type": "company",
+            "rating_avg": 3.63,
+            "reviews_count": 86
+        }
+    },
+    {
+        "profile_id": 4477,
+        "full_name": "Farmoza, медичний центр",
+        "city": "Вінниця",
+        "category": "Косметологічні клініки",
+        "profile_url": "https://mydovira.com/profiles/farmoza-medicnii-centr",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Зодчих, 18",
+            "phone": "(098) 538 56 10, (063) 155 58 88",
+            "type": "company",
+            "rating_avg": 4.63,
+            "reviews_count": 86
+        }
+    },
+    {
+        "profile_id": 7077,
+        "full_name": "Patlazhan Clinic, клініка пластичної хірургії",
+        "city": "Одеса",
+        "category": "Косметологічні клініки",
+        "profile_url": "https://mydovira.com/profiles/patlazhan-clinic-klinika-plasticnoyi-xirurgiyi",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Хрестовий перевулок, 31 / 3",
+            "phone": "(097) 772 57 77",
+            "type": "company",
+            "rating_avg": 4.62,
+            "reviews_count": 85
+        }
+    },
+    {
+        "profile_id": 4035,
+        "full_name": "Beauty Care, салон краси та масажу",
+        "city": "Вінниця",
+        "category": "Косметологічні клініки",
+        "profile_url": "https://mydovira.com/profiles/beauty-care-salon-krasi-ta-masazu",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "вул. Академіка Янгеля, 6к",
+            "phone": "(097) 801 40 92",
+            "type": "company",
+            "rating_avg": 4.99,
+            "reviews_count": 84
+        }
+    },
+    {
+        "profile_id": 4445,
+        "full_name": "Фантазія, косметичний центр",
+        "city": "Вінниця",
+        "category": "Косметологічні клініки",
+        "profile_url": "https://mydovira.com/profiles/fantaziia-kosmeticnii-centr",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Пирогова, 93",
+            "phone": "(096) 603 21 59",
+            "type": "company",
+            "rating_avg": 4.75,
+            "reviews_count": 84
+        }
+    },
+    {
+        "profile_id": 4154,
+        "full_name": "Certus, центр естетичної медицини та стоматології",
+        "city": "Київ",
+        "category": "Косметологічні клініки",
+        "profile_url": "https://mydovira.com/profiles/certus-centr-esteticnoyi-medicini-ta-stomatologiyi",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Чорних Запорожців, 26",
+            "phone": "(0443) 33 70 10",
+            "type": "company",
+            "rating_avg": 4.7,
+            "reviews_count": 83
+        }
+    },
+    {
+        "profile_id": 8849,
+        "full_name": "Ренесанс Медікал, центр лазерної косметології",
+        "city": "Одеса",
+        "category": "Косметологічні клініки",
+        "profile_url": "https://mydovira.com/profiles/renesans-medikal-centr-lazernoyi-kosmetologiyi",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Фонтанська дорога, 31",
+            "phone": "(098) 718 90 00, (048) 71 89 00 0",
+            "type": "company",
+            "rating_avg": 3.99,
+            "reviews_count": 82
+        }
+    },
+    {
+        "profile_id": 1429,
+        "full_name": "911 clinic aesthetic, косметологічний центр",
+        "city": "Харків",
+        "category": "Косметологічні клініки",
+        "profile_url": "https://mydovira.com/profiles/bona-lex",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Серпова, 45294",
+            "phone": "+38 099 452 83 38",
+            "type": "company",
+            "rating_avg": 4.95,
+            "reviews_count": 81
+        }
+    },
+    {
+        "profile_id": 4051,
+        "full_name": "Tyagun Med Cosmetology, центр медичної косметології",
+        "city": "Вінниця",
+        "category": "Косметологічні клініки",
+        "profile_url": "https://mydovira.com/profiles/tyagun-med-cosmetology-centr-medicnoyi-kosmetologiyi",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Родіона Скалецького, 38-А",
+            "phone": "(073) 127 17 17",
+            "type": "company",
+            "rating_avg": 4.98,
+            "reviews_count": 81
+        }
+    }
+]

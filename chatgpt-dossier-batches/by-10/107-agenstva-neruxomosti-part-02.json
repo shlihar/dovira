@@ -1,0 +1,152 @@
+[
+    {
+        "profile_id": 11879,
+        "full_name": "ВІСОН, агенція нерухомості",
+        "city": "Тернопіль",
+        "category": "Агенства нерухомості",
+        "profile_url": "https://mydovira.com/profiles/vison-agenciia-neruxomosti",
+        "company_url": "https://vison.te.ua",
+        "additional_identity_data": {
+            "address": "вул. Торговиця, 15б/5 пов.",
+            "phone": "(067) 470 57 87, (067) 217 40 70",
+            "type": "company",
+            "rating_avg": 4.96,
+            "reviews_count": 91
+        }
+    },
+    {
+        "profile_id": 12024,
+        "full_name": "X-Estate, агентство нерухомості",
+        "city": "Харків",
+        "category": "Агенства нерухомості",
+        "profile_url": "https://mydovira.com/profiles/x-estate-agentstvo-neruxomosti-4",
+        "company_url": "https://www.x-estate.com",
+        "additional_identity_data": {
+            "address": "вул. Пушкінська, 92",
+            "phone": "(066) 004 11 73",
+            "type": "company",
+            "rating_avg": 4.82,
+            "reviews_count": 91
+        }
+    },
+    {
+        "profile_id": 12029,
+        "full_name": "Мегаполіс, агентство нерухомості",
+        "city": "Харків",
+        "category": "Агенства нерухомості",
+        "profile_url": "https://mydovira.com/profiles/megapolis-agentstvo-neruxomosti-4",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Науки, 58",
+            "phone": "(050) 552 53 42, (093) 944 23 57, (067) 571 93 91",
+            "type": "company",
+            "rating_avg": 4.96,
+            "reviews_count": 91
+        }
+    },
+    {
+        "profile_id": 12285,
+        "full_name": "1000 варіантів, агентство нерухомості",
+        "city": "Черкаси",
+        "category": "Агенства нерухомості",
+        "profile_url": "https://mydovira.com/profiles/1000-variantiv-agentstvo-neruxomosti",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Небесної Сотні, 31",
+            "phone": "(047) 25 05 22 9, (067) 967 42 18, (098) 061 06 47, (095) 816 13 03",
+            "type": "company",
+            "rating_avg": 4.97,
+            "reviews_count": 91
+        }
+    },
+    {
+        "profile_id": 10090,
+        "full_name": "Дельта-С, агентство нерухомості",
+        "city": "Вінниця",
+        "category": "Агенства нерухомості",
+        "profile_url": "https://mydovira.com/profiles/element-agentstvo-neruxomosti",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "вулиця Пирогова, 23А",
+            "phone": "(067) 667 20 10",
+            "type": "company",
+            "rating_avg": 5,
+            "reviews_count": 90
+        }
+    },
+    {
+        "profile_id": 10293,
+        "full_name": "Kvadratgroup, ріелторська компанія",
+        "city": "Дніпро",
+        "category": "Агенства нерухомості",
+        "profile_url": "https://mydovira.com/profiles/kvadratgroup-rieltorska-kompaniia",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "проспект Дмитра Яворницького, 45",
+            "phone": "(097) 089 10 10, (098) 650 65 33, (067) 634 03 84, (066) 419 58 76",
+            "type": "company",
+            "rating_avg": 4.88,
+            "reviews_count": 90
+        }
+    },
+    {
+        "profile_id": 10724,
+        "full_name": "Агентство нерухомості Містечко",
+        "city": "Кривий Ріг",
+        "category": "Агенства нерухомості",
+        "profile_url": "https://mydovira.com/profiles/krivorizkii-prospekt-agentstvo-neruxomosti",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "проспект Металургів, 38/13",
+            "phone": "(097) 921 11 15, (097) 257 00 03",
+            "type": "company",
+            "rating_avg": 4.9,
+            "reviews_count": 90
+        }
+    },
+    {
+        "profile_id": 10837,
+        "full_name": "Нові горизонти, агентство з оренди офісних приміщень",
+        "city": "Луцьк",
+        "category": "Агенства нерухомості",
+        "profile_url": "https://mydovira.com/profiles/atlanta-agentstvo-neruxomosti-3",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "проспект Грушевського, 30, 3 поверх",
+            "phone": "(068) 339 72 10, (099) 450 69 79, (067) 450 69 79",
+            "type": "company",
+            "rating_avg": 5,
+            "reviews_count": 90
+        }
+    },
+    {
+        "profile_id": 10877,
+        "full_name": "Xhouse, агентство нерухомості",
+        "city": "Львів",
+        "category": "Агенства нерухомості",
+        "profile_url": "https://mydovira.com/profiles/xhouse-agentstvo-neruxomosti",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "проспект Чорновола, 3 / 3",
+            "phone": "(067) 811 47 77",
+            "type": "company",
+            "rating_avg": 4.81,
+            "reviews_count": 90
+        }
+    },
+    {
+        "profile_id": 11285,
+        "full_name": "Dobovo, агентство нерухомості",
+        "city": "Київ",
+        "category": "Агенства нерухомості",
+        "profile_url": "https://mydovira.com/profiles/dobovo-agentstvo-neruxomosti",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "вулиця Басейна, 19",
+            "phone": "(067) 122 55 11, (044) 22 15 51 1",
+            "type": "company",
+            "rating_avg": 4.91,
+            "reviews_count": 90
+        }
+    }
+]

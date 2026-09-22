@@ -21,6 +21,9 @@ return Application::configure(basePath: dirname(__DIR__))
         // X-Forwarded-For, which silently broke per-IP rate limiting and the
         // IP-based city detection on the home page (both saw one shared IP).
         $middleware->trustProxies(at: '*');
+        // Перед усім іншим: http → https одним 301, щоб Google бачив один
+        // сайт замість двох (див. ForceHttps).
+        $middleware->prepend(\App\Http\Middleware\ForceHttps::class);
         $middleware->append(\App\Http\Middleware\SecurityHeaders::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

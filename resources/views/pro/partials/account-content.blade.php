@@ -1,6 +1,6 @@
     @php
         $statusMessages = [
-            'claim-submitted' => 'Заявку на прив’язку профілю відправлено. Після підтвердження він з’явиться у вашому PRO-кабінеті.',
+            'claim-submitted' => 'Заявку на прив’язку профілю відправлено. Профіль уже публічний на Dovira; після перевірки прав ви зможете оформити підписку на керування.',
             'claim-updated' => 'Заявку оновлено й повторно відправлено на розгляд.',
             'claim-already-owned' => 'Цей профіль уже прив’язаний до вашого акаунта.',
             'pro-profile-created' => 'Профіль створено як чернетку. Активуйте PRO-підписку, щоб заповнити дані й опублікувати сторінку.',
@@ -11,6 +11,8 @@
             'pro-billing-renewed' => 'PRO-підписку оновлено.',
             'pro-billing-canceled' => 'PRO-підписку вимкнено.',
             'pro-billing-already-inactive' => 'Для цього профілю вже немає активної підписки.',
+            'pro-auto-renew-on' => 'Автопродовження увімкнено: наступний період спишеться автоматично.',
+            'pro-auto-renew-off' => 'Автопродовження вимкнено. Підписка діє до кінця сплаченого періоду.',
         ];
         $tabTitle = match ($tab) {
             'profile' => 'Профіль',
@@ -232,6 +234,12 @@
             ],
         ];
         $analyticsTotalClicks = (int) data_get($analytics ?? [], 'contact_clicks', 0) + (int) data_get($analytics ?? [], 'website_clicks', 0);
+        // Головна цифра підписки: скільки разів картку показали саме на платних
+        // позиціях каталогу. Це прямий результат оплати, тому картку бачать
+        // лише підписники — у решти вона завжди нульова.
+        $promotedImpressions = (int) data_get($analytics ?? [], 'metrics.promoted_impressions.current', 0);
+        $showsPromotedMetric = (bool) $currentProfile?->hasActiveProSubscription();
+        /** @var array<int, array<string, mixed>> $analyticsMetricCards */
         $analyticsMetricCards = [
             [
                 'icon' => 'fa-regular fa-eye',
@@ -239,6 +247,24 @@
                 'value' => number_format((int) data_get($analytics ?? [], 'metrics.views.current', 0), 0, '.', ' '),
                 'label' => 'Перегляди профілю',
                 'trend' => $trendDisplays['views'] ?? null,
+            ],
+            [
+                'icon' => 'fa-regular fa-rectangle-list',
+                'tone' => 'blue',
+                'value' => number_format((int) data_get($analytics ?? [], 'metrics.impressions.current', 0), 0, '.', ' '),
+                'label' => 'Покази картки',
+                'trend' => $trendDisplays['impressions'] ?? null,
+            ],
+            [
+                'icon' => 'fa-solid fa-arrow-up-wide-short',
+                'tone' => 'gold',
+                'value' => number_format($promotedImpressions, 0, '.', ' '),
+                'label' => 'Показів на платних позиціях',
+                'trend' => $promotedImpressions > 0 ? ($trendDisplays['promoted_impressions'] ?? null) : null,
+                // Окремий лічильник запущено 22.09.2026 — поки цифра нульова,
+                // пояснюємо це, щоб нуль не читався як «підписка не працює».
+                'hint' => $promotedImpressions > 0 ? null : 'Рахуємо з 22.09.2026',
+                'only_pro' => true,
             ],
             [
                 'icon' => 'fa-solid fa-phone',
@@ -270,6 +296,12 @@
                 'suffix' => '/5',
             ],
         ];
+        if (! $showsPromotedMetric) {
+            $analyticsMetricCards = array_values(array_filter(
+                $analyticsMetricCards,
+                static fn (array $metric): bool => empty($metric['only_pro'])
+            ));
+        }
         $analyticsSources = collect($sources ?? [])->values();
         $analyticsSourcesTotal = (int) $analyticsSources->sum('value');
         // Пункти заповнення — лише те, що власник заповнює редагуванням
@@ -308,9 +340,30 @@
         $subscriptionEndingSoon = $subscriptionIsActive && $daysToSubscriptionEnd !== null && $daysToSubscriptionEnd <= 14;
         $prioritySearchEnabled = $subscriptionIsActive && $hasPublishedProfile;
         $configuredProAmount = (int) config('payments.pro.amount');
-        $currentProPriceDisplay = $configuredProAmount === \App\Support\ProPricing::CURRENT_AMOUNT
-            ? \App\Support\ProPricing::formatDisplay(\App\Support\ProPricing::DISPLAY_CURRENT)
-            : \App\Support\ProPricing::formatAmount($configuredProAmount);
+        $currentProDiscount = $currentProfile
+            ? \App\Support\ProDiscount::price($currentProfile, $configuredProAmount)
+            : \App\Support\ProDiscount::price(new \App\Models\Profile, $configuredProAmount);
+        $currentProDisplayDiscount = $currentProfile
+            ? \App\Support\ProDiscount::price($currentProfile, \App\Support\ProPricing::DISPLAY_CURRENT)
+            : \App\Support\ProDiscount::price(new \App\Models\Profile, \App\Support\ProPricing::DISPLAY_CURRENT);
+        $currentProBasePriceDisplay = \App\Support\ProPricing::formatDisplay(\App\Support\ProPricing::DISPLAY_CURRENT);
+        $currentProPriceDisplay = \App\Support\ProPricing::formatDisplay((int) $currentProDisplayDiscount['amount']);
+        $showProUpgradePopup = $currentProfile && $hasOwnerVerification && ! $subscriptionIsActive;
+
+        // «Цифри, що продають» для CTA підписки: показуємо лише коли їх
+        // достатньо (правило: PRO пропонуємо, коли цифри говорять самі) —
+        // інакше CTA лишається без цифрового рядка.
+        $sellViews = (int) data_get($analytics ?? [], 'metrics.views.current', 0);
+        $sellSeen = $sellViews + (int) data_get($analytics ?? [], 'metrics.impressions.current', 0);
+        $sellClicks = (int) data_get($analytics ?? [], 'metrics.contact_clicks.current', 0)
+            + (int) data_get($analytics ?? [], 'metrics.website_clicks.current', 0);
+        $sellPeriodLabel = mb_strtolower((string) data_get($analytics ?? [], 'period.short_label', 'за 30 днів'));
+        $sellNumbersLine = $sellSeen >= 20
+            ? ('Вас побачили ' . number_format($sellSeen, 0, '.', ' ') . ' разів ' . $sellPeriodLabel
+                . ', ' . number_format($sellViews, 0, '.', ' ') . ' відкрили профіль'
+                . ($sellClicks > 0 ? ', ' . number_format($sellClicks, 0, '.', ' ') . ' натиснули контакти чи сайт' : '')
+                . '.')
+            : null;
 
         $subscriptionSummary = [
             'title' => 'Підписка активна',
@@ -377,7 +430,7 @@
                 'subtext' => 'на основі ' . (int) ($publishedReviewsCount ?? 0) . ' відгуків',
             ],
         ];
-        if (! $canManageReviewModeration) {
+        if (! ($canViewAnalytics ?? false)) {
             $overviewMetricCards = collect($overviewMetricCards)
                 ->reject(fn ($metric) => in_array($metric['label'], ['Перегляди профілю', 'Кліки на контакти'], true))
                 ->values()
@@ -467,6 +520,53 @@
     @endphp
 
     <section class="account-shell section" data-pro-account-shell data-pro-account-livewire="1" data-pro-initial-tab="{{ $tab }}">
+        @if ($showProUpgradePopup)
+            <div
+                class="pro-upgrade-popup"
+                data-pro-upgrade-popup
+                data-profile-id="{{ $currentProfile->id }}"
+                hidden
+            >
+                <div class="pro-upgrade-popup__backdrop" data-pro-upgrade-popup-close></div>
+                <section class="pro-upgrade-popup__dialog" role="dialog" aria-modal="true" aria-labelledby="pro-upgrade-popup-title">
+                    <button type="button" class="pro-upgrade-popup__close" data-pro-upgrade-popup-close aria-label="Закрити">
+                        <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+                    </button>
+                    <span class="pro-upgrade-popup__badge">Профіль підтверджено</span>
+                    @if ($sellNumbersLine)
+                        <h2 id="pro-upgrade-popup-title">{{ $sellNumbersLine }}</h2>
+                        <p>
+                            Ці люди вже дивляться ваш профіль — але керування ще закрите: заявки без контактів,
+                            офіційні відповіді на відгуки недоступні, сторінку не відредагувати.
+                        </p>
+                    @else
+                        <h2 id="pro-upgrade-popup-title">Без підписки профіль не працює на повну</h2>
+                        <p>
+                            Ви вже підтвердили права. Тепер профіль ваш, але повне керування ще закрите:
+                            заявки без контактів, офіційні відповіді на відгуки недоступні, сторінку не відредагувати.
+                        </p>
+                    @endif
+                    <p>
+                        {{ \App\Support\ProPricing::launchCohortPriceLine() }} {{ \App\Support\ProPricing::launchCohortLockLine() }}
+                        {{ \App\Support\ProPricing::launchCohortCounterLine() }}
+                    </p>
+                    <ul>
+                        <li>Відкрийте контакти клієнтів у заявках і детальну аналітику.</li>
+                        <li>Додайте послуги, ціни та фото — профіль стане вітриною.</li>
+                        <li>Відповідайте на відгуки від імені компанії.</li>
+                        <li>Розмістіть бейдж DOVIRA на сайті або в соцмережах і отримайте знижку 20%.</li>
+                    </ul>
+                    <div class="pro-upgrade-popup__actions">
+                        <a class="btn btn--primary" href="{{ route('pro.account.billing.pay', $currentProfile) }}">
+                            <span>Оформити підписку зараз</span>
+                            <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                        </a>
+                        <button type="button" class="btn btn--ghost" data-pro-upgrade-popup-close>Пізніше</button>
+                    </div>
+                </section>
+            </div>
+        @endif
+
         <div class="container account-layout">
             <div class="pro-account-breadcrumbs" data-pro-tab-visible="overview,reviews,analytics,notifications,billing,claims" @if ($tab === 'profile') hidden @endif>
                     <a href="{{ route('pro.account') }}">PRO кабінет</a>
@@ -487,14 +587,17 @@
                         <p class="pro-account-selector__label">Ваші профілі</p>
                         <div class="pro-account-selector__list">
                             @foreach ($ownedProfiles as $profileOption)
-                                <button
-                                    type="button"
+                                {{-- Посилання на ?profile={id} (той самий патерн, що на
+                                     мобільному) — перемикання на mount через #[Url], без
+                                     залежності від wire:click. --}}
+                                <a
                                     class="pro-account-selector__item {{ $currentProfile && $currentProfile->id === $profileOption->id ? 'is-active' : '' }}"
-                                    wire:click="selectProfile({{ $profileOption->id }})"
+                                    @if ($currentProfile && $currentProfile->id === $profileOption->id) aria-current="true" @endif
+                                    href="{{ route('pro.account', ['profile' => $profileOption->id, 'tab' => $tab]) }}"
                                 >
                                     <strong>{{ $profileOption->name }}</strong>
                                     <small>{{ $profileOption->city ?: ($profileOption->region?->name ?: 'Без локації') }}</small>
-                                </button>
+                                </a>
                             @endforeach
                         </div>
                     </div>
@@ -523,7 +626,7 @@
                                 @endif
                             </button>
                         @endif
-                        @if ($canManageReviewModeration)
+                        @if ($canViewAnalytics ?? false)
                             <button type="button" class="account-nav__item {{ $tab === 'analytics' ? 'is-active' : '' }}" data-pro-tab-trigger data-pro-tab-primary role="tab" data-pro-tab-target="analytics">
                                 <span class="account-nav__icon"><i class="fa-solid fa-chart-simple"></i></span>
                                 <span class="account-nav__text">Аналітика</span>
@@ -584,6 +687,48 @@
                     </button>
                     <p class="account-mobile-toolbar__title" data-pro-tab-title>{{ $tabTitle }}</p>
                 </div>
+
+                {{-- Перемикач профілів для мобільного: на телефоні бічний сайдбар
+                     із «Ваші профілі» недоступний (☰-меню приховано), тож коли
+                     профілів більше одного — показуємо компактний account-switcher.
+                     Розгортання нативне (<details>), вибір — той самий Livewire
+                     selectProfile(); після кліку компонент перерендериться і
+                     список згорнеться сам. --}}
+                @if ($hasMultipleOwnedProfiles)
+                    <details class="pro-mobile-switcher">
+                        <summary class="pro-mobile-switcher__toggle">
+                            <span class="pro-mobile-switcher__avatar" aria-hidden="true">{{ mb_strtoupper(mb_substr($currentProfile?->name ?: 'D', 0, 1)) }}</span>
+                            <span class="pro-mobile-switcher__meta">
+                                <small>Керуєте профілем</small>
+                                <strong>{{ $currentProfile?->name ?: 'Оберіть профіль' }}</strong>
+                            </span>
+                            <i class="fa-solid fa-chevron-down pro-mobile-switcher__chevron" aria-hidden="true"></i>
+                        </summary>
+                        <div class="pro-mobile-switcher__menu" role="listbox" aria-label="Ваші профілі">
+                            @foreach ($ownedProfiles as $profileOption)
+                                @php $isCurrentSwitcher = $currentProfile && $currentProfile->id === $profileOption->id; @endphp
+                                {{-- Звичайне посилання на ?profile={id}: selectedProfileId має
+                                     #[Url(as: 'profile')], тож перемикання відбувається на mount
+                                     без залежності від wire:click (надійно на мобільному). --}}
+                                <a
+                                    class="pro-mobile-switcher__option {{ $isCurrentSwitcher ? 'is-active' : '' }}"
+                                    role="option"
+                                    aria-selected="{{ $isCurrentSwitcher ? 'true' : 'false' }}"
+                                    href="{{ route('pro.account', ['profile' => $profileOption->id, 'tab' => $tab]) }}"
+                                >
+                                    <span class="pro-mobile-switcher__avatar" aria-hidden="true">{{ mb_strtoupper(mb_substr($profileOption->name ?: 'D', 0, 1)) }}</span>
+                                    <span class="pro-mobile-switcher__option-meta">
+                                        <strong>{{ $profileOption->name }}</strong>
+                                        <small>{{ $profileOption->city ?: ($profileOption->region?->name ?: 'Без локації') }}</small>
+                                    </span>
+                                    @if ($isCurrentSwitcher)
+                                        <i class="fa-solid fa-check pro-mobile-switcher__check" aria-hidden="true"></i>
+                                    @endif
+                                </a>
+                            @endforeach
+                        </div>
+                    </details>
+                @endif
 
                 @if (session('status') && isset($statusMessages[session('status')]))
                     <p class="account-alert account-alert--success">{{ $statusMessages[session('status')] }}</p>
@@ -843,7 +988,7 @@
                     </section>
 
                     <section class="pro-overview-bottom-grid">
-                        @if ($canManageReviewModeration)
+                        @if ($canViewAnalytics ?? false)
                         <section class="card pro-overview-card pro-overview-chart-card" id="overview-analytics" data-pro-overview-analytics data-profile-id="{{ $currentProfile->id }}">
                             <div class="pro-overview-card__head pro-overview-chart-head">
                                 <h2>Динаміка переглядів профілю</h2>
@@ -981,7 +1126,7 @@
                     </div>
                 @endif
 
-                @if ($currentProfile && $canManageReviewModeration)
+                @if ($currentProfile && ($canViewAnalytics ?? false))
                     <div class="pro-account-tab-stack" data-pro-tab-panel="analytics" @if ($tab !== 'analytics') hidden @endif>
                     <section class="pro-analytics-workspace" id="analytics-workspace">
                         {{-- Профільну шапку прибрано (дублювала огляд); лишаємо тільки
@@ -1013,7 +1158,9 @@
                                                 <span>{{ $metric['suffix'] }}</span>
                                             @endif
                                         </div>
-                                        @if (is_array($metric['trend'] ?? null))
+                                        @if (!empty($metric['hint']))
+                                            <small class="is-neutral">{{ $metric['hint'] }}</small>
+                                        @elseif (is_array($metric['trend'] ?? null))
                                             <small class="{{ ($metric['trend']['kind'] ?? null) === 'flat' ? 'is-neutral' : (($metric['trend']['is_up'] ?? true) ? 'is-positive' : 'is-negative') }}">
                                                 {{ $metric['trend']['value'] ?? '0' }}
                                                 <span>{{ $metric['trend']['detail'] ?? 'vs попер. період' }}</span>
@@ -1099,6 +1246,29 @@
                                         @endforelse
                                     </div>
                                 </div>
+
+                                @php
+                                    $impressionContexts = collect((array) data_get($analytics ?? [], 'impressions_by_context', []));
+                                    $impressionContextsTotal = (int) $impressionContexts->sum('value');
+                                @endphp
+                                @if ($impressionContextsTotal > 0)
+                                    {{-- Де саме бачили картку профілю (контексти показів) —
+                                         аргумент цінності PRO і бази під майбутню рекламу. --}}
+                                    <div class="pro-analytics-card__head" style="margin-top: 18px;">
+                                        <div>
+                                            <h2 style="font-size: 1rem;">Де вас бачили</h2>
+                                            <p>Покази картки профілю за період: {{ number_format($impressionContextsTotal, 0, '.', ' ') }}.</p>
+                                        </div>
+                                    </div>
+                                    <div class="pro-analytics-sources__list" style="margin-top: 6px;">
+                                        @foreach ($impressionContexts as $context)
+                                            <div class="pro-analytics-source-row" style="--source-share: {{ (int) round(($context['value'] ?? 0) / max(1, $impressionContextsTotal) * 100) }}%">
+                                                <span>{{ $context['label'] }}</span>
+                                                <strong>{{ (int) round(($context['value'] ?? 0) / max(1, $impressionContextsTotal) * 100) }}% <small>({{ (int) ($context['value'] ?? 0) }})</small></strong>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                @endif
                             </article>
 
                             <article class="card pro-analytics-card pro-analytics-actions-card">
@@ -1147,6 +1317,16 @@
                                 <p>Це звернення, які Dovira привела на ваш профіль. Передзвонюйте якнайшвидше — теплі ліди холонуть за години.</p>
                             </div>
 
+                            @php $leadStatusCounts = $leadsData['status_counts'] ?? ['new' => 0, 'in_progress' => 0, 'done' => 0]; @endphp
+                            @if (!empty($leadsData['items']))
+                                <div class="pro-leads-filters" data-lead-filters role="group" aria-label="Фільтр заявок за статусом">
+                                    <button type="button" class="pro-leads-filters__btn is-active" data-lead-filter="all">Всі <b>{{ (int) ($leadsData['total'] ?? 0) }}</b></button>
+                                    <button type="button" class="pro-leads-filters__btn" data-lead-filter="new">Нові <b data-lead-count="new">{{ $leadStatusCounts['new'] }}</b></button>
+                                    <button type="button" class="pro-leads-filters__btn" data-lead-filter="in_progress">В роботі <b data-lead-count="in_progress">{{ $leadStatusCounts['in_progress'] }}</b></button>
+                                    <button type="button" class="pro-leads-filters__btn" data-lead-filter="done">Завершені <b data-lead-count="done">{{ $leadStatusCounts['done'] }}</b></button>
+                                </div>
+                            @endif
+
                             @if (empty($leadsData['items']))
                                 <div class="card pro-leads-empty">
                                     <span class="pro-leads-empty__icon"><i class="fa-regular fa-comments" aria-hidden="true"></i></span>
@@ -1159,15 +1339,20 @@
                                         <span class="pro-leads-gate__icon"><i class="fa-solid fa-lock" aria-hidden="true"></i></span>
                                         <div>
                                             <strong>У вас {{ $leadsData['total'] }} {{ \Illuminate\Support\Str::plural('заявка', $leadsData['total']) }} — контакти приховані</strong>
-                                            <p>Підключіть PRO, щоб бачити імена й телефони клієнтів і передзвонювати їм.</p>
+                                            <p>Оформіть підписку, щоб бачити імена й телефони клієнтів і передзвонювати їм.</p>
                                         </div>
-                                        <a href="{{ route('pro.account', ['tab' => 'billing', 'profile' => $currentProfile->id]) }}" class="btn btn--primary account-btn--mini">Відкрити контакти з PRO</a>
+                                        <a href="{{ route('pro.account', ['tab' => 'billing', 'profile' => $currentProfile->id]) }}" class="btn btn--primary account-btn--mini">Оформити підписку</a>
                                     </div>
                                 @endunless
 
-                                <div class="pro-leads-list">
+                                <div class="pro-leads-list" data-lead-list>
                                     @foreach ($leadsData['items'] as $lead)
-                                        <article class="card pro-lead-item {{ $lead['is_read'] ? '' : 'is-unread' }} {{ $leadsData['is_pro'] ? '' : 'is-locked' }}">
+                                        <article
+                                            class="card pro-lead-item {{ $lead['is_read'] ? '' : 'is-unread' }} {{ $leadsData['is_pro'] ? '' : 'is-locked' }}"
+                                            data-lead-item
+                                            data-lead-id="{{ $lead['id'] }}"
+                                            data-lead-status="{{ $lead['status'] }}"
+                                        >
                                             <div class="pro-lead-item__main">
                                                 <div class="pro-lead-item__top">
                                                     <strong class="pro-lead-item__name">{{ $lead['name'] }}</strong>
@@ -1179,10 +1364,31 @@
                                                 @if (!empty($lead['message']))
                                                     <p class="pro-lead-item__message">{{ $lead['message'] }}</p>
                                                 @endif
+                                                @if ($leadsData['is_pro'])
+                                                    <div class="pro-lead-item__statuses" data-lead-status-url="{{ url('/pro/account/leads') }}/{{ $lead['id'] }}/status" role="group" aria-label="Статус заявки">
+                                                        <button type="button" class="pro-lead-status-btn pro-lead-status-btn--new {{ $lead['status'] === 'new' ? 'is-active' : '' }}" data-lead-set-status="new">Нова</button>
+                                                        <button type="button" class="pro-lead-status-btn pro-lead-status-btn--progress {{ $lead['status'] === 'in_progress' ? 'is-active' : '' }}" data-lead-set-status="in_progress">В роботі</button>
+                                                        <button type="button" class="pro-lead-status-btn pro-lead-status-btn--done {{ $lead['status'] === 'done' ? 'is-active' : '' }}" data-lead-set-status="done">Завершена</button>
+                                                    </div>
+                                                @endif
                                             </div>
                                         </article>
                                     @endforeach
                                 </div>
+
+                                <style>
+                                    .pro-leads-filters { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 14px; }
+                                    .pro-leads-filters__btn { display: inline-flex; align-items: center; gap: 7px; padding: 8px 14px; border: 1px solid var(--c-border, rgba(15,23,42,.12)); border-radius: 999px; background: var(--c-surface, #fff); color: var(--c-muted, #64748b); font: inherit; font-size: 13.5px; font-weight: 650; cursor: pointer; }
+                                    .pro-leads-filters__btn b { font-weight: 800; }
+                                    .pro-leads-filters__btn.is-active { border-color: var(--c-primary, #2563eb); background: #e8f0ff; color: var(--c-primary-dark, #1d4ed8); }
+                                    .pro-lead-item__statuses { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+                                    .pro-lead-status-btn { padding: 5px 12px; border: 1px solid var(--c-border, rgba(15,23,42,.14)); border-radius: 999px; background: transparent; color: var(--c-muted, #64748b); font: inherit; font-size: 12.5px; font-weight: 650; cursor: pointer; transition: background .12s ease, color .12s ease, border-color .12s ease; }
+                                    .pro-lead-status-btn[disabled] { opacity: .55; cursor: wait; }
+                                    .pro-lead-status-btn--new.is-active { background: #e8f0ff; border-color: rgba(37,99,235,.45); color: #1d4ed8; }
+                                    .pro-lead-status-btn--progress.is-active { background: #fdf3e0; border-color: rgba(217,145,26,.45); color: #b26a00; }
+                                    .pro-lead-status-btn--done.is-active { background: #e2f7ec; border-color: rgba(22,163,74,.4); color: #15803d; }
+                                    .pro-lead-item[data-lead-status="done"] { opacity: .72; }
+                                </style>
                             @endif
                         </section>
                     </div>
@@ -1233,6 +1439,32 @@
                                     </div>
                                 @endforeach
                             </form>
+
+                            @php
+                                $tgConnectUrl = \App\Services\Notifications\TelegramOwnerNotifier::connectUrl($user);
+                                $tgConnected = filled($user->telegram_notify_chat_id ?? null);
+                            @endphp
+                            @if ($tgConnectUrl)
+                                <div class="pro-notif__telegram" style="display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap; margin-top:16px; padding:14px 16px; border:1px solid {{ $tgConnected ? 'rgba(22,163,74,.35)' : 'rgba(34,158,217,.35)' }}; border-radius:14px; background: {{ $tgConnected ? '#f0fdf4' : '#f2fafd' }};">
+                                    <div style="display:flex; gap:11px; align-items:flex-start;">
+                                        <i class="fa-brands fa-telegram" aria-hidden="true" style="margin-top:3px; font-size:20px; color:#229ed9;"></i>
+                                        <div>
+                                            <strong style="display:block; font-size:14.5px;">{{ $tgConnected ? 'Telegram підключено' : 'Підключіть Telegram-бота' }}</strong>
+                                            <p style="margin:3px 0 0; font-size:13px; color:var(--c-muted, #64748b);">
+                                                {{ $tgConnected
+                                                    ? 'Нові заявки й відгуки приходять вам у Telegram. Вимкнути: /stop у боті або тумблер «Telegram» вище.'
+                                                    : 'Натисніть кнопку і надішліть боту /start — нові заявки й відгуки прилітатимуть миттєво.' }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    @unless ($tgConnected)
+                                        <a class="btn btn--primary account-btn--mini" href="{{ $tgConnectUrl }}" target="_blank" rel="noopener noreferrer" style="background:#229ed9;">
+                                            <i class="fa-brands fa-telegram" aria-hidden="true"></i>
+                                            <span>Підключити</span>
+                                        </a>
+                                    @endunless
+                                </div>
+                            @endif
                         </section>
 
                         <section class="card pro-notifications-card">
@@ -1293,7 +1525,15 @@
                         <div class="pro-billing-hero pro-billing-hero--compact" data-pro-billing-block="hero">
                             <div class="pro-billing-hero__titles">
                                 <h2>Оплата та білінг</h2>
-                                <p>Підключайте й продовжуйте PRO через підтверджену оплату monopay.</p>
+                                @if (! $billingIsActive && $sellNumbersLine)
+                                    <p><b>{{ $sellNumbersLine }}</b> Заберіть цих клієнтів собі — з PRO ви відповідаєте їм офіційно.</p>
+                                @else
+                                    <p>Підключайте й продовжуйте PRO через підтверджену оплату monopay.</p>
+                                @endif
+                                <p style="margin-top: 10px; color: #16a34a; font-size: 0.95rem; font-weight: 600;">
+                                    <i class="fa-solid fa-bolt" aria-hidden="true" style="margin-right: 6px;"></i>
+                                    {{ \App\Support\ProPricing::launchCohortTitle() }}: {{ \App\Support\ProPricing::formatDisplay(\App\Support\ProPricing::DISPLAY_CURRENT) }} за 6 місяців. Додатково −20% за розміщення бейджа DOVIRA.
+                                </p>
                             </div>
                             <div class="pro-billing-hero__eyebrow">
                                 <span class="pro-billing-pill is-info">Оплата онлайн</span>
@@ -1327,7 +1567,7 @@
                                     <h2>Тарифи PRO</h2>
                                     <span class="pro-plans__promo-note">
                                         <i class="fa-solid fa-bolt" aria-hidden="true"></i>
-                                        Стартова ціна — фіксується за вами назавжди
+                                        {{ \App\Support\ProPricing::formatDisplay(\App\Support\ProPricing::DISPLAY_CURRENT) }} за стартовою пропозицією — далі {{ \App\Support\ProPricing::formatDisplay(\App\Support\ProPricing::DISPLAY_FUTURE) }}
                                     </span>
                                 </div>
 
@@ -1359,25 +1599,34 @@
                                             <small data-pro-billing-current-badge @unless ($billingIsActive && $billingPlan === 'pro') hidden @endunless>Поточний</small>
                                         </div>
                                         <div class="pro-billing-plan__price">
-                                            @if ($configuredProAmount === \App\Support\ProPricing::CURRENT_AMOUNT)
-                                                <s class="pro-billing-plan__old-price">{{ \App\Support\ProPricing::formatDisplay(\App\Support\ProPricing::DISPLAY_FUTURE) }}</s>
+                                            @if (! $currentProDiscount['has_discount'] && $configuredProAmount === \App\Support\ProPricing::CURRENT_AMOUNT)
+                                                <s class="pro-billing-plan__old-price">{{ \App\Support\ProPricing::monthlyEquivalentDisplay(\App\Support\ProPricing::DISPLAY_FUTURE) }}</s>
+                                            @elseif ($currentProDiscount['has_discount'])
+                                                <s class="pro-billing-plan__old-price">{{ \App\Support\ProPricing::monthlyEquivalentDisplay(\App\Support\ProPricing::DISPLAY_CURRENT) }}</s>
                                             @endif
-                                            <strong>{{ $currentProPriceDisplay }}</strong>
-                                            <span>/ 6 місяців</span>
+                                            <strong>≈ {{ \App\Support\ProPricing::formatDisplay(\App\Support\ProPricing::monthlyEquivalent((int) $currentProDisplayDiscount['amount'])) }}</strong>
+                                            <span>/ місяць</span>
+                                            @if ($currentProDiscount['has_discount'])
+                                                <small>−{{ (int) $currentProDiscount['discount_percent'] }}%</small>
+                                            @endif
                                         </div>
+                                        <p class="pro-billing-plan__note">
+                                            {{ $currentProPriceDisplay }} раз на 6 місяців · підписка з автопродовженням, вимкнути можна будь-коли. Стартова ціна діє для першої когорти.
+                                        </p>
                                         <ul class="pro-billing-plan__features">
                                             <li>Пріоритет у каталозі й пошуку</li>
                                             <li>Публічні відповіді на відгуки</li>
                                             <li>Аналітика переглядів і контактних кліків</li>
                                             <li>Оскарження несправедливих відгуків</li>
+                                            <li>−20% за бейдж DOVIRA на сайті або в соцмережах</li>
                                         </ul>
                                         <div class="pro-billing-plan__actions">
                                             <form method="POST" action="{{ route('pro.account.billing.checkout', $currentProfile) }}" data-pro-billing-form data-pro-billing-action="checkout" data-pro-billing-plan-form data-plan="pro">
                                                 @csrf
                                                 <input type="hidden" name="plan" value="pro">
                                                 <input type="hidden" name="period" value="{{ \App\Support\ProPricing::PERIOD_KEY }}">
-                                                <button type="submit" class="btn {{ $billingIsActive && $billingPlan === 'pro' ? 'btn--ghost' : 'btn--primary' }} account-btn--mini" data-pro-billing-plan-button data-connect-label="Підключити PRO" data-switch-label="Продовжити PRO" data-active-label="Активний зараз">
-                                                    <span>{{ $billingIsActive && $billingPlan === 'pro' ? 'Продовжити на 6 місяців' : 'Підключити PRO' }}</span>
+                                                <button type="submit" class="btn {{ $billingIsActive && $billingPlan === 'pro' ? 'btn--ghost' : 'btn--primary' }} account-btn--mini" data-pro-billing-plan-button data-connect-label="Оформити підписку" data-switch-label="Продовжити підписку" data-active-label="Активний зараз">
+                                                    <span>{{ $billingIsActive && $billingPlan === 'pro' ? 'Продовжити на 6 місяців' : 'Оформити підписку' }}</span>
                                                 </button>
                                             </form>
                                         </div>
@@ -1386,14 +1635,36 @@
                                 </div>
 
                                 @if ($billingSummary['can_cancel'] ?? false)
-                                    <div class="pro-plans__foot">
-                                        <span>Підписка діє до {{ $billingSummary['ended_label'] ?? '—' }}</span>
-                                        <form method="POST" action="{{ route('pro.account.billing.cancel', $currentProfile) }}" data-pro-billing-form data-pro-billing-action="cancel">
-                                            @csrf
-                                            <button type="submit" class="pro-plans__cancel">
-                                                <span>Скасувати підписку</span>
-                                            </button>
-                                        </form>
+                                    @php
+                                        $autoRenewOn = (bool) ($latestSubscription?->auto_renew ?? false);
+                                        $autoRenewPossible = filled($latestSubscription?->monopay_card_token);
+                                    @endphp
+                                    <div class="pro-plans__foot" style="flex-wrap: wrap; gap: 10px;">
+                                        <span>
+                                            Підписка діє до {{ $billingSummary['ended_label'] ?? '—' }}
+                                            @if ($autoRenewOn)
+                                                · автопродовження <b style="color:#16a34a;">увімкнено</b> — наступне списання {{ $latestSubscription?->ends_at?->translatedFormat('d F Y') ?? '—' }}, {{ \App\Support\ProPricing::formatAmount((int) ($latestSubscription?->price_monthly ?: \App\Support\ProPricing::CURRENT_AMOUNT)) }}
+                                            @else
+                                                · автопродовження вимкнено
+                                            @endif
+                                        </span>
+                                        <span style="display:inline-flex; gap:14px; align-items:center;">
+                                            @if ($autoRenewOn || $autoRenewPossible)
+                                                <form method="POST" action="{{ route('pro.account.billing.auto-renew', $currentProfile) }}">
+                                                    @csrf
+                                                    <input type="hidden" name="enabled" value="{{ $autoRenewOn ? 0 : 1 }}">
+                                                    <button type="submit" class="pro-plans__cancel">
+                                                        <span>{{ $autoRenewOn ? 'Вимкнути автопродовження' : 'Увімкнути автопродовження' }}</span>
+                                                    </button>
+                                                </form>
+                                            @endif
+                                            <form method="POST" action="{{ route('pro.account.billing.cancel', $currentProfile) }}" data-pro-billing-form data-pro-billing-action="cancel">
+                                                @csrf
+                                                <button type="submit" class="pro-plans__cancel">
+                                                    <span>Скасувати підписку</span>
+                                                </button>
+                                            </form>
+                                        </span>
                                     </div>
                                 @endif
                             </article>
@@ -1446,17 +1717,11 @@
 
                 @if ($currentProfile)
                     <div class="pro-account-tab-stack" data-pro-tab-panel="profile" @if ($tab !== 'profile') hidden @endif>
-                    {{-- Редагування профілю і досьє — лише з активною PRO-підпискою. --}}
-                    @if (! $canManageReviewModeration)
-                        <div class="card pro-leads-gate">
-                            <span class="pro-leads-gate__icon"><i class="fa-solid fa-lock" aria-hidden="true"></i></span>
-                            <div>
-                                <strong>Редагування профілю доступне з PRO</strong>
-                                <p>Опис, послуги, контакти, фото і досьє відкриються після активації підписки.</p>
-                            </div>
-                            <a href="{{ route('pro.account.billing.pay', $currentProfile) }}" class="btn btn--primary account-btn--mini">Активувати PRO</a>
-                        </div>
-                    @else
+                    {{-- Повне редагування профілю (фото, послуги, контакти, опис,
+                         досьє, SEO, публікація) — лише з PRO. Без підписки власник
+                         змінює тільки назву (гілка @else нижче). Аналітику видно
+                         безкоштовно на вкладці «Огляд». --}}
+                    @if ($canEditFullProfile ?? false)
                     <section class="pro-profile-editor">
                         <div class="pro-profile-editor__hero">
                             <div class="pro-profile-editor__hero-copy">
@@ -1548,11 +1813,144 @@
                                                 <textarea name="description" rows="5" placeholder="Детальніше про послуги, підхід до роботи, досвід та сильні сторони профілю.">{{ $descriptionEditValue }}</textarea>
                                             </label>
 
-                                            <label class="pro-profile-reference-field pro-profile-reference-field--wide">
-                                                <span>Досьє профілю</span>
-                                                <textarea name="dossier" rows="8" placeholder="Розгорнуте досьє про вашу практику. Підтримує markdown: **жирний**, списки, заголовки.">{{ old('dossier', $currentProfile->dossier) }}</textarea>
-                                                <span class="pro-profile-field-meta">Показується на публічній сторінці в блоці «Досьє». Після вашого редагування відвідувачі бачитимуть позначку «Відредаговано власником профілю».</span>
-                                            </label>
+                                            {{-- Textarea досьє прибрано свідомо: досьє (факти з відкритих
+                                                 джерел) веде команда, бізнес його не редагує — бачить
+                                                 превʼю нижче і може подати запит на перегляд. --}}
+                                            @php
+                                                $openDossierRevision = \App\Models\DossierRevisionRequest::query()
+                                                    ->where('profile_id', $currentProfile->id)
+                                                    ->whereIn('status', \App\Models\DossierRevisionRequest::OPEN_STATUSES)
+                                                    ->latest('id')
+                                                    ->first();
+
+                                                // Превʼю досьє: той самий рендер, що на публічній сторінці.
+                                                $cabinetDossierRaw = trim((string) ($currentProfile->dossier ?? ''));
+                                                $cabinetDossierHtml = '';
+                                                if ($cabinetDossierRaw !== '') {
+                                                    try {
+                                                        $cabinetDossierHtml = (string) \Illuminate\Support\Str::markdown($cabinetDossierRaw, [
+                                                            'html_input' => 'strip',
+                                                            'allow_unsafe_links' => false,
+                                                            'max_nesting_level' => 6,
+                                                        ]);
+                                                        $cabinetDossierHtml = preg_replace(
+                                                            ['/<blockquote>\s*<p>\s*🔴\s*/u', '/<blockquote>\s*<p>\s*⚠️?\s*/u', '/<blockquote>\s*<p>\s*✅\s*/u'],
+                                                            [
+                                                                '<blockquote class="dossier-callout dossier-callout--critical"><p>',
+                                                                '<blockquote class="dossier-callout dossier-callout--warning"><p>',
+                                                                '<blockquote class="dossier-callout dossier-callout--positive"><p>',
+                                                            ],
+                                                            $cabinetDossierHtml
+                                                        );
+                                                    } catch (\Throwable $e) {
+                                                        $cabinetDossierHtml = '';
+                                                    }
+                                                }
+                                                $cabinetDossierVerdict = in_array($currentProfile->dossier_verdict, ['red', 'yellow', 'green'], true)
+                                                    ? $currentProfile->dossier_verdict
+                                                    : null;
+                                                $cabinetDossierVerdictMeta = [
+                                                    'red' => ['label' => 'Є критичні факти', 'bg' => '#fbe8e5', 'fg' => '#b3261e'],
+                                                    'yellow' => ['label' => 'Є що перевірити', 'bg' => '#f8eede', 'fg' => '#9a6a12'],
+                                                    'green' => ['label' => 'Записи чисті', 'bg' => '#e2f7ec', 'fg' => '#15803d'],
+                                                ];
+                                            @endphp
+                                            {{-- Досьє в кабінеті: превʼю (read-only, той самий рендер, що
+                                                 публічно) + запит на перегляд. Бізнес факти не редагує —
+                                                 описує, що неточне, а досьє переробляє команда. --}}
+                                            @if ($cabinetDossierHtml !== '')
+                                            <div class="pro-profile-reference-field pro-profile-reference-field--wide dossier-rev" data-dossier-revision data-dossier-revision-url="{{ route('pro.account.profiles.dossier-revision', $currentProfile) }}">
+                                                <style>
+                                                    .dossier-rev { padding: 0; border: 1px solid var(--c-border, rgba(15,23,42,.1)); border-radius: 16px; background: var(--c-surface, #fff); overflow: hidden; }
+                                                    .dossier-rev [hidden] { display: none !important; }
+                                                    .dossier-rev__head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 15px 18px; border-bottom: 1px solid var(--c-border, rgba(15,23,42,.08)); background: #f8fafd; }
+                                                    .dossier-rev__icon { flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 11px; background: #e8f0ff; color: var(--c-primary, #2563eb); }
+                                                    .dossier-rev__icon svg { width: 18px; height: 18px; }
+                                                    .dossier-rev__head b { font-size: .98rem; color: var(--c-heading, #1e293b); }
+                                                    .dossier-rev__verdict { display: inline-flex; align-items: center; padding: 3px 11px; border-radius: 999px; font-size: .76rem; font-weight: 750; }
+                                                    .dossier-rev__date { margin-left: auto; color: var(--c-muted, #94a3b8); font-size: .8rem; }
+                                                    .dossier-rev__body { position: relative; padding: 4px 18px 8px; color: var(--c-text, #334155); font-size: .92rem; line-height: 1.62; }
+                                                    .dossier-rev__body.is-collapsed { max-height: 250px; overflow: hidden; }
+                                                    .dossier-rev__body.is-collapsed::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 70px; background: linear-gradient(180deg, rgba(255,255,255,0), var(--c-surface, #fff)); pointer-events: none; }
+                                                    .dossier-rev__body h1, .dossier-rev__body h2, .dossier-rev__body h3 { font-size: 1rem; margin: 14px 0 6px; color: var(--c-heading, #1e293b); }
+                                                    .dossier-rev__body blockquote { margin: 10px 0; padding: 10px 14px; border-left: 4px solid var(--c-border, #cbd5e1); border-radius: 8px; background: #f6f8fc; }
+                                                    .dossier-rev__body blockquote p { margin: 0; }
+                                                    .dossier-rev__body .dossier-callout--critical { border-left-color: #dc2626; background: #fbe8e5; }
+                                                    .dossier-rev__body .dossier-callout--warning { border-left-color: #d97706; background: #f8eede; }
+                                                    .dossier-rev__body .dossier-callout--positive { border-left-color: #16a34a; background: #e2f7ec; }
+                                                    .dossier-rev__toggle { display: block; margin: 0 18px 6px; padding: 6px 0; border: 0; background: transparent; color: var(--c-primary, #2563eb); font: inherit; font-size: .88rem; font-weight: 700; cursor: pointer; }
+                                                    .dossier-rev__note { margin: 0 18px 12px; color: var(--c-muted, #94a3b8); font-size: .78rem; }
+                                                    .dossier-rev__foot { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; padding: 13px 18px; border-top: 1px solid var(--c-border, rgba(15,23,42,.08)); background: #f8fafd; }
+                                                    .dossier-rev__foot-text { min-width: 0; }
+                                                    .dossier-rev__foot-text b { display: block; font-size: .9rem; color: var(--c-heading, #1e293b); }
+                                                    .dossier-rev__foot-text p { margin: 1px 0 0; font-size: .82rem; color: var(--c-muted, #64748b); }
+                                                    .dossier-rev__open { flex: 0 0 auto; margin-left: auto; display: inline-flex; align-items: center; gap: 8px; padding: 9px 16px; border: 1.5px solid var(--c-primary, #2563eb); border-radius: 11px; background: var(--c-surface, #fff); color: var(--c-primary, #2563eb); font: inherit; font-size: .88rem; font-weight: 750; cursor: pointer; transition: background .12s ease, color .12s ease; }
+                                                    .dossier-rev__open:hover { background: var(--c-primary, #2563eb); color: #fff; }
+                                                    .dossier-rev__open svg { width: 14px; height: 14px; }
+                                                    .dossier-rev__form { padding: 14px 18px 16px; border-top: 1px solid var(--c-border, rgba(15,23,42,.08)); background: #f8fafd; }
+                                                    .dossier-rev__form textarea { width: 100%; box-sizing: border-box; }
+                                                    .dossier-rev__actions { display: flex; gap: 12px; align-items: center; margin-top: 10px; }
+                                                    .dossier-rev__cancel { border: 0; background: transparent; color: var(--c-muted, #64748b); font: inherit; font-size: .87rem; font-weight: 650; cursor: pointer; }
+                                                    .dossier-rev__cancel:hover { color: var(--c-heading, #1e293b); }
+                                                    .dossier-rev__sent { display: flex; gap: 10px; align-items: flex-start; margin: 0; padding: 13px 18px; border-top: 1px solid rgba(22,163,74,.25); background: #e2f7ec; color: #166534; font-size: .9rem; line-height: 1.5; }
+                                                    .dossier-rev__error { margin: 8px 0 0; color: #be123c; font-size: .86rem; }
+                                                </style>
+
+                                                <div class="dossier-rev__head">
+                                                    <span class="dossier-rev__icon" aria-hidden="true">
+                                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5 4.5 5.4v5.4c0 4.6 3.2 8.6 7.5 9.9 4.3-1.3 7.5-5.3 7.5-9.9V5.4L12 2.5Z"/><path d="m9 11.8 2.1 2.1 4-4.2"/></svg>
+                                                    </span>
+                                                    <b>Досьє профілю</b>
+                                                    @if ($cabinetDossierVerdict)
+                                                        <span class="dossier-rev__verdict" style="background: {{ $cabinetDossierVerdictMeta[$cabinetDossierVerdict]['bg'] }}; color: {{ $cabinetDossierVerdictMeta[$cabinetDossierVerdict]['fg'] }};">{{ $cabinetDossierVerdictMeta[$cabinetDossierVerdict]['label'] }}</span>
+                                                    @endif
+                                                    @if ($currentProfile->dossier_generated_at)
+                                                        <span class="dossier-rev__date">Оновлено {{ $currentProfile->dossier_generated_at->translatedFormat('d F Y') }}</span>
+                                                    @endif
+                                                </div>
+
+                                                <div class="dossier-rev__body is-collapsed" data-dossier-preview>{!! $cabinetDossierHtml !!}</div>
+                                                <button type="button" class="dossier-rev__toggle" data-dossier-preview-toggle>Показати повністю</button>
+                                                <p class="dossier-rev__note">Так досьє бачать відвідувачі публічної сторінки. Редагується воно лише командою Dovira.</p>
+
+                                                @if ($openDossierRevision)
+                                                    <div class="dossier-rev__foot">
+                                                        <div class="dossier-rev__foot-text">
+                                                            <b>Запит на перегляд досьє на розгляді</b>
+                                                            <p>Надіслано {{ $openDossierRevision->created_at->translatedFormat('d F Y') }} · {{ $openDossierRevision->status === \App\Models\DossierRevisionRequest::STATUS_IN_REVIEW ? 'вже в роботі' : 'очікує перевірки' }}. Про результат сповістимо в кабінеті.</p>
+                                                        </div>
+                                                    </div>
+                                                @else
+                                                    <div class="dossier-rev__foot" data-dossier-revision-intro>
+                                                        <div class="dossier-rev__foot-text">
+                                                            <b>Помітили неточність?</b>
+                                                            <p>Якщо факт застарів чи не відповідає дійсності — ми перевіримо за першоджерелами й оновимо.</p>
+                                                        </div>
+                                                        <button type="button" class="dossier-rev__open" data-dossier-revision-open>
+                                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                                                            <span>Повідомити про неточність</span>
+                                                        </button>
+                                                    </div>
+
+                                                    <div class="dossier-rev__form" data-dossier-revision-form hidden>
+                                                        <textarea rows="4" maxlength="3000" placeholder="Опишіть, що саме не відповідає дійсності: який факт, чому він неточний, як є насправді. Посилання на підтвердження пришвидшать перевірку." data-dossier-revision-message></textarea>
+                                                        <span class="pro-profile-field-meta">Ми перевіримо факти за першоджерелами й оновимо досьє. Про результат сповістимо в кабінеті.</span>
+                                                        <p class="dossier-rev__error" data-dossier-revision-error hidden></p>
+                                                        <div class="dossier-rev__actions">
+                                                            <button type="button" class="btn btn--primary account-btn--mini" data-dossier-revision-submit>
+                                                                <span data-dossier-revision-submit-label>Надіслати на перевірку</span>
+                                                            </button>
+                                                            <button type="button" class="dossier-rev__cancel" data-dossier-revision-cancel>Скасувати</button>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="dossier-rev__sent" data-dossier-revision-sent hidden>
+                                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex:0 0 auto; width:16px; height:16px; margin-top:2px;"><path d="m4.5 12.5 5 5 10-11"/></svg>
+                                                        <span>Запит надіслано. Ми перевіримо факти за першоджерелами — про результат сповістимо в кабінеті.</span>
+                                                    </div>
+                                                @endif
+                                            </div>
+                                            @endif
                                         </div>
                                     </div>
                                 </section>
@@ -1744,6 +2142,43 @@
                                                         </button>
                                                     </div>
                                                 </div>
+                                            </div>
+
+                                            @php
+                                                // Наявний прайс для JS-редактора: {назва: {type, price, price_max, description}}.
+                                                $servicePriceRows = ($currentProfile?->services ?? collect())
+                                                    ->mapWithKeys(fn ($svc) => [$svc->name => [
+                                                        'type' => $svc->pivot->price_type,
+                                                        'price' => $svc->pivot->price,
+                                                        'price_max' => $svc->pivot->price_max,
+                                                        'description' => $svc->pivot->description,
+                                                        'sort' => (int) $svc->pivot->sort_order,
+                                                    ]]);
+                                            @endphp
+                                            {{-- Прайс: рядки будує pro.js із чипів вище — назва завжди
+                                                 синхронна з набором послуг. Мінімалізм: тип, ціна, опис. --}}
+                                            <div class="pro-service-prices" data-service-prices data-existing='@json($servicePriceRows)'>
+                                                <style>
+                                                    .pro-service-prices { margin-top: 14px; }
+                                                    .pro-service-prices__head { margin: 0 0 2px; font-size: .92rem; font-weight: 750; color: var(--c-heading, #1e293b); }
+                                                    .pro-service-prices__hint { margin: 0 0 10px; font-size: .8rem; color: var(--c-muted, #64748b); }
+                                                    .pro-service-prices__row { display: grid; grid-template-columns: minmax(140px, 1.2fr) 130px 92px 92px minmax(160px, 1.6fr); gap: 8px; align-items: center; padding: 7px 0; border-top: 1px solid var(--c-border, rgba(15,23,42,.07)); }
+                                                    .pro-service-prices__row:first-of-type { border-top: 0; }
+                                                    .pro-service-prices__name { font-size: .88rem; font-weight: 650; color: var(--c-heading, #1e293b); overflow-wrap: anywhere; }
+                                                    .pro-service-prices__row select,
+                                                    .pro-service-prices__row input { width: 100%; box-sizing: border-box; height: 36px; padding: 0 9px; border: 1px solid var(--c-border, rgba(15,23,42,.14)); border-radius: 9px; background: var(--c-surface, #fff); font: inherit; font-size: .85rem; }
+                                                    .pro-service-prices__row input[data-price-max][hidden] { display: none; }
+                                                    .pro-service-prices__row input:disabled { background: #f1f4f9; color: #94a3b8; }
+                                                    .pro-service-prices__empty { padding: 8px 0 2px; font-size: .84rem; color: var(--c-muted, #94a3b8); }
+                                                    @media (max-width: 700px) {
+                                                        .pro-service-prices__row { grid-template-columns: 1fr 1fr; }
+                                                        .pro-service-prices__name { grid-column: 1 / -1; }
+                                                        .pro-service-prices__row input[data-price-desc] { grid-column: 1 / -1; }
+                                                    }
+                                                </style>
+                                                <p class="pro-service-prices__head">Ціни та описи</p>
+                                                <p class="pro-service-prices__hint">Профілі з цінами отримують більше заявок: ціна видна на сторінці, у каталозі й у Google. Не хочете вказувати суму — оберіть «договірна».</p>
+                                                <div data-service-prices-list></div>
                                             </div>
                                         </div>
                                     </div>
@@ -1946,24 +2381,60 @@
                             {{-- Липкий бар лишає лише головну дію (Опублікувати/Переглянути).
                                  Статус автозбереження більше не висить постійно — про
                                  збереження повідомляє короткий тост (data-profile-toast). --}}
-                            @if ((($currentProfile->status ?? '') !== 'active') || $previewPublicUrl)
+                            {{-- Липкий бар лишаємо лише для «Опублікувати» (коли профіль
+                                 ще не активний). Кнопку «Переглянути» прибрано — перегляд
+                                 публічної сторінки доступний із шапки профілю. --}}
+                            @if (($currentProfile->status ?? '') !== 'active')
                             <div class="pro-profile-savebar pro-profile-savebar--actions-only" data-profile-savebar>
                                 <div class="pro-profile-savebar__actions">
-                                    @if (($currentProfile->status ?? '') !== 'active')
-                                        <button type="submit" form="pro-profile-form" name="publish_profile" value="1" class="btn btn--primary account-btn--mini">
-                                            <i class="fa-regular fa-paper-plane" aria-hidden="true"></i>
-                                            <span>Опублікувати</span>
-                                        </button>
-                                    @elseif ($previewPublicUrl)
-                                        <a class="btn btn--ghost account-btn--mini" href="{{ $previewPublicUrl }}" target="_blank" rel="noopener noreferrer">
-                                            <i class="fa-regular fa-eye" aria-hidden="true"></i>
-                                            <span>Переглянути</span>
-                                        </a>
-                                    @endif
+                                    <button type="submit" form="pro-profile-form" name="publish_profile" value="1" class="btn btn--primary account-btn--mini">
+                                        <i class="fa-regular fa-paper-plane" aria-hidden="true"></i>
+                                        <span>Опублікувати</span>
+                                    </button>
                                 </div>
                             </div>
                             @endif
 
+                        </div>
+                    </section>
+                    @else
+                    {{-- Без PRO: доступна лише зміна назви + апсел на решту полів. --}}
+                    <section class="pro-profile-editor">
+                        <div class="pro-profile-editor__hero">
+                            <div class="pro-profile-editor__hero-copy">
+                                <h2>Профіль</h2>
+                                <p>Назву профілю можна змінити безкоштовно. Фото, послуги, контакти, опис і публікація відкриються з PRO.</p>
+                            </div>
+                        </div>
+                        <form method="POST" action="{{ route('pro.account.profiles.update', $currentProfile) }}" class="card account-block account-form pro-account-form pro-profile-form-card">
+                            @csrf
+                            @method('PATCH')
+                            <section class="pro-profile-section">
+                                <div class="pro-profile-section__head">
+                                    <h3><i class="fa-solid fa-briefcase" aria-hidden="true"></i> Назва профілю</h3>
+                                </div>
+                                <label class="pro-profile-live-field">
+                                    <span>Назва компанії / ПІБ</span>
+                                    <input type="text" name="name" value="{{ old('name', $currentProfile->name) }}" required maxlength="255">
+                                </label>
+                                @error('name')
+                                    <p class="account-form__error">{{ $message }}</p>
+                                @enderror
+                                <div class="pro-profile-editor__hero-actions">
+                                    <button type="submit" class="btn btn--primary account-btn--mini">
+                                        <i class="fa-regular fa-floppy-disk" aria-hidden="true"></i>
+                                        <span>Зберегти назву</span>
+                                    </button>
+                                </div>
+                            </section>
+                        </form>
+                        <div class="card pro-leads-gate">
+                            <span class="pro-leads-gate__icon"><i class="fa-solid fa-lock" aria-hidden="true"></i></span>
+                            <div>
+                                <strong>Решта профілю відкривається з PRO</strong>
+                                <p>Фото, опис, послуги, контакти, досьє, SEO та публікація редагуються з активною підпискою. Перегляди й аналітику ви вже бачите безкоштовно.</p>
+                            </div>
+                            <a href="{{ route('pro.account.billing.pay', $currentProfile) }}" class="btn btn--primary account-btn--mini">Оформити підписку</a>
                         </div>
                     </section>
                     @endif
@@ -2031,16 +2502,12 @@
                                         <small>потребують уваги</small>
                                     </div>
                                 </button>
-                                @php
-                                    $hiddenReviewsLimit = \App\Http\Controllers\ProAccountController::HIDDEN_REVIEWS_LIMIT;
-                                    $hiddenReviewsUsed = (int) ($reviewStatusSummary['hidden'] ?? 0);
-                                @endphp
-                                <button type="button" class="pro-reviews-summary-card is-muted" data-review-summary-filter="hidden" data-review-hidden-count="{{ $hiddenReviewsUsed }}" data-review-hidden-limit="{{ $hiddenReviewsLimit }}">
-                                    <span><i class="fa-solid fa-eye-slash" aria-hidden="true"></i></span>
-                                    <strong>{{ $hiddenReviewsUsed }} <small class="pro-reviews-summary-card__limit">/ {{ $hiddenReviewsLimit }}</small></strong>
+                                <button type="button" class="pro-reviews-summary-card is-muted" data-review-summary-filter="hidden">
+                                    <span><i class="fa-solid fa-shield-halved" aria-hidden="true"></i></span>
+                                    <strong>{{ $reviewStatusSummary['hidden'] ?? 0 }}</strong>
                                     <div>
-                                        <b>Приховані</b>
-                                        <small>ліміт {{ $hiddenReviewsLimit }} на профіль</small>
+                                        <b>На перевірці</b>
+                                        <small>модераційні кейси</small>
                                     </div>
                                 </button>
                             </div>
@@ -2065,7 +2532,7 @@
                                 <button type="button" data-review-filter="without_reply">Без відповіді <span>{{ $reviewStatusSummary['without_reply'] ?? 0 }}</span></button>
                                 <button type="button" data-review-filter="negative">Негативні <span>{{ $reviewStatusSummary['negative'] ?? 0 }}</span></button>
                                 <button type="button" data-review-filter="positive">Позитивні <span>{{ $reviewStatusSummary['positive'] ?? 0 }}</span></button>
-                                <button type="button" data-review-filter="hidden">Приховані <span>{{ $reviewStatusSummary['hidden'] ?? 0 }}</span></button>
+                                <button type="button" data-review-filter="hidden">На перевірці <span>{{ $reviewStatusSummary['hidden'] ?? 0 }}</span></button>
                             </div>
 
                             <div class="pro-reviews-list" data-review-list>
@@ -2151,17 +2618,6 @@
                                                 </span>
                                             </span>
                                         </button>
-                                        @if ($canManageReviewModeration)
-                                            <form method="POST" action="{{ route('pro.account.reviews.visibility', $review) }}" class="pro-reviews-card__quick-visibility" data-review-visibility-form data-review-id="{{ $review->id }}">
-                                                @csrf
-                                                @method('PATCH')
-                                                <input type="hidden" name="status" value="{{ $review->status === 'hidden' ? 'published' : 'hidden' }}">
-                                                <button type="submit" aria-label="{{ $review->status === 'hidden' ? 'Показати відгук' : 'Сховати відгук' }}">
-                                                    <i class="fa-solid {{ $review->status === 'hidden' ? 'fa-eye' : 'fa-eye-slash' }}" aria-hidden="true"></i>
-                                                    <span>{{ $review->status === 'hidden' ? 'Показати' : 'Сховати' }}</span>
-                                                </button>
-                                            </form>
-                                        @endif
                                     </article>
                                 @empty
                                     <p class="account-empty">Відгуків для цього профілю ще немає.</p>
@@ -2268,8 +2724,8 @@
                                 <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
                                 <span>Назад</span>
                             </button>
-                            <h2 data-claim-title>Додати профіль у кабінет</h2>
-                            <p data-claim-lead>Оберіть сценарій: подати заявку на існуючий профіль із каталогу або створити новий.</p>
+                            <h2 data-claim-title>Керувати профілем</h2>
+                            <p data-claim-lead>Якщо профіль уже є на Dovira, клієнти можуть бачити його в каталозі й знаходити в Google. Підтвердьте, що сторінка ваша — це безкоштовно.</p>
                             <div class="claim-wizard__progress" data-claim-progress hidden aria-hidden="true">
                                 <span class="claim-wizard__progress-step" data-claim-progress-dot="1"></span>
                                 <span class="claim-wizard__progress-step" data-claim-progress-dot="2"></span>
@@ -2284,8 +2740,8 @@
                                         <i class="fa-solid fa-link" aria-hidden="true"></i>
                                     </span>
                                     <span class="pro-profile-entry-card__content">
-                                        <strong>Прив’язати існуючий</strong>
-                                        <small>Знайдіть профіль у каталозі й надішліть заявку на керування.</small>
+                                        <strong>Керувати існуючим</strong>
+                                        <small>Знайдіть публічний профіль і підтвердіть права — безкоштовно.</small>
                                     </span>
                                     <span class="pro-profile-entry-card__arrow">
                                         <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
@@ -2314,7 +2770,7 @@
 
                         {{-- STEP: search & pick a profile (client-side, no reload) --}}
                         <div class="claim-wizard__step" data-claim-step="claim-search" @if ($claimWizardStep !== 'claim-search') hidden @endif>
-                            <p class="claim-wizard__step-lead">Знайдіть профіль у каталозі й оберіть його зі списку.</p>
+                            <p class="claim-wizard__step-lead">Знайдіть профіль, який уже бачать клієнти на Dovira або в Google, і оберіть його зі списку.</p>
 
                             <div class="pro-account-claim-search" data-claim-search>
                                 <div class="pro-account-claim-search__field">
@@ -2342,7 +2798,7 @@
                             @endif
 
                             <div class="claim-otp" data-claim-otp>
-                                <p class="claim-wizard__step-lead">Оберіть, куди надіслати код підтвердження: на email або телефон, указаний у профілі.</p>
+                                <p class="claim-wizard__step-lead">Підтвердимо безкоштовно, що профіль ваш. Оберіть, куди надіслати код: на email або телефон, указаний у профілі. Після підтвердження одразу побачите статистику переглядів.</p>
 
                                 <div class="claim-otp__channels" data-otp-channels></div>
 
@@ -2382,7 +2838,7 @@
 
                             {{-- Fallback: у профілі немає контактів → ручна заявка --}}
                             <div class="claim-manual" data-claim-manual hidden>
-                                <p class="account-alert">У профілі немає email чи телефону для миттєвого підтвердження. Подайте заявку — ми перевіримо вручну.</p>
+                                <p class="account-alert">У профілі немає email чи телефону для миттєвої перевірки. Подайте заявку — ми перевіримо права вручну, після цього можна буде оформити підписку на керування.</p>
                                 <label>
                                     <span>Коментар для модератора</span>
                                     <textarea name="note" rows="4" placeholder="Коротко поясніть, чому саме ви маєте керувати цим профілем.">{{ old('note') }}</textarea>
@@ -2516,4 +2972,61 @@
         <script id="pro-account-category-children" type="application/json">@json($categoryChildren)</script>
         <script id="pro-account-service-candidates" type="application/json">@json($categoryServices->map(fn ($service) => ['category_id' => (int) $service->category_id, 'name' => $service->name])->values())</script>
         <script id="pro-account-region-city-directory" type="application/json">@json($regionCityDirectory)</script>
+
+        {{-- Разовий попап-підказка про віджети (бейдж + блок відгуків).
+             Показ керує pro.js: один раз на браузер (localStorage), CTA веде
+             до картки віджетів у вкладці «Огляд». --}}
+        @if ($currentProfile && $currentProfile->is_published)
+            <div class="pro-widget-promo" data-widget-promo hidden>
+                <div class="pro-widget-promo__backdrop" data-widget-promo-close></div>
+                <div class="pro-widget-promo__card" role="dialog" aria-modal="true" aria-labelledby="pro-widget-promo-title">
+                    <button type="button" class="pro-widget-promo__x" data-widget-promo-close aria-label="Закрити">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+                    </button>
+                    <div class="pro-widget-promo__preview">
+                        <img src="{{ route('widget.badge', ['slug' => $currentProfile->slug]) }}" alt="Бейдж рейтингу {{ $currentProfile->name }}" width="240" height="72" loading="lazy">
+                    </div>
+                    <h3 id="pro-widget-promo-title">Покажіть свій рейтинг на власному сайті</h3>
+                    <ul class="pro-widget-promo__list">
+                        <li>
+                            <b>Більше довіри — більше заявок.</b>
+                            Живий рейтинг і справжні відгуки клієнтів прямо на вашому сайті чи в соцмережах.
+                        </li>
+                        <li>
+                            <b>Вище в Google.</b>
+                            Бейдж і блок відгуків посилаються на ваш профіль — це підсилює його позиції в пошуку.
+                        </li>
+                        <li>
+                            <b>Бонус −20%.</b>
+                            За розміщений бейдж діє знижка 20% на продовження підписки.
+                        </li>
+                    </ul>
+                    <div class="pro-widget-promo__actions">
+                        <button type="button" class="btn btn--primary" data-widget-promo-go>Показати віджети</button>
+                        <button type="button" class="pro-widget-promo__later" data-widget-promo-close>Пізніше</button>
+                    </div>
+                </div>
+            </div>
+            <style>
+                .pro-widget-promo { position: fixed; inset: 0; z-index: 120; display: flex; align-items: center; justify-content: center; padding: 20px; }
+                .pro-widget-promo[hidden] { display: none; }
+                .pro-widget-promo__backdrop { position: absolute; inset: 0; background: rgba(15, 23, 42, .45); backdrop-filter: blur(2px); }
+                .pro-widget-promo__card { position: relative; width: 100%; max-width: 430px; padding: 26px 26px 22px; background: #fff; border-radius: 20px; box-shadow: 0 30px 80px rgba(15, 23, 42, .3); animation: pro-widget-promo-in .25s ease; }
+                @keyframes pro-widget-promo-in { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+                .pro-widget-promo__x { position: absolute; top: 14px; right: 14px; display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border: 0; border-radius: 50%; background: #f1f4f9; color: #64748b; cursor: pointer; }
+                .pro-widget-promo__x:hover { background: #e5eaf2; color: #1e293b; }
+                .pro-widget-promo__x svg { width: 15px; height: 15px; }
+                .pro-widget-promo__preview { display: flex; justify-content: center; margin: 2px 0 16px; }
+                .pro-widget-promo__preview img { display: block; border-radius: 14px; box-shadow: 0 12px 30px rgba(23, 42, 90, .16); }
+                .pro-widget-promo__card h3 { margin: 0 0 12px; color: var(--c-heading, #1e293b); font-size: 19px; font-weight: 800; letter-spacing: -.01em; text-align: center; }
+                .pro-widget-promo__list { display: grid; gap: 10px; margin: 0 0 18px; padding: 0; list-style: none; color: var(--c-muted, #64748b); font-size: 13.5px; line-height: 1.5; }
+                .pro-widget-promo__list b { color: var(--c-heading, #1e293b); }
+                .pro-widget-promo__list li { position: relative; padding-left: 22px; }
+                .pro-widget-promo__list li::before { content: "✓"; position: absolute; left: 0; top: 0; color: #16a34a; font-weight: 800; }
+                .pro-widget-promo__actions { display: grid; gap: 8px; }
+                .pro-widget-promo__actions .btn { justify-content: center; width: 100%; }
+                .pro-widget-promo__later { padding: 8px; border: 0; background: transparent; color: var(--c-muted, #64748b); font: inherit; font-size: 13.5px; font-weight: 650; cursor: pointer; }
+                .pro-widget-promo__later:hover { color: var(--c-heading, #1e293b); }
+            </style>
+        @endif
     </section>

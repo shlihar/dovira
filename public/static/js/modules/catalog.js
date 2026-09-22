@@ -274,7 +274,10 @@
     const collectArrayParam = (params, baseName) => {
         const values = [];
         params.forEach((value, key) => {
-            if (key === baseName || key === `${baseName}[]` || key.match(new RegExp(`^${baseName}\\\\[\\\\d*\\\\]$`))) {
+            // Регулярка приймає і regions[], і regions[0]. Раніше тут було
+            // забагато екранів (\\\\[ у шаблонному рядку) — вираз не збігався з
+            // regions[0], і місто злітало при будь-якій дії з категорією.
+            if (key === baseName || key === `${baseName}[]` || new RegExp(`^${baseName}\\[\\d*\\]$`).test(key)) {
                 values.push(String(value).toLowerCase());
             }
         });
@@ -470,8 +473,17 @@
         return params.toString();
     };
 
-    const applyQueryToControls = (queryString) => {
+    const applyQueryToControls = (queryString, options = {}) => {
+        // keepPathCategory: не чіпати category/sub і міста, коли їх немає в
+        // параметрах. Потрібно лише на старті/при popstate, бо на ЧПУ-адресі
+        // (/catalog/veterinari…/kyiv) і категорія, і місто живуть у ШЛЯХУ, а не в
+        // query — інакше скрипт знімав їх одразу після завантаження, і наступний
+        // вибір фільтра втрачав те, що вже було обрано.
+        // При кліку по категорії навпаки: відсутність параметра означає
+        // «Усі категорії», і стан треба очистити.
+        const keepPathCategory = options.keepPathCategory === true;
         const params = new URLSearchParams(queryString);
+        const hasRegionParam = [...params.keys()].some((key) => key.startsWith('regions'));
         const categories = collectArrayParam(params, 'categories');
         const regions = collectArrayParam(params, 'regions');
         const sub = (params.get('sub') || '').toLowerCase();
@@ -485,9 +497,13 @@
             form.querySelectorAll('[data-filter-input]').forEach((input) => {
                 const isCheckable = input.type === 'checkbox' || input.type === 'radio';
                 if (!isCheckable) {
-                    if (input.name !== 'sort') {
-                        input.value = params.get(input.name) || '';
-                    }
+                    if (input.name === 'sort') return;
+                    // category/sub на ЧПУ-адресі (/catalog/veterinari…/kyiv) живуть
+                    // у ШЛЯХУ, а не в параметрах. Раніше їх тут обнуляло, і вибір
+                    // міста злітав на «усі категорії»: у формі вже не було категорії.
+                    // Значення для них лишаємо те, що віддав сервер.
+                    if (keepPathCategory && (input.name === 'category' || input.name === 'sub') && !params.has(input.name)) return;
+                    input.value = params.get(input.name) || '';
                     return;
                 }
 
@@ -497,6 +513,7 @@
                     return;
                 }
                 if (input.name === 'regions[]') {
+                    if (keepPathCategory && !hasRegionParam) return;
                     input.checked = regions.has(value);
                     return;
                 }
@@ -563,9 +580,14 @@
 
     const applyViewMode = () => {
         const list = resultsRoot.querySelector('[data-catalog-results-list]');
+        const proList = resultsRoot.querySelector('[data-catalog-pro-list]');
         const appendSkeleton = resultsRoot.querySelector('[data-catalog-append-skeleton]');
         if (list) {
             list.classList.toggle('is-grid', currentView === 'grid');
+        }
+        // Блок «Спонсоровані» — та сама сітка, що й основна видача.
+        if (proList) {
+            proList.classList.toggle('is-grid', currentView === 'grid');
         }
         if (appendSkeleton) {
             appendSkeleton.classList.toggle('catalog-results-append-skeleton--grid', currentView === 'grid');
@@ -1040,7 +1062,7 @@
     window.addEventListener('popstate', () => {
         // sort/rating/пошук — із query; категорію/місто несе path, тож фетчимо
         // сам URL (сайдбар синкнеться з filtersHtml у відповіді).
-        applyQueryToControls(window.location.search);
+        applyQueryToControls(window.location.search, { keepPathCategory: true });
         fetchResults(filterForms[0], {
             absoluteUrl: window.location.pathname + window.location.search,
             force: true,
@@ -1058,7 +1080,7 @@
 
     applyAvatarGradients(document);
     window.DoviraFitCardTags?.(document);
-    applyQueryToControls(window.location.search);
+    applyQueryToControls(window.location.search, { keepPathCategory: true });
     applyViewMode();
     updateMobileSortState(initialSort);
     initCatalogInfiniteScroll();

@@ -1,0 +1,152 @@
+[
+    {
+        "profile_id": 9180,
+        "full_name": "АртВет, ветеринарна клініка",
+        "city": "Київ",
+        "category": "Ветеринари та ветеринарні клініки",
+        "profile_url": "https://mydovira.com/profiles/artvet-veterinarna-klinika",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Милославська, 43",
+            "phone": "(067) 386 32 70, (044) 33 11 93 1, (097) 650 18 56, (044) 221 13 39, (044) 331 19 31, (044) 495 54 30, (066) 037 91 99, (044) 22 11 33 9",
+            "type": "company",
+            "rating_avg": 3.4,
+            "reviews_count": 94
+        }
+    },
+    {
+        "profile_id": 9266,
+        "full_name": "Житомирська обласна державна лікарня ветеринарної медицини",
+        "city": "Житомир",
+        "category": "Ветеринари та ветеринарні клініки",
+        "profile_url": "https://mydovira.com/profiles/zitomirska-oblasna-derzavna-likarnia-veterinarnoyi-medicini",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Покровська, 56",
+            "phone": "(093) 395 06 68, (098) 170 40 14",
+            "type": "company",
+            "rating_avg": 3.71,
+            "reviews_count": 94
+        }
+    },
+    {
+        "profile_id": 9267,
+        "full_name": "Багіра, ветеринарна клініка",
+        "city": "Житомир",
+        "category": "Ветеринари та ветеринарні клініки",
+        "profile_url": "https://mydovira.com/profiles/bagira-veterinarna-klinika",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Корольова, 73",
+            "phone": "(098) 471 24 09",
+            "type": "company",
+            "rating_avg": 3.09,
+            "reviews_count": 94
+        }
+    },
+    {
+        "profile_id": 9371,
+        "full_name": "Ветдопомога, ветеринарна клініка",
+        "city": "Львів",
+        "category": "Ветеринари та ветеринарні клініки",
+        "profile_url": "https://mydovira.com/profiles/vetdopomoga-veterinarna-klinika",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "площа Князя Святослава, 5",
+            "phone": "(097) 383 79 79, (097) 389 56 21, (097) 700 66 28",
+            "type": "company",
+            "rating_avg": 3.76,
+            "reviews_count": 94
+        }
+    },
+    {
+        "profile_id": 9378,
+        "full_name": "Ветеринарна клініка доктора Маркевича",
+        "city": "Львів",
+        "category": "Ветеринари та ветеринарні клініки",
+        "profile_url": "https://mydovira.com/profiles/veterinarna-klinika-doktora-markevica",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Лисеницька, 2а",
+            "phone": "(068) 151 51 55",
+            "type": "company",
+            "rating_avg": 3.65,
+            "reviews_count": 94
+        }
+    },
+    {
+        "profile_id": 9723,
+        "full_name": "O.Vet, ветеринарна клініка",
+        "city": "Тернопіль",
+        "category": "Ветеринари та ветеринарні клініки",
+        "profile_url": "https://mydovira.com/profiles/ovet-veterinarna-klinika",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Академіка Горбачевського, 1",
+            "phone": "(068) 800 88 44",
+            "type": "company",
+            "rating_avg": 3.72,
+            "reviews_count": 94
+        }
+    },
+    {
+        "profile_id": 9806,
+        "full_name": "Шанс, ветеринарна клініка",
+        "city": "Черкаси",
+        "category": "Ветеринари та ветеринарні клініки",
+        "profile_url": "https://mydovira.com/profiles/vet-sans-veterinarna-klinika",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Шевченка, 6",
+            "phone": "(067) 266 41 98, (098) 856 24 37, (063) 297 67 29",
+            "type": "company",
+            "rating_avg": 3.24,
+            "reviews_count": 94
+        }
+    },
+    {
+        "profile_id": 9916,
+        "full_name": "ОлВет, ветеринарна клініка",
+        "city": "Івано-Франківськ",
+        "category": "Ветеринари та ветеринарні клініки",
+        "profile_url": "https://mydovira.com/profiles/olvet-veterinarna-klinika-2",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Бельведерська, 14",
+            "phone": "(050) 519 81 18, (066) 248 36 31, (095) 103 66 46, (067) 460 42 52, (068) 973 71 70, (034) 27 10 89 8, (034) 27 56 00 0, (067) 462 09 06",
+            "type": "company",
+            "rating_avg": 3.47,
+            "reviews_count": 94
+        }
+    },
+    {
+        "profile_id": 8920,
+        "full_name": "Улюбленець, ветеринарна клініка",
+        "city": "Вінниця",
+        "category": "Ветеринари та ветеринарні клініки",
+        "profile_url": "https://mydovira.com/profiles/uliublenec-veterinarna-klinika",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Пікуса, 3, к1",
+            "phone": "(067) 603 38 29, (093) 825 25 16, (0432) 69 90 09, (098) 995 79 35",
+            "type": "company",
+            "rating_avg": 3.4,
+            "reviews_count": 93
+        }
+    },
+    {
+        "profile_id": 8941,
+        "full_name": "Біосвіт, ветеринарний центр",
+        "city": "Дніпро",
+        "category": "Ветеринари та ветеринарні клініки",
+        "profile_url": "https://mydovira.com/profiles/biosvit-veterinarnii-centr",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "проспект Богдана Хмельницького, 58",
+            "phone": "(096) 521 89 42",
+            "type": "company",
+            "rating_avg": 4.15,
+            "reviews_count": 93
+        }
+    }
+]

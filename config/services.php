@@ -4,6 +4,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Microsoft Clarity
+    |--------------------------------------------------------------------------
+    | Теплові карти й записи сесій публічного сайту. Порожній CLARITY_ID —
+    | скрипт не підключається взагалі (локально, на тестах).
+    */
+    'clarity' => [
+        'id' => env('CLARITY_ID'),
+    ],
+
+
+    /*
+    |--------------------------------------------------------------------------
     | Third Party Services
     |--------------------------------------------------------------------------
     |
@@ -55,6 +67,18 @@ return [
         'throttle_days' => (int) env('REVIEW_OUTREACH_THROTTLE_DAYS', 30),
     ],
 
+    // Заявка клієнта на НЕзаявлений профіль → холодний лист на email профілю.
+    'lead_outreach' => [
+        'enabled' => (bool) env('LEAD_OUTREACH_ENABLED', false),
+        'throttle_days' => (int) env('LEAD_OUTREACH_THROTTLE_DAYS', 14),
+    ],
+
+    // Профіль перетнув поріг переглядів → лист-тригер (крок кратний threshold).
+    'views_milestone' => [
+        'enabled' => (bool) env('VIEWS_MILESTONE_ENABLED', false),
+        'threshold' => max(1, (int) env('VIEWS_MILESTONE_THRESHOLD', 100)),
+    ],
+
     'telegram' => [
         'bot_name' => env('TELEGRAM_BOT_NAME'),
         'bot_token' => env('TELEGRAM_BOT_TOKEN'),
@@ -65,6 +89,9 @@ return [
             'trim',
             explode(',', (string) env('TELEGRAM_ADMIN_CHAT_ID', ''))
         ))),
+        // Секрет вебхука бота (заголовок X-Telegram-Bot-Api-Secret-Token).
+        // Реєстрація: php artisan dovira:telegram-set-webhook
+        'webhook_secret' => env('TELEGRAM_WEBHOOK_SECRET'),
     ],
 
     // SMS для OTP-підтвердження профілю телефоном. Поки токен порожній —

@@ -9,6 +9,8 @@ use App\Services\Notifications\TelegramAdminNotifier;
 use App\Services\ProProfileNotificationService;
 use App\Services\ProfileReviewStatsService;
 use App\Services\ReviewNotificationService;
+use App\Support\SitemapCache;
+use App\Support\TopRatingIndexCache;
 use Illuminate\Support\Facades\DB;
 
 class ProfileReviewObserver
@@ -52,6 +54,11 @@ class ProfileReviewObserver
         // Після коміту, щоб відправка не блокувала й не ламала вставку відгуку.
         DB::afterCommit(function () use ($review): void {
             rescue(fn () => app(\App\Services\Notifications\NegativeReviewAlertMailer::class)->handle($review));
+            // Telegram власнику — лише про справжні відгуки користувачів,
+            // імпортовані (external_source_type) не сповіщаємо.
+            if (blank($review->external_source_type)) {
+                rescue(fn () => app(\App\Services\Notifications\TelegramOwnerNotifier::class)->newReview($review));
+            }
         });
     }
 
@@ -96,6 +103,8 @@ class ProfileReviewObserver
     private function refreshHomePageAfterCommit(): void
     {
         DB::afterCommit(function (): void {
+            SitemapCache::forget();
+            TopRatingIndexCache::forget();
             RefreshHomePageCache::dispatch()->afterCommit();
         });
     }

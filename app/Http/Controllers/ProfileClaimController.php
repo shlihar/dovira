@@ -12,10 +12,12 @@ use App\Services\Notifications\TelegramAdminNotifier;
 use App\Support\AuditLogger;
 use App\Support\CategoryHierarchy;
 use App\Support\RegionCityDirectory;
+use App\Support\MediaUrl;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Str;
+use Illuminate\View\View;
 
 class ProfileClaimController extends Controller
 {
@@ -28,6 +30,12 @@ class ProfileClaimController extends Controller
             return redirect()
                 ->route('pro.account', ['profile' => $profile->id, 'tab' => 'overview'])
                 ->with('status', 'claim-already-owned');
+        }
+
+        if ($profile->owner_user_id !== null) {
+            return redirect()
+                ->route('profile.show', ['slug' => $profile->slug])
+                ->with('status', 'claim-link-taken');
         }
 
         $claim = ProfileClaim::query()->firstOrNew([
@@ -45,15 +53,50 @@ class ProfileClaimController extends Controller
         ]);
         $claim->save();
 
-        if ($claim->wasRecentlyCreated) {
-            app(TelegramAdminNotifier::class)->newClaim($claim);
-        }
+        app(TelegramAdminNotifier::class)->newClaim($claim, ! $claim->wasRecentlyCreated);
 
-        // Підтвердження прав безкоштовне; платне — керування профілем
-        // (редагування, відповіді, контакти), воно відкривається з PRO.
+        // Ручна заявка не веде в оплату: підтримка перевірить права і після
+        // апруву надішле власнику пряме посилання на оплату.
         return redirect()
             ->route('pro.account', ['tab' => 'claims', 'claim_profile' => $profile->id])
             ->with('status', $claim->wasRecentlyCreated ? 'claim-submitted' : 'claim-updated');
+    }
+
+    /**
+     * Окрема сторінка підтвердження прав на профіль. Свідомо БЕЗ згадок PRO:
+     * підтвердження безкоштовне, тож ціни й підписка тут недоречні. Якщо
+     * користувач ішов до оплати (?next=pay), після коду повернемо його туди.
+     */
+    public function showVerify(Request $request, Profile $profile, ClaimVerificationService $verifier): View|RedirectResponse
+    {
+        abort_unless($profile->status === 'active', 404);
+
+        $user = $request->user();
+        $next = $request->query('next') === 'pay' ? 'pay' : null;
+
+        if ((int) $profile->owner_user_id === (int) $user->id) {
+            return redirect()->to($next === 'pay'
+                ? route('pro.account.billing.pay', $profile)
+                : route('pro.account', ['tab' => 'overview', 'profile' => $profile->id]));
+        }
+
+        $state = $profile->owner_user_id !== null ? 'taken' : 'confirm';
+        $channels = $state === 'confirm' ? $verifier->availableChannels($profile) : [];
+        if ($state === 'confirm' && empty($channels)) {
+            $state = 'manual';
+        }
+
+        $supportUsername = ltrim((string) config('site_contacts.telegram_username', 'dovira_support'), '@') ?: 'dovira_support';
+        $supportMessage = "Доброго дня. Хочу підтвердити права на профіль «{$profile->name}» (#{$profile->id}) на Dovira. Мій email: {$user->email}";
+
+        return view('static.claim-verify', [
+            'profile' => $profile,
+            'state' => $state,
+            'channels' => $channels,
+            'next' => $next,
+            'logoUrl' => MediaUrl::profileLogoUrl($profile, 96),
+            'supportHref' => 'https://t.me/' . $supportUsername . '?text=' . rawurlencode($supportMessage),
+        ]);
     }
 
     /**
@@ -99,12 +142,19 @@ class ProfileClaimController extends Controller
         $data = $request->validate([
             'profile_id' => ['required', 'integer'],
             'code' => ['required', 'string', 'max:12'],
+            'intent' => ['nullable', 'in:pay'],
         ]);
 
         $user = $request->user();
         $profile = Profile::query()->where('status', 'active')->findOrFail((int) $data['profile_id']);
 
         $result = $verifier->verify($profile, $user, (string) $data['code']);
+
+        // Користувач ішов оформлювати підписку → після підтвердження повертаємо
+        // його на оплату, а не в кабінет.
+        if (($result['ok'] ?? false) && ($data['intent'] ?? null) === 'pay') {
+            $result['redirect'] = route('pro.account.billing.pay', $profile);
+        }
 
         return response()->json($result, $result['ok'] ? 200 : 422);
     }

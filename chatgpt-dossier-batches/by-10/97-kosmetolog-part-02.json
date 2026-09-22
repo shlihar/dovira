@@ -1,0 +1,152 @@
+[
+    {
+        "profile_id": 7089,
+        "full_name": "Оксфорд Медікал, медичний центр",
+        "city": "Хмельницький",
+        "category": "Косметолог",
+        "profile_url": "https://mydovira.com/profiles/oksford-medikal-medicnii-centr-2",
+        "company_url": "https://khmelnitsky.oxford-med.com.ua",
+        "additional_identity_data": {
+            "address": "вул. Подільська, 93/1",
+            "phone": "(097) 470 20 30, (0382) 70 20 30",
+            "type": "company",
+            "rating_avg": 4.59,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 7145,
+        "full_name": "Центр здоров’я та естетичної медицини ПрофіДок",
+        "city": "Рівне",
+        "category": "Косметолог",
+        "profile_url": "https://mydovira.com/profiles/centr-zdorovia-ta-esteticnoyi-medicini-profidok",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "вул. Студентська, 18",
+            "phone": "(097) 919 00 33",
+            "type": "company",
+            "rating_avg": 5,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 7151,
+        "full_name": "Oxford Medical, медичний центр",
+        "city": "Рівне",
+        "category": "Косметолог",
+        "profile_url": "https://mydovira.com/profiles/oxford-medical-medicnii-centr-2",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Грушевського, 26, 3 поверх",
+            "phone": "(067) 840 40 50, (050) 840 40 50, (0800) 30 40 50",
+            "type": "company",
+            "rating_avg": 4.13,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 7536,
+        "full_name": "Олівія, медична клініка",
+        "city": "Запоріжжя",
+        "category": "Косметолог",
+        "profile_url": "https://mydovira.com/profiles/oliviia-medicna-klinika",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Перемоги, 131В",
+            "phone": "(096) 203 03 03",
+            "type": "company",
+            "rating_avg": 4.66,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 7648,
+        "full_name": "Усмішка, мережа стоматологій",
+        "city": "Миколаїв",
+        "category": "Косметолог",
+        "profile_url": "https://mydovira.com/profiles/usmiska-mereza-stomatologii",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "проспект Миру, 34\\2",
+            "phone": "(068) 575 62 58, (050) 650 15 24",
+            "type": "company",
+            "rating_avg": 4.73,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 7722,
+        "full_name": "Lytvynenko Clinic, центр дерматології, неврології, гінекології",
+        "city": "Полтава",
+        "category": "Косметолог",
+        "profile_url": "https://mydovira.com/profiles/lytvynenko-clinic-centr-dermatologiyi-nevrologiyi-ginekologiyi",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Дмітрієва, 6Д",
+            "phone": "(095) 199 59 00, (0532) 69 11 69, (067) 199 59 00, (073) 199 59 00, (0532) 67 01 01",
+            "type": "company",
+            "rating_avg": 4.46,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 7829,
+        "full_name": "Медгарант, медичний центр",
+        "city": "Черкаси",
+        "category": "Косметолог",
+        "profile_url": "https://mydovira.com/profiles/medgarant-medicnii-centr",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Небесної Сотні, 55",
+            "phone": "(067) 555 50 77",
+            "type": "company",
+            "rating_avg": 4.34,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 7864,
+        "full_name": "Yatskiv Clinic, медичний центр",
+        "city": "Чернівці",
+        "category": "Косметолог",
+        "profile_url": "https://mydovira.com/profiles/yatskiv-clinic-medicnii-centr",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Головна, 119",
+            "phone": "(066) 100 99 98",
+            "type": "company",
+            "rating_avg": 4.65,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 7954,
+        "full_name": "Soltys Dental Studio, центр естетичної стоматології",
+        "city": "Чернівці",
+        "category": "Косметолог",
+        "profile_url": "https://mydovira.com/profiles/soltys-beauty-zone-centr-z-dogliadu-za-oblicciam",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Володимира Великого, 91",
+            "phone": "(068) 808 03 80",
+            "type": "company",
+            "rating_avg": 5,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 7962,
+        "full_name": "Sumy laser clinic, приватна клініка",
+        "city": "Суми",
+        "category": "Косметолог",
+        "profile_url": "https://mydovira.com/profiles/sumy-laser-clinic-privatna-klinika",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Воскресенська, 1",
+            "phone": "(099) 944 99 09, (066) 920 14 46",
+            "type": "company",
+            "rating_avg": 4.23,
+            "reviews_count": 100
+        }
+    }
+]

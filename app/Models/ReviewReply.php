@@ -12,6 +12,7 @@ class ReviewReply extends Model
         'profile_review_id',
         'profile_id',
         'author_user_id',
+        'external_author',
         'parent_id',
         'body',
         'is_official',

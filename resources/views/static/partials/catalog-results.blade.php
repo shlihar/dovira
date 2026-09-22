@@ -31,6 +31,9 @@
     data-next-url="{{ $nextPageUrl ?? '' }}"
     data-current-page="{{ $currentPage }}"
 >
+    {{-- Окремої секції «Спонсоровані» більше немає: підписка піднімає профіль
+         у самій видачі, а факт оплати видно на картці позначкою PRO. --}}
+
     <div class="reviews-list" data-catalog-results-list>
         @include('static.partials.catalog-results-items', [
             'profiles' => $profiles,
@@ -64,13 +67,17 @@
 
     <div class="catalog-infinite" data-catalog-loadbar>
         <p class="catalog-infinite__count" data-catalog-infinite-count>{{ $loadbarLabel }}</p>
-        <button
-            type="button"
+        {{-- <a href>, а не <button>: краулер бачить наступну сторінку і лінк-вага
+             тече на глибокі профілі; клік перехоплює JS (preventDefault) і
+             довантажує ajax-ом як раніше. --}}
+        <a
+            href="{{ $nextPageUrl ?? '#' }}"
             class="catalog-infinite__button @if(!$hasMorePages) is-hidden @endif"
             data-catalog-load-more
+            data-no-page-skeleton
         >
             Показати ще
-        </button>
+        </a>
     </div>
 
     <div class="catalog-infinite__sentinel" data-catalog-load-sentinel aria-hidden="true"></div>

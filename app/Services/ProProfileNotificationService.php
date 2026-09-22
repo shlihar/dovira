@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Mail\ProfileClaimApprovedMail;
 use App\Models\PlatformNotification;
 use App\Models\Profile;
 use App\Models\User;
@@ -18,6 +19,7 @@ class ProProfileNotificationService
         return [
             'in_app_enabled' => true,
             'email_enabled' => true,
+            'telegram_enabled' => true,
             'digest_weekly_enabled' => true,
             'review_new_enabled' => true,
             'review_negative_enabled' => true,
@@ -109,7 +111,15 @@ class ProProfileNotificationService
             ]);
         }
 
-        $this->sendEmailIfEnabled($profile, $owner, $title, $body, (string) ($meta['action_url'] ?? ''));
+        $this->sendEmailIfEnabled(
+            $profile,
+            $owner,
+            $type,
+            $title,
+            $body,
+            (string) ($meta['action_url'] ?? ''),
+            (bool) ($meta['force_email'] ?? false),
+        );
 
         return $notification;
     }
@@ -171,9 +181,13 @@ class ProProfileNotificationService
         return $preferenceKey === null ? true : $this->enabled($profile, $preferenceKey);
     }
 
-    private function sendEmailIfEnabled(Profile $profile, User $owner, string $title, ?string $body, string $actionUrl): void
+    private function sendEmailIfEnabled(Profile $profile, User $owner, string $type, string $title, ?string $body, string $actionUrl, bool $force = false): void
     {
-        if (! $owner->email_notifications_enabled || ! filled($owner->email) || ! $this->enabled($profile, 'email_enabled')) {
+        if (! filled($owner->email)) {
+            return;
+        }
+
+        if (! $force && (! $owner->email_notifications_enabled || ! $this->enabled($profile, 'email_enabled'))) {
             return;
         }
 
@@ -184,6 +198,12 @@ class ProProfileNotificationService
         ])));
 
         try {
+            if ($type === 'pro_claim_approved') {
+                Mail::to($owner->email)->send(new ProfileClaimApprovedMail((string) $profile->name, $actionUrl));
+
+                return;
+            }
+
             Mail::raw($messageBody, function ($message) use ($owner, $title): void {
                 $message->to($owner->email)->subject('DOVIRA PRO: ' . $title);
             });

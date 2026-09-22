@@ -1,0 +1,152 @@
+[
+    {
+        "profile_id": 2312,
+        "full_name": "Нотаріус Куксова М. С.",
+        "city": "Київ",
+        "category": "Нотаріуси",
+        "profile_url": "https://mydovira.com/profiles/notarius-kuksova-m-s",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Хмельницького, 27",
+            "phone": "(098) 554 11 66, (044) 27 95 02 4",
+            "type": "company",
+            "rating_avg": 4.95,
+            "reviews_count": 85
+        }
+    },
+    {
+        "profile_id": 3047,
+        "full_name": "Нотаріус Харченко Л. Л.",
+        "city": "Харків",
+        "category": "Нотаріуси",
+        "profile_url": "https://mydovira.com/profiles/notarius-xarcenko-l-l",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "проспект Яворницького, 142",
+            "phone": "(050) 811 56 00",
+            "type": "company",
+            "rating_avg": 4.95,
+            "reviews_count": 85
+        }
+    },
+    {
+        "profile_id": 2339,
+        "full_name": "Нотаріус Семенюк Л. О.",
+        "city": "Київ",
+        "category": "Нотаріуси",
+        "profile_url": "https://mydovira.com/profiles/notarius-semeniuk-l-o",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Правди проспект, 62",
+            "phone": "(067) 219 96 67, (093) 219 96 67, (050) 331 12 34",
+            "type": "company",
+            "rating_avg": 4.44,
+            "reviews_count": 78
+        }
+    },
+    {
+        "profile_id": 2778,
+        "full_name": "Нотаріус Семенюк Оксана Михайлівна",
+        "city": "Хмельницький",
+        "category": "Нотаріуси",
+        "profile_url": "https://mydovira.com/profiles/semeniuk-oksana-mixailivna-privatnii-notarius",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Соборна, 44/1",
+            "phone": "(068) 206 10 29",
+            "type": "company",
+            "rating_avg": 4.79,
+            "reviews_count": 78
+        }
+    },
+    {
+        "profile_id": 3045,
+        "full_name": "Решетняк Інна Сергіївна, приватний нотаріус",
+        "city": "Харків",
+        "category": "Нотаріуси",
+        "profile_url": "https://mydovira.com/profiles/notarius-resetniak-inna-sergiyivna",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Космічна, 24-а",
+            "phone": "(073) 105 00 00",
+            "type": "company",
+            "rating_avg": 5,
+            "reviews_count": 78
+        }
+    },
+    {
+        "profile_id": 2871,
+        "full_name": "Нотаріус Миглазова Ю. А.",
+        "city": "Одеса",
+        "category": "Нотаріуси",
+        "profile_url": "https://mydovira.com/profiles/notarius-miglazova-iu-a",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Тираспольська, 5, оф. 5",
+            "phone": "(068) 777 17 70, (048) 70 01 77 0",
+            "type": "company",
+            "rating_avg": 4.91,
+            "reviews_count": 76
+        }
+    },
+    {
+        "profile_id": 2874,
+        "full_name": "Рубинчик Л.А., нотаріус",
+        "city": "Одеса",
+        "category": "Нотаріуси",
+        "profile_url": "https://mydovira.com/profiles/rubincik-la-notarius",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Варненська, -",
+            "phone": "(067) 285 10 56, (048) 237 08 94, (067) 484 51 24",
+            "type": "company",
+            "rating_avg": 4.39,
+            "reviews_count": 76
+        }
+    },
+    {
+        "profile_id": 2322,
+        "full_name": "Нотаріус є, нотаріус",
+        "city": "Київ",
+        "category": "Нотаріуси",
+        "profile_url": "https://mydovira.com/profiles/notarius-je-notarius",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Еспланадна, 20, 213 офіс, 2 поверх",
+            "phone": "(095) 909 00 59",
+            "type": "company",
+            "rating_avg": 4.68,
+            "reviews_count": 75
+        }
+    },
+    {
+        "profile_id": 2873,
+        "full_name": "Берзінь-Усова Ірина Анатоліївна, нотаріус",
+        "city": "Одеса",
+        "category": "Нотаріуси",
+        "profile_url": "https://mydovira.com/profiles/berzin-usova-irina-anatoliyivna-notarius",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Сегедська, 13",
+            "phone": "(098) 304 34 41",
+            "type": "company",
+            "rating_avg": 4.66,
+            "reviews_count": 73
+        }
+    },
+    {
+        "profile_id": 2324,
+        "full_name": "Нотаріус Буренко О.",
+        "city": "Київ",
+        "category": "Нотаріуси",
+        "profile_url": "https://mydovira.com/profiles/notarius-burenko-o",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Вишгородська, 14",
+            "phone": "(099) 643 30 00, (044) 33 12 00 0, (096) 552 30 00",
+            "type": "company",
+            "rating_avg": 4.66,
+            "reviews_count": 70
+        }
+    }
+]

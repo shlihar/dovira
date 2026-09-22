@@ -46,11 +46,12 @@ class ProfileLeadController extends Controller
             'ip_hash' => hash('sha256', (string) $request->ip()),
         ]);
 
-        // Власнику — лише email: у кабінеті заявка й так світиться лічильником
-        // біля пункту «Заявки», дублювати її ще й у «Сповіщення» — шум.
-        if ($profile->owner_user_id) {
-            rescue(fn () => app(\App\Services\Notifications\NewLeadAlertMailer::class)->handle($lead));
-        }
+        // Email-тригер: власнику заявленого профілю — сповіщення про заявку;
+        // незаявленому профілю — холодний аутріч («підтвердіть, щоб побачити
+        // контакти»). Обидві гілки й усі перевірки — всередині мейлера.
+        rescue(fn () => app(\App\Services\Notifications\NewLeadAlertMailer::class)->handle($lead));
+        // Telegram власнику (якщо підключив бота в кабінеті).
+        rescue(fn () => app(\App\Services\Notifications\TelegramOwnerNotifier::class)->newLead($lead));
 
         return response()->json([
             'ok' => true,

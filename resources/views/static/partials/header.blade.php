@@ -3,6 +3,9 @@
         // Гість спершу бачить лендінг з цінністю і тарифами, авторизований — кабінет.
         $headerProUrl = auth()->check() ? route('pro.account') : route('pro');
         $headerProLabel = auth()->check() ? 'PRO кабінет' : 'DOVIRA PRO';
+        // PRO-власник керує бізнесом, а не пише відгуки — головна дія для нього
+        // «Панель управління» (кабінет), решті лишається «Написати відгук».
+        $viewerHasPro = auth()->check() && auth()->user()->hasProAccess();
         $headerSupportTelegram = ltrim((string) config('site_contacts.telegram_username', 'dovira_support'), '@');
         $headerSupportUrl = 'https://t.me/' . $headerSupportTelegram;
         $headerContactsUrl = route('platform') . '#contacts';
@@ -31,8 +34,13 @@
             <span class="header_line"></span>
             {{-- «Написати відгук» замість PRO-кнопки: синій = головна ДІЯ
                  користувача (наповнює базу). PRO лишається в «Для бізнесу»,
-                 бізнес-CTA головної, user-menu і футері. --}}
-            <a class="nav__link btn--primary" style="padding:5px 10px; border-radius: 12px;" href="{{ route('catalog') }}" data-open-review-popup>Написати відгук</a>
+                 бізнес-CTA головної, user-menu і футері. Для PRO-власника
+                 головна дія — «Панель управління» (кабінет). --}}
+            @if ($viewerHasPro)
+                <a class="nav__link btn--primary" style="padding:5px 10px; border-radius: 12px;" href="{{ $headerProUrl }}">Панель управління</a>
+            @else
+                <a class="nav__link btn--primary" style="padding:5px 10px; border-radius: 12px;" href="{{ route('catalog') }}" data-open-review-popup>Написати відгук</a>
+            @endif
 	        </nav>
 
 	        <div class="header__actions">
@@ -194,16 +202,29 @@
                     </button>
                 </div>
 
-                <a class="mobile__cta" href="#" data-open-review-popup>
-                    <span class="mobile__cta-icon">
-                        <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
-                    </span>
-                    <span>
-                        <strong>Написати відгук</strong>
-                        <small>Поділіться досвідом за хвилину</small>
-                    </span>
-                    <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
-                </a>
+                @if ($viewerHasPro)
+                    <a class="mobile__cta" href="{{ $headerProUrl }}">
+                        <span class="mobile__cta-icon">
+                            <i class="fa-solid fa-gauge-high" aria-hidden="true"></i>
+                        </span>
+                        <span>
+                            <strong>Панель управління</strong>
+                            <small>Керуйте профілем і репутацією</small>
+                        </span>
+                        <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                    </a>
+                @else
+                    <a class="mobile__cta" href="#" data-open-review-popup>
+                        <span class="mobile__cta-icon">
+                            <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
+                        </span>
+                        <span>
+                            <strong>Написати відгук</strong>
+                            <small>Поділіться досвідом за хвилину</small>
+                        </span>
+                        <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                    </a>
+                @endif
 
 	            <nav class="mobile__nav" aria-label="Мобільне меню">
 	                <a class="mobile__item" href="{{ route('home') }}">

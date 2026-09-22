@@ -92,23 +92,11 @@
         @else
             <button type="button" class="btn btn--primary pro-reviews-detail__primary" data-pro-tab-trigger data-pro-tab-target="billing">
                 <i class="fa-solid fa-bolt" aria-hidden="true"></i>
-                <span>Підключити PRO для відповіді</span>
+                <span>Оформити підписку для відповіді</span>
             </button>
-            <p class="pro-account-field-note">Офіційні відповіді та приховування відгуків доступні після активації PRO.</p>
+            <p class="pro-account-field-note">Офіційні відповіді та скарги на модерацію доступні після оформлення підписки.</p>
         @endif
     </form>
-
-    @if ($canManageReviewModeration ?? false)
-        <form method="POST" action="{{ route('pro.account.reviews.visibility', $review) }}" data-review-visibility-form data-review-id="{{ $review->id }}">
-            @csrf
-            @method('PATCH')
-            <input type="hidden" name="status" value="{{ $review->status === 'hidden' ? 'published' : 'hidden' }}">
-            <button type="submit" class="btn btn--ghost pro-reviews-detail__danger">
-                <i class="fa-solid {{ $review->status === 'hidden' ? 'fa-eye' : 'fa-eye-slash' }}" aria-hidden="true"></i>
-                <span>{{ $review->status === 'hidden' ? 'Показати відгук' : 'Сховати відгук' }}</span>
-            </button>
-        </form>
-    @endif
 
     @php
         $hasOpenReport = \App\Models\ReviewReport::query()

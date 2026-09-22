@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Profile;
 use App\Models\ProfileClaim;
 use App\Models\User;
+use App\Services\Notifications\TelegramAdminNotifier;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -23,6 +24,11 @@ class ProAccountClaimTest extends TestCase
             'status' => 'active',
         ]);
 
+        $this->mock(TelegramAdminNotifier::class)
+            ->shouldReceive('newClaim')
+            ->once()
+            ->with(\Mockery::type(ProfileClaim::class), false);
+
         $response = $this
             ->actingAs($user)
             ->post(route('pro.account.claims.store'), [
@@ -32,8 +38,8 @@ class ProAccountClaimTest extends TestCase
                 'note' => 'I manage this company profile.',
             ]);
 
-        // Підтвердження прав безкоштовне: заявка йде на розгляд одразу,
-        // платним є лише керування профілем (редагування, відповіді, контакти).
+        // Ручна заявка лишається в заявках: підтримка перевірить права і
+        // надішле пряме посилання на оплату після апруву.
         $response
             ->assertRedirect(route('pro.account', ['tab' => 'claims', 'claim_profile' => $profile->id]))
             ->assertSessionHas('status', 'claim-submitted');
@@ -65,6 +71,11 @@ class ProAccountClaimTest extends TestCase
             'note' => 'Old note',
         ]);
 
+        $this->mock(TelegramAdminNotifier::class)
+            ->shouldReceive('newClaim')
+            ->once()
+            ->with(\Mockery::type(ProfileClaim::class), true);
+
         $response = $this
             ->actingAs($user)
             ->post(route('pro.account.claims.store'), [
@@ -85,6 +96,38 @@ class ProAccountClaimTest extends TestCase
             'status' => 'pending',
             'company_role' => 'Director',
             'note' => 'Updated note',
+        ]);
+    }
+
+    public function test_user_cannot_start_checkout_for_profile_owned_by_someone_else(): void
+    {
+        $user = User::factory()->create();
+        $owner = User::factory()->create();
+
+        $profile = Profile::query()->create([
+            'name' => 'Owned Clinic',
+            'slug' => 'owned-clinic',
+            'type' => 'company',
+            'status' => 'active',
+            'owner_user_id' => $owner->id,
+            'is_owner_verified' => true,
+        ]);
+
+        $this->mock(TelegramAdminNotifier::class)
+            ->shouldNotReceive('newClaim');
+
+        $this
+            ->actingAs($user)
+            ->post(route('pro.account.claims.store'), [
+                'profile_id' => $profile->id,
+                'company_role' => 'Owner',
+            ])
+            ->assertRedirect(route('profile.show', ['slug' => $profile->slug]))
+            ->assertSessionHas('status', 'claim-link-taken');
+
+        $this->assertDatabaseMissing('profile_claims', [
+            'profile_id' => $profile->id,
+            'user_id' => $user->id,
         ]);
     }
 

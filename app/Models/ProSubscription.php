@@ -13,6 +13,11 @@ class ProSubscription extends Model
         'plan',
         'billing_period',
         'status',
+        'auto_renew',
+        'monopay_card_token',
+        'monopay_wallet_id',
+        'renew_attempts',
+        'last_renew_failed_at',
         'price_monthly',
         'price_yearly',
         'currency',
@@ -23,6 +28,9 @@ class ProSubscription extends Model
     ];
 
     protected $casts = [
+        'auto_renew' => 'boolean',
+        'renew_attempts' => 'integer',
+        'last_renew_failed_at' => 'datetime',
         'price_monthly' => 'integer',
         'price_yearly' => 'integer',
         'started_at' => 'datetime',

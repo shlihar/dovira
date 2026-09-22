@@ -3,11 +3,13 @@
 namespace App\Models;
 
 use App\Support\RegionCityDirectory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
 
 class Profile extends Model
@@ -48,11 +50,14 @@ class Profile extends Model
         'dovira_recommendation_status',
         'is_owner_verified',
         'is_pro',
+        'pro_discount_percent',
         'is_featured',
         'status',
         'is_published',
         'show_in_catalog',
         'sort_priority',
+        'rating_placement',
+        'rating_priority',
         'rating_avg',
         'google_rating',
         'google_reviews_count',
@@ -72,6 +77,7 @@ class Profile extends Model
         'seo_description',
         'og_image_url',
         'internal_note',
+        'outreach_flags',
         'created_by_user_id',
         'updated_by_user_id',
     ];
@@ -85,10 +91,12 @@ class Profile extends Model
         'dovira_recommends' => 'boolean',
         'is_owner_verified' => 'boolean',
         'is_pro' => 'boolean',
+        'pro_discount_percent' => 'integer',
         'is_featured' => 'boolean',
         'is_published' => 'boolean',
         'show_in_catalog' => 'boolean',
         'sort_priority' => 'integer',
+        'rating_priority' => 'integer',
         'gallery' => 'array',
         'social_links' => 'array',
         'notification_preferences' => 'array',
@@ -105,6 +113,7 @@ class Profile extends Model
         'ai_confidence_score' => 'integer',
         'ai_enriched_at' => 'datetime',
         'ai_suggested_data' => 'array',
+        'outreach_flags' => 'array',
         'recommend_percent' => 'integer',
     ];
 
@@ -121,6 +130,11 @@ class Profile extends Model
                     $i++;
                 }
                 $profile->slug = $slug;
+            }
+
+            if ((string) $profile->dossier_verdict === 'red') {
+                $profile->dovira_recommendation_status = 'not_recommend';
+                $profile->dovira_recommends = false;
             }
         });
     }
@@ -170,6 +184,7 @@ class Profile extends Model
     public function services(): BelongsToMany
     {
         return $this->belongsToMany(CategoryService::class, 'profile_category_service')
+            ->withPivot(['price_type', 'price', 'price_max', 'price_unit', 'description', 'duration', 'sort_order', 'is_highlighted'])
             ->withTimestamps();
     }
 
@@ -181,6 +196,12 @@ class Profile extends Model
     public function reviews(): HasMany
     {
         return $this->hasMany(ProfileReview::class);
+    }
+
+    /** Денормалізований рейтинг/популярність/бейдж (нова система рейтингів). */
+    public function rating(): HasOne
+    {
+        return $this->hasOne(ProfileRating::class);
     }
 
     public function publishedReviews(): HasMany
@@ -279,8 +300,45 @@ class Profile extends Model
         return (int) round(($done / $total) * 100);
     }
 
+    /**
+     * Підвантажити прапорці підписки одним запитом до списку профілів.
+     *
+     * Без цього кожна картка каталогу робила власний SELECT EXISTS по
+     * pro_subscriptions (класичний N+1): на віддаленій БД це коштувало ~1.5 с
+     * на сторінку. Прапорці читає hasActiveProSubscription() нижче.
+     */
+    public function scopeWithProSubscriptionFlags(Builder $query, ?Carbon $at = null): Builder
+    {
+        $at ??= now();
+
+        return $query->withExists([
+            'proSubscriptions as has_active_pro_subscription' => function ($subscriptions) use ($at): void {
+                $subscriptions
+                    ->where('status', 'active')
+                    ->where(function ($inner) use ($at): void {
+                        $inner->whereNull('started_at')->orWhere('started_at', '<=', $at);
+                    })
+                    ->where(function ($inner) use ($at): void {
+                        $inner->whereNull('ends_at')->orWhere('ends_at', '>=', $at);
+                    });
+            },
+            'proSubscriptions as has_any_pro_subscription',
+        ]);
+    }
+
     public function hasActiveProSubscription(?Carbon $at = null): bool
     {
+        // Швидкий шлях для списків: прапорці вже в атрибутах (scopeWithProSubscriptionFlags).
+        if ($at === null && array_key_exists('has_active_pro_subscription', $this->attributes)) {
+            if ((bool) $this->attributes['has_active_pro_subscription']) {
+                return true;
+            }
+
+            if (array_key_exists('has_any_pro_subscription', $this->attributes)) {
+                return (bool) $this->is_pro && ! (bool) $this->attributes['has_any_pro_subscription'];
+            }
+        }
+
         $at ??= now();
 
         $hasValidSubscription = $this->proSubscriptions()

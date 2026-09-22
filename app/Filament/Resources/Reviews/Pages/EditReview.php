@@ -18,4 +18,14 @@ class EditReview extends EditRecord
             DeleteAction::make(),
         ];
     }
+
+    /** Якщо статус змінили на published, а дати публікації нема — ставимо now(). */
+    protected function mutateFormDataBeforeSave(array $data): array
+    {
+        if (($data['status'] ?? null) === 'published' && empty($data['published_at'])) {
+            $data['published_at'] = now();
+        }
+
+        return $data;
+    }
 }

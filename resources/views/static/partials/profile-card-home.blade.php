@@ -30,7 +30,8 @@
     $categoryLabel = (string) ($profile['category_label'] ?? '');
 @endphp
 
-<article class="dovira-home-card best-lawyer-card">
+{{-- data-imp: показ картки трекається батчем (impressions.js). --}}
+<article class="dovira-home-card best-lawyer-card" data-imp="{{ $profile['slug'] ?? '' }}">
     <div class="dovira-home-card__top">
         <a href="{{ $profileLink }}" class="dovira-home-card__logo entity-logo review-list-card__logo {{ $logoUrl === '' ? 'has-random-gradient' : '' }}" data-image-fallback-shell data-seed="{{ $name }}">
             @if ($logoUrl !== '')

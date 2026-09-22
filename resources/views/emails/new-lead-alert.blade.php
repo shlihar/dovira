@@ -7,7 +7,7 @@
             <div style="background:#eef4ff;padding:18px 24px;font-size:20px;font-weight:800;color:#2a4f9a;">dovira</div>
             <div style="padding:24px;">
                 <p style="margin:0 0 6px;color:#1c8a56;font-weight:700;font-size:13px;">
-                    ⚡ Нова заявка з вашого профілю
+                    ⚡ Нова заявка з профілю
                 </p>
                 <h1 style="margin:0 0 14px;font-size:19px;line-height:1.3;">
                     Клієнт залишив заявку для «{{ $profileName }}»
@@ -23,7 +23,17 @@
                     @endif
                 </div>
 
-                @if ($contactsUnlocked)
+                @if (! $forOwner)
+                    <p style="margin:0 0 18px;font-size:14px;line-height:1.5;color:#42537a;">
+                        Клієнт уже знайшов вашу публічну сторінку на Dovira і залишив заявку.
+                        Такі сторінки можуть знаходити й через Google за назвою.
+                        Щоб бачити контакти заявок, відповідати на відгуки, редагувати сторінку
+                        й просувати профіль, оформіть підписку. Перед оплатою ми безкоштовно перевіримо права.
+                        {{ \App\Support\ProPricing::launchCohortPriceLine() }} {{ \App\Support\ProPricing::launchCohortLockLine() }} {{ \App\Support\ProPricing::launchCohortCounterLine() }}
+                        За розміщення бейджа DOVIRA на сайті або в соцмережах діє знижка 20%.
+                    </p>
+                    <a href="{{ $ctaUrl }}" style="display:inline-block;background:#2f6df4;color:#fff;text-decoration:none;font-weight:700;font-size:15px;padding:13px 26px;border-radius:12px;">Керувати профілем →</a>
+                @elseif ($contactsUnlocked)
                     <p style="margin:0 0 18px;font-size:14px;line-height:1.5;color:#42537a;">
                         Швидкість вирішує: клієнти зазвичай пишуть кільком виконавцям одразу.
                         Передзвоніть якнайшвидше — і заявка стане вашим клієнтом.
@@ -33,6 +43,7 @@
                     <p style="margin:0 0 18px;font-size:14px;line-height:1.5;color:#42537a;">
                         Контакти клієнта приховані на безкоштовному тарифі.
                         Підключіть <b>PRO</b> — і побачите телефон цієї та всіх наступних заявок одразу.
+                        {{ \App\Support\ProPricing::launchCohortPriceLine() }} {{ \App\Support\ProPricing::launchCohortCounterLine() }}
                     </p>
                     <a href="{{ $ctaUrl }}" style="display:inline-block;background:#2f6df4;color:#fff;text-decoration:none;font-weight:700;font-size:15px;padding:13px 26px;border-radius:12px;">Розблокувати контакти →</a>
                 @endif
@@ -40,8 +51,12 @@
         </div>
 
         <p style="margin:16px 8px 0;font-size:11px;line-height:1.5;color:#8a97b4;">
-            Ви отримали цей лист, бо клієнт залишив заявку на вашому профілі «{{ $profileName }}» на платформі Dovira.
-            Вимкнути такі листи можна в налаштуваннях сповіщень PRO-кабінету.
+            Ви отримали цей лист, бо клієнт залишив заявку на профілі «{{ $profileName }}» на платформі Dovira.
+            @if (! $forOwner && $unsubscribeUrl)
+                <br><a href="{{ $unsubscribeUrl }}" style="color:#8a97b4;">Не надсилати такі листи</a>.
+            @else
+                Вимкнути такі листи можна в налаштуваннях сповіщень PRO-кабінету.
+            @endif
         </p>
     </div>
 </body>

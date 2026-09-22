@@ -23,7 +23,7 @@ class CatalogSearchTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Фільтрувати за');
-        $response->assertSee('Переглянути профіль');
+        $response->assertSee('Перевірити репутацію');
     }
 
     public function test_catalog_ajax_filter_by_category_returns_json_html_and_count(): void
@@ -43,7 +43,7 @@ class CatalogSearchTest extends TestCase
         $payload = $response->json();
         $this->assertIsArray($payload);
         $this->assertIsString($payload['html']);
-        $this->assertStringContainsString('Переглянути профіль', $payload['html']);
+        $this->assertStringContainsString('Перевірити репутацію', $payload['html']);
         // 'total' is null unless the exact count was computed — 'to' reflects
         // how many cards the first page actually rendered.
         $this->assertGreaterThanOrEqual(1, (int) ($payload['count']['to'] ?? 0));
@@ -75,6 +75,47 @@ class CatalogSearchTest extends TestCase
         $this->assertStringNotContainsString('127.0.0.1/media', $html);
     }
 
+    public function test_catalog_search_matches_profile_name_words_in_any_order(): void
+    {
+        Profile::query()->create([
+            'name' => 'Андрій Смирнов',
+            'slug' => 'andrii-smyrnov-search-probe',
+            'type' => 'person',
+            'status' => 'active',
+            'is_published' => true,
+            'show_in_catalog' => true,
+            'rating_avg' => 4.8,
+            'reviews_count' => 12,
+        ]);
+
+        Profile::query()->create([
+            'name' => 'Андрій Петренко',
+            'slug' => 'andrii-petrenko-search-probe',
+            'type' => 'person',
+            'status' => 'active',
+            'is_published' => true,
+            'show_in_catalog' => true,
+            'rating_avg' => 5.0,
+            'reviews_count' => 100,
+        ]);
+
+        $direct = $this->getJson(route('catalog', [
+            'ajax' => 1,
+            'q' => 'Андрій Смирнов',
+        ]));
+        $reversed = $this->getJson(route('catalog', [
+            'ajax' => 1,
+            'q' => 'Смирнов Андрій',
+        ]));
+
+        $direct->assertOk();
+        $reversed->assertOk();
+
+        $this->assertStringContainsString('Андрій Смирнов', (string) $direct->json('html'));
+        $this->assertStringContainsString('Андрій Смирнов', (string) $reversed->json('html'));
+        $this->assertStringNotContainsString('Андрій Петренко', (string) $reversed->json('html'));
+    }
+
     public function test_verified_tab_returns_only_verified_profiles(): void
     {
         $response = $this->getJson(route('catalog', [
@@ -86,6 +127,86 @@ class CatalogSearchTest extends TestCase
         $html = (string) $response->json('html');
 
         $this->assertStringNotContainsString('AutoCare Service', $html);
+    }
+
+    public function test_default_catalog_sort_does_not_promote_verified_profiles(): void
+    {
+        Profile::query()->create([
+            'name' => 'Sort Probe Verified',
+            'slug' => 'sort-probe-verified',
+            'type' => 'company',
+            'status' => 'active',
+            'is_published' => true,
+            'show_in_catalog' => true,
+            'is_verified' => true,
+            'is_pro' => false,
+            'popularity_score' => 10,
+            'rating_avg' => 4.0,
+            'reviews_count' => 10,
+        ]);
+
+        Profile::query()->create([
+            'name' => 'Sort Probe Popular',
+            'slug' => 'sort-probe-popular',
+            'type' => 'company',
+            'status' => 'active',
+            'is_published' => true,
+            'show_in_catalog' => true,
+            'is_verified' => false,
+            'is_pro' => false,
+            'popularity_score' => 100,
+            'rating_avg' => 4.0,
+            'reviews_count' => 10,
+        ]);
+
+        $response = $this->getJson(route('catalog', [
+            'ajax' => 1,
+            'q' => 'Sort Probe',
+            'sort' => 'recommended',
+        ]));
+
+        $response->assertOk();
+        $html = (string) $response->json('html');
+
+        $this->assertLessThan(
+            strpos($html, 'Sort Probe Verified'),
+            strpos($html, 'Sort Probe Popular')
+        );
+    }
+
+    public function test_search_suggest_does_not_promote_verified_profiles(): void
+    {
+        Profile::query()->create([
+            'name' => 'Suggest Probe Verified',
+            'slug' => 'suggest-probe-verified',
+            'type' => 'company',
+            'status' => 'active',
+            'is_verified' => true,
+            'is_pro' => false,
+            'rating_avg' => 4.0,
+            'reviews_count' => 5,
+        ]);
+
+        Profile::query()->create([
+            'name' => 'Suggest Probe Reviewed',
+            'slug' => 'suggest-probe-reviewed',
+            'type' => 'company',
+            'status' => 'active',
+            'is_verified' => false,
+            'is_pro' => false,
+            'rating_avg' => 4.0,
+            'reviews_count' => 50,
+        ]);
+
+        $response = $this->getJson(route('search.suggest', [
+            'scope' => 'profiles',
+            'q' => 'Suggest Probe',
+            'limit' => 2,
+        ]));
+
+        $response->assertOk();
+
+        $this->assertSame('Suggest Probe Reviewed', $response->json('items.0.label'));
     }
 
     public function test_search_suggest_without_query_returns_popular_items(): void
@@ -121,6 +242,31 @@ class CatalogSearchTest extends TestCase
         );
     }
 
+    public function test_search_suggest_matches_profile_name_words_in_any_order(): void
+    {
+        Profile::query()->create([
+            'name' => 'Андрій Смирнов',
+            'slug' => 'andrii-smyrnov-suggest-probe',
+            'type' => 'person',
+            'status' => 'active',
+            'is_pro' => false,
+            'rating_avg' => 4.8,
+            'reviews_count' => 12,
+        ]);
+
+        $response = $this->getJson(route('search.suggest', [
+            'scope' => 'profiles',
+            'q' => 'Смирнов Андрій',
+            'limit' => 8,
+        ]));
+
+        $response->assertOk();
+
+        $labels = collect((array) $response->json('items'))->pluck('label');
+
+        $this->assertTrue($labels->contains('Андрій Смирнов'));
+    }
+
     public function test_profile_scope_suggest_returns_profile_slug_for_popup(): void
     {
         $response = $this->getJson(route('search.suggest', ['scope' => 'profiles', 'q' => 'Nova', 'limit' => 8]));
@@ -133,7 +279,7 @@ class CatalogSearchTest extends TestCase
         $this->assertNotEmpty($item['profile_slug'] ?? null);
     }
 
-    public function test_claim_profile_scope_suggest_returns_pro_account_url(): void
+    public function test_claim_profile_scope_suggest_returns_profile_payment_url(): void
     {
         $response = $this->getJson(route('search.suggest', ['scope' => 'claim_profiles', 'q' => 'Nova', 'limit' => 8]));
 
@@ -143,7 +289,7 @@ class CatalogSearchTest extends TestCase
         $this->assertIsArray($item);
         $this->assertSame('profile', $item['type'] ?? null);
         $this->assertNotEmpty($item['profile_slug'] ?? null);
-        $this->assertStringContainsString('/pro/account', (string) ($item['url'] ?? ''));
-        $this->assertStringContainsString('claim_profile=', (string) ($item['url'] ?? ''));
+        $this->assertStringContainsString('/pro/account/billing/', (string) ($item['url'] ?? ''));
+        $this->assertStringContainsString('/pay', (string) ($item['url'] ?? ''));
     }
 }

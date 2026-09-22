@@ -5,10 +5,10 @@ namespace App\Filament\Widgets;
 use App\Filament\Support\AnalyticsRange;
 use App\Filament\Widgets\Concerns\HandlesDashboardWidgetExceptions;
 use App\Models\SitePageEvent;
+use App\Support\TrafficSourceClassifier;
 use Filament\Support\RawJs;
 use Filament\Widgets\ChartWidget;
 use Filament\Widgets\Concerns\InteractsWithPageFilters;
-use Illuminate\Support\Str;
 
 class SiteTrafficSourcesTrendChart extends ChartWidget
 {
@@ -63,7 +63,7 @@ class SiteTrafficSourcesTrendChart extends ChartWidget
             }
 
             foreach ($rows as $row) {
-                $sourceLabel = $this->detectSourceLabel(
+                $sourceLabel = TrafficSourceClassifier::label(
                     (string) ($row->source ?? ''),
                     (string) ($row->internal_source ?? ''),
                     (string) ($row->referrer ?? '')
@@ -149,60 +149,4 @@ class SiteTrafficSourcesTrendChart extends ChartWidget
         ];
     }
 
-    private function detectSourceLabel(string $source, string $internalSource, string $referrer): string
-    {
-        $sourceValue = Str::lower(trim($source));
-        $internalValue = Str::lower(trim($internalSource));
-        $referrerValue = Str::lower(trim($referrer));
-
-        if ($sourceValue !== '') {
-            if (Str::contains($sourceValue, ['google'])) {
-                return 'Google';
-            }
-
-            if (Str::contains($sourceValue, ['facebook', 'fb'])) {
-                return 'Facebook';
-            }
-
-            if (Str::contains($sourceValue, ['instagram', 'ig'])) {
-                return 'Instagram';
-            }
-
-            if (Str::contains($sourceValue, ['telegram', 'tg'])) {
-                return 'Telegram';
-            }
-
-            if (Str::contains($sourceValue, ['direct'])) {
-                return 'Direct';
-            }
-
-            return ucfirst($sourceValue);
-        }
-
-        if ($internalValue !== '') {
-            return 'Внутрішній перехід';
-        }
-
-        if ($referrerValue !== '') {
-            if (Str::contains($referrerValue, 'google.')) {
-                return 'Google';
-            }
-
-            if (Str::contains($referrerValue, 'facebook.')) {
-                return 'Facebook';
-            }
-
-            if (Str::contains($referrerValue, 'instagram.')) {
-                return 'Instagram';
-            }
-
-            if (Str::contains($referrerValue, 't.me')) {
-                return 'Telegram';
-            }
-
-            return 'Referral';
-        }
-
-        return 'Невідомо';
-    }
 }

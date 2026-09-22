@@ -2068,7 +2068,62 @@ body.page-pro .pro-pricing__promo strong {
   font-weight: 800;
 }
 
-/* Стара (майбутня) ціна поруч з акційною. */
+body.page-pro .pro-cohort-counter {
+  width: min(520px, 100%);
+  margin-top: 12px;
+  padding: 12px 14px;
+  border: 1px solid rgba(37, 99, 235, 0.16);
+  border-radius: 14px;
+  background: #f7faff;
+  color: #1f2f55;
+}
+
+body.page-pro .pro-cohort-counter--pricing {
+  margin-inline: auto;
+}
+
+body.page-pro .pro-cohort-counter__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  color: #42537a;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+body.page-pro .pro-cohort-counter__top strong {
+  color: #1d4ed8;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+body.page-pro .pro-cohort-counter__bar {
+  display: block;
+  overflow: hidden;
+  height: 7px;
+  margin-top: 9px;
+  border-radius: 999px;
+  background: #e2e8f7;
+}
+
+body.page-pro .pro-cohort-counter__bar b {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #22c55e 0%, #2563eb 100%);
+}
+
+body.page-pro .pro-cohort-counter small {
+  display: block;
+  margin-top: 7px;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+/* Стара (майбутня) ціна поруч зі стартовою. */
 body.page-pro .pro-price-card__old {
   margin-right: 6px;
   color: #98a6c3;

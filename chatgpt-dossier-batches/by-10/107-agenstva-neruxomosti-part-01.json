@@ -1,0 +1,152 @@
+[
+    {
+        "profile_id": 1714,
+        "full_name": "НоваЛад, агенція нерухомості",
+        "city": "Чернігів",
+        "category": "Агенства нерухомості",
+        "profile_url": "https://mydovira.com/profiles/novalad-agenciia-neruxomosti",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "проспект Перемоги, -",
+            "phone": "(093) 207 02 84",
+            "type": "company",
+            "rating_avg": 4.98,
+            "reviews_count": 128
+        }
+    },
+    {
+        "profile_id": 11146,
+        "full_name": "Райдужний, житловий комплекс",
+        "city": "Одеса",
+        "category": "Агенства нерухомості",
+        "profile_url": "https://mydovira.com/profiles/raiduznii-zitlovii-kompleks",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Райдужний масив, 17",
+            "phone": "(050) 434 88 99",
+            "type": "company",
+            "rating_avg": 3.14,
+            "reviews_count": 96
+        }
+    },
+    {
+        "profile_id": 11110,
+        "full_name": "Каскад, агентство нерухомості",
+        "city": "Одеса",
+        "category": "Агенства нерухомості",
+        "profile_url": "https://mydovira.com/profiles/atlanta-agentstvo-neruxomosti-4",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "проспект Шевченка, 11а",
+            "phone": "(093) 170 82 01, (048) 75 28 66 0, (093) 170 32 13, (093) 170 85 63",
+            "type": "company",
+            "rating_avg": 3.46,
+            "reviews_count": 94
+        }
+    },
+    {
+        "profile_id": 11117,
+        "full_name": "Вузівський, бізнес-центр",
+        "city": "Одеса",
+        "category": "Агенства нерухомості",
+        "profile_url": "https://mydovira.com/profiles/vuzivskii-biznes-centr",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Люстдорфська дорога, 140/1",
+            "phone": "(048) 71 71 61 1",
+            "type": "company",
+            "rating_avg": 3.97,
+            "reviews_count": 93
+        }
+    },
+    {
+        "profile_id": 11121,
+        "full_name": "Афіна, торгово-офісний центр",
+        "city": "Одеса",
+        "category": "Агенства нерухомості",
+        "profile_url": "https://mydovira.com/profiles/afina-torgovo-ofisnii-centr",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Грецька площа, -",
+            "phone": "(048) 73 84 40 0",
+            "type": "company",
+            "rating_avg": 2.68,
+            "reviews_count": 92
+        }
+    },
+    {
+        "profile_id": 11296,
+        "full_name": "Реал Друзі, агентство нерухомості",
+        "city": "Київ",
+        "category": "Агенства нерухомості",
+        "profile_url": "https://mydovira.com/profiles/real-druzi-agentstvo-neruxomosti",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "вулиця Григорія Кочура, 18",
+            "phone": "(067) 218 00 44, (044) 22 01 91 9",
+            "type": "company",
+            "rating_avg": 4.53,
+            "reviews_count": 92
+        }
+    },
+    {
+        "profile_id": 10091,
+        "full_name": "Затишок, агентство нерухомості",
+        "city": "Вінниця",
+        "category": "Агенства нерухомості",
+        "profile_url": "https://mydovira.com/profiles/zatisok-agentstvo-neruxomosti",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Архітектора Артинова, 12",
+            "phone": "(098) 406 99 05",
+            "type": "company",
+            "rating_avg": 4.95,
+            "reviews_count": 91
+        }
+    },
+    {
+        "profile_id": 10876,
+        "full_name": "Simple, операції з нерухомістю",
+        "city": "Львів",
+        "category": "Агенства нерухомості",
+        "profile_url": "https://mydovira.com/profiles/simple-operaciyi-z-neruxomistiu",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Франка, 32",
+            "phone": "(068) 507 02 02, (093) 507 02 02",
+            "type": "company",
+            "rating_avg": 4.91,
+            "reviews_count": 91
+        }
+    },
+    {
+        "profile_id": 11287,
+        "full_name": "Княжий Дім, агентство нерухомості",
+        "city": "Київ",
+        "category": "Агенства нерухомості",
+        "profile_url": "https://mydovira.com/profiles/kniazii-dim-agentstvo-neruxomosti",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Чавдар, 5",
+            "phone": "(095) 717 04 17, (0800) 359 36 7",
+            "type": "company",
+            "rating_avg": 4.78,
+            "reviews_count": 91
+        }
+    },
+    {
+        "profile_id": 11289,
+        "full_name": "La Vida, агентство нерухомості",
+        "city": "Київ",
+        "category": "Агенства нерухомості",
+        "profile_url": "https://mydovira.com/profiles/la-vida-agentstvo-neruxomosti",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Хмельницкого, 52, офіс 318",
+            "phone": "(098) 401 69 99",
+            "type": "company",
+            "rating_avg": 4.9,
+            "reviews_count": 91
+        }
+    }
+]

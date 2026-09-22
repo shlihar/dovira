@@ -52,7 +52,12 @@ class ClaimOtpVerificationTest extends TestCase
         $this->postJson(route('pro.account.claims.verify-code'), [
             'profile_id' => $profile->id,
             'code' => $code,
-        ])->assertOk()->assertJsonPath('ok', true);
+        ])
+            ->assertOk()
+            ->assertJsonPath('ok', true)
+            // Після безкоштовного підтвердження ведемо В КАБІНЕТ (спершу
+            // цінність — статистика переглядів, і лише потім рішення про PRO).
+            ->assertJsonPath('redirect', route('pro.account', ['tab' => 'overview', 'profile' => $profile->id]));
 
         $profile->refresh();
         $this->assertSame($user->id, $profile->owner_user_id);
@@ -64,8 +69,11 @@ class ClaimOtpVerificationTest extends TestCase
         ]);
     }
 
-    public function test_profile_claim_channels_include_email_and_each_phone_when_available(): void
+    public function test_profile_claim_channels_expose_full_email_and_no_sms_while_channel_is_off(): void
     {
+        // SMS-канал вимкнено прапорцем у ClaimVerificationService (рішення
+        // 2026-08-25): підтвердження лише email або через підтримку. Контакт
+        // показуємо ПОВНІСТЮ — власнику треба бачити, куди піде код.
         config(['services.sms.turbosms.token' => 'test-token']);
 
         $user = User::factory()->create(['email_verified_at' => now()]);
@@ -83,10 +91,8 @@ class ClaimOtpVerificationTest extends TestCase
         $response
             ->assertOk()
             ->assertJsonPath('channels.0.channel', 'email')
-            ->assertJsonPath('channels.1.channel', 'phone')
-            ->assertJsonPath('channels.1.masked', '••• ••• 33')
-            ->assertJsonPath('channels.2.channel', 'phone')
-            ->assertJsonPath('channels.2.masked', '••• ••• 66')
+            ->assertJsonPath('channels.0.masked', 'owner@example.com')
+            ->assertJsonCount(1, 'channels')
             ->assertJsonPath('manual', false);
     }
 
@@ -118,10 +124,16 @@ class ClaimOtpVerificationTest extends TestCase
             ->postJson(route('pro.account.claims.request-code'), ['profile_id' => $profile->id])
             ->json('channels');
 
-        $secondPhone = collect($channels)
-            ->where('channel', 'phone')
-            ->values()
-            ->get(1);
+        $phones = collect($channels)->where('channel', 'phone')->values();
+
+        // Поки SMS-канал вимкнено прапорцем (ClaimVerificationService::
+        // SMS_CHANNEL_ENABLED), телефонів у каналах немає — тест автоматично
+        // повернеться в дію, щойно канал увімкнуть назад.
+        if ($phones->count() < 2) {
+            $this->markTestSkipped('SMS-канал підтвердження вимкнено — перевіряти вибір номера нічого.');
+        }
+
+        $secondPhone = $phones->get(1);
 
         $this
             ->actingAs($user)

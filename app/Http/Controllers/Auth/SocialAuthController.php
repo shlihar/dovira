@@ -71,48 +71,12 @@ class SocialAuthController extends Controller
         return redirect()->intended(route('home', absolute: false));
     }
 
-    public function telegram(Request $request): RedirectResponse
-    {
-        $this->storeIntendedUrl($request, $request->input('next'));
-        $this->ensureProviderIsConfigured('telegram');
-
-        $validated = $request->validate([
-            'id' => ['required', 'string', 'max:255'],
-            'first_name' => ['nullable', 'string', 'max:255'],
-            'last_name' => ['nullable', 'string', 'max:255'],
-            'username' => ['nullable', 'string', 'max:255'],
-            'photo_url' => ['nullable', 'url', 'max:2048'],
-            'auth_date' => ['required', 'integer'],
-            'hash' => ['required', 'string', 'size:64'],
-            'next' => ['nullable', 'string', 'max:2048'],
-        ]);
-
-        if (! $this->telegramPayloadIsValid($validated)) {
-            throw ValidationException::withMessages([
-                'social' => 'Не вдалося підтвердити вхід через Telegram. Спробуйте ще раз.',
-            ]);
-        }
-
-        $result = $this->socialAuthService->resolveTelegramUser($validated);
-
-        if ($result['created']) {
-            event(new Registered($result['user']));
-        }
-
-        Auth::login($result['user'], true);
-        $request->session()->regenerate();
-
-        return redirect()->intended(route('home', absolute: false));
-    }
-
     private function ensureProviderIsConfigured(string $provider): void
     {
         $isConfigured = match ($provider) {
             'google' => filled(config("services.{$provider}.client_id"))
                 && filled(config("services.{$provider}.client_secret"))
                 && filled(config("services.{$provider}.redirect")),
-            'telegram' => filled(config('services.telegram.bot_name'))
-                && filled(config('services.telegram.bot_token')),
             default => false,
         };
 
@@ -127,7 +91,6 @@ class SocialAuthController extends Controller
     {
         return match ($provider) {
             'google' => 'Google',
-            'telegram' => 'Telegram',
             default => Str::title($provider),
         };
     }
@@ -141,36 +104,5 @@ class SocialAuthController extends Controller
         if (str_starts_with($next, url('/'))) {
             $request->session()->put('url.intended', $next);
         }
-    }
-
-    /**
-     * @param  array<string, mixed>  $payload
-     */
-    private function telegramPayloadIsValid(array $payload): bool
-    {
-        $maxAge = max(60, (int) config('services.telegram.login_max_age', 86400));
-        $authDate = (int) ($payload['auth_date'] ?? 0);
-
-        if ($authDate <= 0 || (time() - $authDate) > $maxAge) {
-            return false;
-        }
-
-        $hash = (string) ($payload['hash'] ?? '');
-        unset($payload['hash'], $payload['next']);
-
-        ksort($payload);
-
-        $dataCheckString = collect($payload)
-            // Telegram підписує лише реально надіслані поля, а наша форма
-            // завжди сабмітить усі сім (порожні стають null). Без цього
-            // фільтра вхід ламався для користувачів без username чи фото.
-            ->filter(static fn (mixed $value): bool => $value !== null && $value !== '')
-            ->map(static fn (mixed $value, string $key): string => $key . '=' . trim((string) $value))
-            ->implode("\n");
-
-        $secretKey = hash('sha256', (string) config('services.telegram.bot_token'), true);
-        $expectedHash = hash_hmac('sha256', $dataCheckString, $secretKey);
-
-        return hash_equals($expectedHash, $hash);
     }
 }

@@ -36,6 +36,16 @@ class MonopayClient
         return $this->call("invoice/status?invoiceId={$invoiceId}", [], 'get');
     }
 
+    /**
+     * Списання зі збереженої картки (автопродовження підписки): картку
+     * зберігає перший платіж із saveCardData, далі charge без участі клієнта.
+     * https://api.monobank.ua/docs → /api/merchant/wallet/payment
+     */
+    public function walletPayment(array $params): array
+    {
+        return $this->call('wallet/payment', $params);
+    }
+
     public function verifyWebhookSignature(string $rawBody, ?string $signature): bool
     {
         if ($signature === null || $signature === '') {

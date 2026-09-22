@@ -27,7 +27,9 @@ class ProfileReviewStatsService
             'rating_avg' => round($ratingAvg, 2),
         ])->save();
 
-        app(ProfileAnalyticsService::class)->recalculatePopularityScore($profile);
+        // popularity_score перераховує лише рейтингова система (нічний
+        // rating:recalculate) — тут його не чіпаємо, щоб стара формула не
+        // затирала зважений розрахунок.
     }
 }
 

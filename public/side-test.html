@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Тест закріплення сайдбара</title>
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root { --header-h: 48px; }
+* { box-sizing: border-box; }
+body { margin: 0; font: 16px/1.5 Onest, -apple-system, sans-serif; background: linear-gradient(180deg, #f4f7fc, #fbfcfe); }
+
+/* Шапка — точно як на сайті: fixed + backdrop-filter */
+.header { position: fixed; left: 0; right: 0; top: 0; height: var(--header-h); z-index: 40;
+  background: rgba(255,255,255,.8); -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px);
+  border-bottom: 1px solid rgba(0,0,0,.08); display: flex; align-items: center; padding: 0 20px; font-weight: 700; color: #1b3568; }
+.header.no-blur { -webkit-backdrop-filter: none; backdrop-filter: none; background: #fff; }
+
+.wrap { padding-top: calc(var(--header-h) + 16px); }
+.intro { max-width: 1280px; margin: 0 auto 16px; padding: 16px; background: #fff; border: 1px solid #dde6f7; border-radius: 16px; }
+.intro h1 { margin: 0 0 8px; font-size: 20px; color: #1b3568; }
+.intro p { margin: 0 0 8px; }
+.intro button { font: inherit; padding: 8px 14px; border-radius: 10px; border: 1px solid #2f6ef9; background: #2f6ef9; color: #fff; cursor: pointer; }
+
+.layout { max-width: 1280px; margin: 0 auto; padding: 0 16px; display: grid; grid-template-columns: minmax(0,1fr) repeat(4, 240px); gap: 12px; }
+.main p { margin: 0 0 14px; }
+
+.col { align-self: stretch; position: relative; }
+.card { background: #fff; border: 1px solid rgba(184,205,243,.66); border-radius: 16px; box-shadow: 0 10px 22px rgba(35,75,147,.08); padding: 14px; }
+.card h2 { margin: 0 0 8px; font-size: 15px; color: #1b3568; }
+.row { display: flex; gap: 10px; align-items: center; padding: 7px 10px; border: 1px solid #e1e9f9; border-radius: 12px; margin-bottom: 6px; }
+.row b { font-size: 13.5px; color: #16223f; }
+/* Смужки роблять будь-яке дрижання дуже помітним */
+.stripes { height: 54px; border-radius: 8px; margin-top: 8px;
+  background: repeating-linear-gradient(0deg, #16223f 0 1px, #fff 1px 3px); }
+.num { position: absolute; top: -10px; left: -10px; width: 26px; height: 26px; border-radius: 50%; background: #2f6ef9; color: #fff;
+  display: grid; place-items: center; font-weight: 700; font-size: 14px; z-index: 2; }
+
+/* 1 — чистий CSS sticky */
+#v1 { position: sticky; top: calc(var(--header-h) + 16px); }
+/* 2 — fixed через JS (як зараз на сайті) */
+/* 3 — fixed + власний шар композитора */
+/* 4 — sticky + власний шар композитора */
+#v4 { position: sticky; top: calc(var(--header-h) + 16px); -webkit-transform: translateZ(0); transform: translateZ(0); -webkit-backface-visibility: hidden; backface-visibility: hidden; }
+</style>
+</head>
+<body>
+<div class="header" id="head">Тест: шапка з розмиттям</div>
+
+<div class="wrap">
+  <div class="intro">
+    <h1>Який блок НЕ дрижить?</h1>
+    <p>Прокрутіть сторінку трекпадом вниз і вгору секунд 10 і подивіться на смугасті прямокутники в чотирьох блоках праворуч. Дрижання на них видно найкраще.</p>
+    <p>Скажіть номери блоків, які стоять нерухомо: 1, 2, 3 чи 4. Якщо дрижать усі — натисніть кнопку нижче і прокрутіть ще раз.</p>
+    <p><button id="toggle">Прибрати розмиття шапки</button>
+       <button id="clip">Увімкнути обрізання переповнення (як було на профілі)</button>
+       <span id="state"></span></p>
+  </div>
+
+  <div class="layout">
+    <div class="main" id="main"></div>
+
+    <div class="col"><div class="num">1</div><div class="card" id="v1">
+      <h2>1. CSS sticky</h2>
+      <div class="row"><b>Подзвонити</b></div>
+      <div class="row"><b>Веб-сайт</b></div>
+      <div class="stripes"></div>
+    </div></div>
+
+    <div class="col"><div class="num">2</div><div class="card" id="v2">
+      <h2>2. fixed (як зараз)</h2>
+      <div class="row"><b>Подзвонити</b></div>
+      <div class="row"><b>Веб-сайт</b></div>
+      <div class="stripes"></div>
+    </div></div>
+
+    <div class="col"><div class="num">3</div><div class="card" id="v3">
+      <h2>3. fixed + шар GPU</h2>
+      <div class="row"><b>Подзвонити</b></div>
+      <div class="row"><b>Веб-сайт</b></div>
+      <div class="stripes"></div>
+    </div></div>
+
+    <div class="col"><div class="num">4</div><div class="card" id="v4">
+      <h2>4. sticky + шар GPU</h2>
+      <div class="row"><b>Подзвонити</b></div>
+      <div class="row"><b>Веб-сайт</b></div>
+      <div class="stripes"></div>
+    </div></div>
+  </div>
+</div>
+
+<script>
+// Довга колонка «відгуків», щоб було що крутити.
+let html = '';
+for (let i = 0; i < 400; i++) html += '<p>Рядок відгуку номер ' + i + '. Текст для імітації довгого списку відгуків на сторінці профілю.</p>';
+document.getElementById('main').innerHTML = html;
+
+const gap = 16;
+const headEl = document.getElementById('head');
+const snap = v => { const d = window.devicePixelRatio || 1; return Math.round(v * d) / d; };
+
+// Блоки 2 і 3 закріплюються скриптом (position: fixed), як зараз на сайті.
+function pin(el, useLayer) {
+  const col = el.parentElement;
+  let top = 0, height = 0, left = 0, width = 0, asideH = 0, fixed = false;
+  const measure = () => {
+    if (fixed) { el.style.position = ''; el.style.top = ''; el.style.left = ''; el.style.width = ''; el.style.transform = ''; fixed = false; }
+    const r = col.getBoundingClientRect();
+    top = r.top + window.scrollY; left = snap(r.left); width = snap(r.width);
+    asideH = col.offsetHeight; height = el.offsetHeight;
+  };
+  const apply = () => {
+    const line = headEl.offsetHeight + gap;
+    const boxTop = top - window.scrollY;
+    if (boxTop >= line || boxTop + asideH - height <= line) {
+      if (fixed) { el.style.position = ''; el.style.top = ''; el.style.left = ''; el.style.width = ''; el.style.transform = ''; fixed = false; }
+      return;
+    }
+    if (!fixed) {
+      el.style.position = 'fixed';
+      el.style.top = snap(line) + 'px';
+      el.style.left = left + 'px';
+      el.style.width = width + 'px';
+      if (useLayer) { el.style.transform = 'translateZ(0)'; el.style.backfaceVisibility = 'hidden'; }
+      fixed = true;
+    }
+  };
+  measure(); apply();
+  window.addEventListener('scroll', apply, { passive: true });
+  window.addEventListener('resize', () => { measure(); apply(); });
+}
+pin(document.getElementById('v2'), false);
+pin(document.getElementById('v3'), true);
+
+const clipBtn = document.getElementById('clip');
+let clipped = false;
+clipBtn.addEventListener('click', () => {
+  clipped = !clipped;
+  const v = clipped ? 'clip' : '';
+  document.documentElement.style.overflowX = v;
+  document.body.style.overflowX = v;
+  document.querySelector('.wrap').style.overflowX = v;
+  clipBtn.textContent = clipped ? 'Вимкнути обрізання переповнення' : 'Увімкнути обрізання переповнення (як було на профілі)';
+});
+
+const btn = document.getElementById('toggle');
+btn.addEventListener('click', () => {
+  headEl.classList.toggle('no-blur');
+  const off = headEl.classList.contains('no-blur');
+  btn.textContent = off ? 'Повернути розмиття шапки' : 'Прибрати розмиття шапки';
+  document.getElementById('state').textContent = off ? 'розмиття вимкнено' : '';
+});
+</script>
+</body>
+</html>

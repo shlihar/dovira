@@ -8,15 +8,19 @@ use App\Models\OfficialReply;
 use App\Models\PaymentOrder;
 use App\Models\PlatformNotification;
 use App\Models\Profile;
+use App\Models\ProfileClaim;
 use App\Models\ProfileEvent;
 use App\Models\ProfileReview;
+use App\Models\ReviewReport;
 use App\Models\ProSubscription;
 use App\Models\ProSubscriptionPayment;
+use App\Services\Payments\PaymentFulfillmentService;
 use App\Services\ProfileAnalyticsService;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
@@ -71,6 +75,50 @@ class ProAccountTest extends TestCase
             ->assertSee('PRO кабінет')
             ->assertSee('Nova Legal')
             ->assertSee(route('profile.show', ['slug' => $profile->slug]));
+    }
+
+    public function test_verified_non_pro_owner_sees_pro_upgrade_popup(): void
+    {
+        $user = User::factory()->create();
+
+        $profile = Profile::query()->create([
+            'owner_user_id' => $user->id,
+            'name' => 'Claimed Legal',
+            'slug' => 'claimed-legal',
+            'type' => 'company',
+            'status' => 'active',
+            'is_owner_verified' => true,
+        ]);
+
+        $this
+            ->actingAs($user)
+            ->get(route('pro.account', ['profile' => $profile->id]))
+            ->assertOk()
+            ->assertSee('data-pro-upgrade-popup', false)
+            ->assertSee('Без підписки профіль не працює на повну')
+            ->assertSee(route('pro.account.billing.pay', $profile), false);
+    }
+
+    public function test_active_pro_owner_does_not_see_upgrade_popup(): void
+    {
+        $user = User::factory()->create();
+
+        $profile = Profile::query()->create([
+            'owner_user_id' => $user->id,
+            'name' => 'Paid Legal',
+            'slug' => 'paid-legal',
+            'type' => 'company',
+            'status' => 'active',
+            'is_owner_verified' => true,
+        ]);
+
+        $this->activatePro($profile);
+
+        $this
+            ->actingAs($user)
+            ->get(route('pro.account', ['profile' => $profile->id]))
+            ->assertOk()
+            ->assertDontSee('data-pro-upgrade-popup', false);
     }
 
     public function test_unverified_user_sees_email_gate_without_claim_otp_widget(): void
@@ -144,7 +192,7 @@ class ProAccountTest extends TestCase
 
         $profile->categories()->sync([$category->id => ['is_primary' => true]]);
 
-        $expectedTitle = 'Відгуки про Адвокат Андрій Смирнов — Одеса | DOVIRA';
+        $expectedTitle = 'Адвокат Андрій Смирнов відгуки і рейтинг | DOVIRA';
         $expectedDescription = 'Відгуки про Адвокат Андрій Смирнов в Одесі. Юридична допомога для бізнесу та приватних клієнтів. Читайте досвід клієнтів на DOVIRA.';
 
         $response = $this
@@ -425,7 +473,7 @@ class ProAccountTest extends TestCase
                 'show_in_catalog' => false,
             ]);
 
-        $expectedTitle = 'Відгуки про Адвокат Андрій Смирнов — Одеса | DOVIRA';
+        $expectedTitle = 'Адвокат Андрій Смирнов відгуки і рейтинг | DOVIRA';
         $expectedDescription = 'Відгуки про Адвокат Андрій Смирнов в Одесі. Юридична допомога для бізнесу та приватних клієнтів. Читайте досвід клієнтів на DOVIRA.';
 
         $response
@@ -802,8 +850,8 @@ class ProAccountTest extends TestCase
 
         $profile->categories()->sync([$category->id => ['is_primary' => true]]);
 
-        $expectedTitle = 'Відгуки про Адвокат Андрій Смирнов — Одеса | DOVIRA';
-        $expectedDescription = 'Відгуки про Адвокат Андрій Смирнов в Одесі. Юридична допомога для бізнесу та приватних клієнтів. Читайте досвід клієнтів на DOVIRA.';
+        $expectedTitle = 'Адвокат Андрій Смирнов відгуки: рейтинг 4.8/5 | DOVIRA';
+        $expectedDescription = 'Рейтинг 4.8/5: 4 відгуки про Адвокат Андрій Смирнов на DOVIRA. Оцінка роботи, репутація та досвід клієнтів. Юридична допомога для бізнесу та приватних клієнтів.';
 
         $response = $this->get(route('profile.show', ['slug' => $profile->slug]));
 
@@ -811,6 +859,85 @@ class ProAccountTest extends TestCase
             ->assertOk()
             ->assertSee('<title>' . e($expectedTitle) . '</title>', false)
             ->assertSee('<meta name="description" content="' . e($expectedDescription) . '">', false);
+    }
+
+    public function test_public_profile_seo_prioritizes_rating_reviews_and_dossier_over_imported_copy(): void
+    {
+        $category = Category::query()->create([
+            'name' => 'Адвокати',
+            'slug' => 'lawyers',
+            'status' => 'active',
+            'is_active' => true,
+        ]);
+
+        $profile = Profile::query()->create([
+            'name' => 'Касьяненко і партнери',
+            'slug' => 'kasianenko-partners',
+            'type' => 'company',
+            'status' => 'active',
+            'city' => 'Київ',
+            'seo_title' => 'Касьяненко і партнери, юридична компанія, адвокат - Dovira',
+            'seo_description' => 'Юридична компанія Касьяненко і партнери спеціалізується на наданні адвокатських послуг із різних напрямків права.',
+            'dossier' => "## Є що перевірити\n\nПісля пʼяти спокійних років — хвиля скарг: 29 негативних відгуків за 2025–2026. Дорогі консультації без конкретики, процесуальні помилки. Фіксуйте виконавця і етапи в договорі.",
+            'dossier_verdict' => 'yellow',
+            'reviews_count' => 31,
+            'rating_avg' => 4.7,
+        ]);
+
+        $profile->categories()->sync([$category->id => ['is_primary' => true]]);
+
+        $expectedTitle = 'Касьяненко і партнери відгуки: рейтинг 4.7/5 | DOVIRA';
+
+        $response = $this->get(route('profile.show', ['slug' => $profile->slug]));
+
+        $response
+            ->assertOk()
+            ->assertSee('<title>' . e($expectedTitle) . '</title>', false)
+            ->assertSee('<meta name="description" content="Є що перевірити. Після пʼяти спокійних років', false)
+            ->assertSee('29 негативних відгуків', false)
+            ->assertDontSee('спеціалізується на наданні адвокатських послуг', false);
+    }
+
+    public function test_public_profile_hides_direct_contacts_without_active_subscription(): void
+    {
+        $user = User::factory()->create();
+
+        $profile = Profile::query()->create([
+            'owner_user_id' => $user->id,
+            'is_owner_verified' => true,
+            'is_pro' => true,
+            'name' => 'Verified Expired Legal',
+            'slug' => 'verified-expired-legal',
+            'type' => 'company',
+            'status' => 'active',
+            'website' => 'https://hidden-contacts.example.com',
+            'contact_cta_url' => 'https://t.me/hidden_contacts',
+            'email' => 'hidden-contacts@example.com',
+            'phone' => '+380501112233',
+            'social_links' => [
+                'telegram' => 'https://t.me/hidden_contacts',
+            ],
+        ]);
+
+        ProSubscription::query()->create([
+            'profile_id' => $profile->id,
+            'plan' => 'business',
+            'status' => 'expired',
+            'price_monthly' => 1499,
+            'price_yearly' => 14990,
+            'currency' => 'UAH',
+            'started_at' => now()->subMonths(2),
+            'ends_at' => now()->subMonth(),
+        ]);
+
+        $response = $this->get(route('profile.show', ['slug' => $profile->slug]));
+
+        $response
+            ->assertOk()
+            ->assertDontSee('hidden-contacts.example.com', false)
+            ->assertDontSee('hidden-contacts@example.com', false)
+            ->assertDontSee('+380501112233', false)
+            ->assertDontSee('hidden_contacts', false);
     }
 
     public function test_owner_can_add_custom_service_names_via_ajax(): void
@@ -921,10 +1048,217 @@ class ProAccountTest extends TestCase
             ->assertOk()
             ->assertSee('Перейти до оплати')
             ->assertSee('Безпечна оплата через monopay')
-            ->assertSee('1 грн / 6 місяців')
-            ->assertDontSee('$49 / 6 місяців')
+            // Вітрина в гривні: великою — місячний еквівалент, поруч — реальне
+            // списання раз на 6 місяців. Суму не фіксуємо: тест перевизначає
+            // payments.pro.amount, тож перевіряємо саме подачу.
+            ->assertSee('/ місяць')
+            ->assertSee('раз на 6 місяців · підписка з автопродовженням')
             ->assertSee('static/assets/payments/google-pay-light.svg', false)
             ->assertSee('static/assets/payments/apple-pay-light.svg', false);
+    }
+
+    public function test_unclaimed_profile_payment_page_requires_ownership_verification_before_payment(): void
+    {
+        config(['payments.pro.amount' => 1]);
+
+        $user = User::factory()->create();
+
+        $profile = Profile::query()->create([
+            'name' => 'Unclaimed Legal',
+            'slug' => 'unclaimed-legal-pay-page',
+            'type' => 'company',
+            'status' => 'active',
+            'email' => 'office@example.com',
+            'is_pro' => false,
+        ]);
+
+        // Підтвердження прав живе на окремій безкоштовній сторінці — оплата
+        // туди перенаправляє і повертає назад після коду (?next=pay).
+        $this
+            ->actingAs($user)
+            ->get(route('pro.account.billing.pay', $profile))
+            ->assertRedirect(route('pro.account.claims.verify', ['profile' => $profile->id, 'next' => 'pay']));
+
+        $this
+            ->actingAs($user)
+            ->get(route('pro.account.claims.verify', ['profile' => $profile->id, 'next' => 'pay']))
+            ->assertOk()
+            ->assertSee('Підтвердіть, що це ваш профіль')
+            ->assertSee('office@example.com')
+            ->assertDontSee('Безпечна оплата через monopay');
+    }
+
+    public function test_unclaimed_profile_cannot_start_payment_before_ownership_verification(): void
+    {
+        config([
+            'payments.monopay.token' => 'monopay-test-token',
+            'payments.pro.amount' => 1999,
+        ]);
+
+        Http::fake();
+
+        $user = User::factory()->create();
+
+        $profile = Profile::query()->create([
+            'name' => 'Unverified Payment',
+            'slug' => 'unverified-payment',
+            'type' => 'company',
+            'status' => 'active',
+            'email' => 'office@example.com',
+            'is_pro' => false,
+        ]);
+
+        $this
+            ->actingAs($user)
+            ->post(route('pro.account.billing.pay.monopay', $profile))
+            ->assertForbidden();
+
+        $this->assertDatabaseCount('payment_orders', 0);
+    }
+
+    public function test_unclaimed_profile_without_contact_uses_support_verification_on_payment_page(): void
+    {
+        $user = User::factory()->create();
+
+        $profile = Profile::query()->create([
+            'name' => 'Manual Verify Legal',
+            'slug' => 'manual-verify-legal',
+            'type' => 'company',
+            'status' => 'active',
+            'is_pro' => false,
+        ]);
+
+        $this
+            ->actingAs($user)
+            ->get(route('pro.account.billing.pay', $profile))
+            ->assertRedirect(route('pro.account.claims.verify', ['profile' => $profile->id, 'next' => 'pay']));
+
+        $this
+            ->actingAs($user)
+            ->get(route('pro.account.claims.verify', ['profile' => $profile->id, 'next' => 'pay']))
+            ->assertOk()
+            ->assertSee('Написати в підтримку')
+            ->assertDontSee('Безпечна оплата через monopay');
+    }
+
+    public function test_pending_claimant_payment_page_shows_payment_button_with_review_notice(): void
+    {
+        config(['payments.pro.amount' => 1]);
+
+        $user = User::factory()->create();
+
+        $profile = Profile::query()->create([
+            'name' => 'Pending Pay Page Legal',
+            'slug' => 'pending-pay-page-legal',
+            'type' => 'company',
+            'status' => 'active',
+            'is_pro' => false,
+        ]);
+
+        ProfileClaim::query()->create([
+            'profile_id' => $profile->id,
+            'user_id' => $user->id,
+            'status' => 'pending',
+        ]);
+
+        $this
+            ->actingAs($user)
+            ->get(route('pro.account.billing.pay', $profile))
+            ->assertOk()
+            ->assertSee('Заявка на права вже в роботі')
+            ->assertSee('Перейти до оплати')
+            ->assertSee('Безпечна оплата через monopay');
+    }
+
+    public function test_pending_claimant_can_start_pro_monopay_payment_before_manual_approval(): void
+    {
+        Http::fake([
+            'api.monobank.ua/api/merchant/invoice/create' => Http::response([
+                'invoiceId' => 'mono-claimant-invoice-123',
+                'pageUrl' => 'https://pay.mbnk.biz/invoice/mono-claimant-invoice-123',
+                'appUrl' => 'monobank://invoice/mono-claimant-invoice-123',
+            ]),
+        ]);
+
+        config([
+            'payments.monopay.token' => 'monopay-test-token',
+            'payments.pro.amount' => 1999,
+        ]);
+
+        $user = User::factory()->create();
+
+        $profile = Profile::query()->create([
+            'name' => 'Pending Claimant Legal',
+            'slug' => 'pending-claimant-legal',
+            'type' => 'company',
+            'status' => 'active',
+            'is_pro' => false,
+        ]);
+
+        ProfileClaim::query()->create([
+            'profile_id' => $profile->id,
+            'user_id' => $user->id,
+            'status' => 'pending',
+        ]);
+
+        $response = $this
+            ->actingAs($user)
+            ->post(route('pro.account.billing.pay.monopay', $profile));
+
+        $response->assertRedirect('https://pay.mbnk.biz/invoice/mono-claimant-invoice-123');
+
+        $this->assertDatabaseHas('payment_orders', [
+            'user_id' => $user->id,
+            'profile_id' => $profile->id,
+            'method' => PaymentOrder::METHOD_MONOPAY,
+            'product_type' => PaymentOrder::PRODUCT_PRO_SUBSCRIPTION,
+            'status' => PaymentOrder::STATUS_PENDING,
+        ]);
+    }
+
+    public function test_paid_order_from_pending_claimant_activates_subscription(): void
+    {
+        config(['payments.pro.amount' => 1999]);
+
+        $user = User::factory()->create();
+
+        $profile = Profile::query()->create([
+            'name' => 'Pending Paid Legal',
+            'slug' => 'pending-paid-legal',
+            'type' => 'company',
+            'status' => 'active',
+            'is_pro' => false,
+        ]);
+
+        ProfileClaim::query()->create([
+            'profile_id' => $profile->id,
+            'user_id' => $user->id,
+            'status' => 'pending',
+        ]);
+
+        $order = PaymentOrder::query()->create([
+            'user_id' => $user->id,
+            'profile_id' => $profile->id,
+            'token' => 'pending-claimant-paid-order',
+            'method' => PaymentOrder::METHOD_MONOPAY,
+            'product_type' => PaymentOrder::PRODUCT_PRO_SUBSCRIPTION,
+            'status' => PaymentOrder::STATUS_PENDING,
+            'amount' => '199900',
+            'currency' => 'UAH',
+            'description' => 'DOVIRA PRO',
+            'provider_invoice_id' => 'mono-paid-before-claim-approval',
+        ]);
+
+        app(PaymentFulfillmentService::class)->markOrderPaid($order, [
+            'provider_charge_id' => 'mono-paid-before-claim-approval',
+        ]);
+
+        $this->assertTrue($profile->refresh()->is_pro);
+        $this->assertDatabaseHas('pro_subscriptions', [
+            'profile_id' => $profile->id,
+            'status' => 'active',
+            'plan' => 'pro',
+        ]);
     }
 
     public function test_owner_can_start_pro_monopay_payment_order(): void
@@ -970,7 +1304,7 @@ class ProAccountTest extends TestCase
                 && $payload['withAppUrl'] === true
                 && filled($payload['redirectUrl'] ?? null)
                 && filled($payload['webHookUrl'] ?? null)
-                && ($payload['merchantPaymInfo']['destination'] ?? '') === 'DOVIRA PRO — підписка на 6 місяців — Nova Legal';
+                && ($payload['merchantPaymInfo']['destination'] ?? '') === 'Оплата за інформаційні послуги, без ПДВ.';
         });
 
         $profile->refresh();
@@ -986,6 +1320,67 @@ class ProAccountTest extends TestCase
             'currency' => 'UAH',
             'provider_invoice_id' => 'mono-invoice-123',
         ]);
+    }
+
+    public function test_profile_pro_discount_is_applied_to_payment_page_and_monopay_order(): void
+    {
+        Http::fake([
+            'api.monobank.ua/api/merchant/invoice/create' => Http::response([
+                'invoiceId' => 'mono-discount-invoice-123',
+                'pageUrl' => 'https://pay.mbnk.biz/invoice/mono-discount-invoice-123',
+            ]),
+        ]);
+
+        config([
+            'payments.monopay.token' => 'monopay-test-token',
+            'payments.pro.amount' => 1999,
+        ]);
+
+        $user = User::factory()->create();
+
+        $profile = Profile::query()->create([
+            'owner_user_id' => $user->id,
+            'name' => 'Discount Legal',
+            'slug' => 'discount-legal',
+            'type' => 'company',
+            'status' => 'active',
+            'is_pro' => false,
+            'pro_discount_percent' => 20,
+        ]);
+
+        $this
+            ->actingAs($user)
+            ->get(route('pro.account.billing.pay', $profile))
+            ->assertOk()
+            ->assertSee('1 599 грн')
+            ->assertSee('−20%');
+
+        $this
+            ->actingAs($user)
+            ->post(route('pro.account.billing.pay.monopay', $profile))
+            ->assertRedirect('https://pay.mbnk.biz/invoice/mono-discount-invoice-123');
+
+        Http::assertSent(function ($request): bool {
+            return $request->url() === 'https://api.monobank.ua/api/merchant/invoice/create'
+                && $request->data()['amount'] === 159900;
+        });
+
+        $this->assertDatabaseHas('payment_orders', [
+            'user_id' => $user->id,
+            'profile_id' => $profile->id,
+            'amount' => '159900',
+            'currency' => 'UAH',
+            'provider_invoice_id' => 'mono-discount-invoice-123',
+        ]);
+
+        $order = PaymentOrder::query()
+            ->where('provider_invoice_id', 'mono-discount-invoice-123')
+            ->firstOrFail();
+
+        $this->assertSame(1599, (int) $order->meta['price_uah']);
+        $this->assertSame(1999, (int) $order->meta['base_price_uah']);
+        $this->assertSame(20, (int) $order->meta['discount_percent']);
+        $this->assertSame(400, (int) $order->meta['discount_amount_uah']);
     }
 
     public function test_mobile_owner_is_sent_to_monopay_app_url_when_available(): void
@@ -1170,7 +1565,7 @@ class ProAccountTest extends TestCase
         $response
             ->assertOk()
             ->assertSee('Продовжити на 6 місяців')
-            ->assertSee('data-switch-label="Продовжити PRO"', false);
+            ->assertSee('data-switch-label="Продовжити підписку"', false);
     }
 
     public function test_paid_monopay_success_button_opens_pro_management_not_billing(): void
@@ -1542,46 +1937,12 @@ class ProAccountTest extends TestCase
         $this->assertSame('Дякуємо за ваш відгук і довіру до нашої команди.', $reply->body);
     }
 
-    public function test_owner_can_hide_review_from_pro_account(): void
+    public function test_review_visibility_route_is_not_registered(): void
     {
-        $user = User::factory()->create();
-
-        $profile = Profile::query()->create([
-            'owner_user_id' => $user->id,
-            'name' => 'Nova Legal',
-            'slug' => 'nova-legal',
-            'type' => 'company',
-            'status' => 'active',
-        ]);
-        $this->activatePro($profile);
-
-        $review = ProfileReview::query()->create([
-            'profile_id' => $profile->id,
-            'author_name' => 'Анна',
-            'author_email' => 'anna@example.com',
-            'rating' => 4,
-            'body' => 'Все добре.',
-            'status' => 'published',
-            'published_at' => now(),
-        ]);
-
-        $response = $this
-            ->actingAs($user)
-            ->patch(route('pro.account.reviews.visibility', $review), [
-                'status' => 'hidden',
-            ]);
-
-        $response->assertRedirect(route('pro.account', ['tab' => 'reviews', 'profile' => $profile->id]));
-
-        $review->refresh();
-        $profile->refresh();
-
-        $this->assertSame('hidden', $review->status);
-        $this->assertSame(0, (int) $profile->reviews_count);
-        $this->assertSame(0.0, (float) $profile->rating_avg);
+        $this->assertFalse(Route::has('pro.account.reviews.visibility'));
     }
 
-    public function test_owner_can_hide_review_from_pro_account_via_ajax(): void
+    public function test_owner_can_report_review_for_moderation_from_pro_account(): void
     {
         $user = User::factory()->create();
 
@@ -1606,27 +1967,30 @@ class ProAccountTest extends TestCase
 
         $response = $this
             ->actingAs($user)
-            ->patchJson(route('pro.account.reviews.visibility', $review), [
-                'status' => 'hidden',
+            ->postJson(route('pro.account.reviews.report', $review), [
+                'reason' => 'Неправдива інформація',
+                'details' => 'У відгуку описана послуга, яку профіль не надавав.',
             ]);
 
         $response
             ->assertOk()
             ->assertJsonPath('status', 'ok')
-            ->assertJsonPath('message', 'Видимість відгуку оновлено.')
-            ->assertJsonPath('review_id', $review->id)
-            ->assertJsonPath('review_status', 'hidden')
-            ->assertJsonPath('redirect_url', route('pro.account', ['tab' => 'reviews', 'profile' => $profile->id]));
+            ->assertJsonPath('message', 'Скаргу надіслано на модерацію.')
+            ->assertJsonPath('review_id', $review->id);
 
         $review->refresh();
         $profile->refresh();
 
-        $this->assertSame('hidden', $review->status);
-        $this->assertSame(0, (int) $profile->reviews_count);
-        $this->assertSame(0.0, (float) $profile->rating_avg);
+        $this->assertSame('published', $review->status);
+        $this->assertDatabaseHas(ReviewReport::class, [
+            'profile_review_id' => $review->id,
+            'reporter_user_id' => $user->id,
+            'status' => 'open',
+            'reason' => 'Неправдива інформація',
+        ]);
     }
 
-    public function test_owner_without_pro_cannot_hide_review(): void
+    public function test_pro_account_reviews_page_does_not_render_review_hide_controls(): void
     {
         $user = User::factory()->create();
 
@@ -1637,8 +2001,9 @@ class ProAccountTest extends TestCase
             'type' => 'company',
             'status' => 'active',
         ]);
+        $this->activatePro($profile);
 
-        $review = ProfileReview::query()->create([
+        ProfileReview::query()->create([
             'profile_id' => $profile->id,
             'author_name' => 'Анна',
             'rating' => 4,
@@ -1647,14 +2012,12 @@ class ProAccountTest extends TestCase
             'published_at' => now(),
         ]);
 
-        // Керування видимістю відгуків — платна частина керування профілем.
-        $this->actingAs($user)
-            ->patch(route('pro.account.reviews.visibility', $review), [
-                'status' => 'hidden',
-            ])
-            ->assertForbidden();
-
-        $this->assertSame('published', $review->refresh()->status);
+        $this
+            ->actingAs($user)
+            ->get(route('pro.account', ['tab' => 'reviews', 'profile' => $profile->id]))
+            ->assertOk()
+            ->assertDontSee('Сховати відгук')
+            ->assertDontSee('data-review-visibility-form', false);
     }
 
     public function test_owner_without_pro_cannot_publish_official_reply(): void

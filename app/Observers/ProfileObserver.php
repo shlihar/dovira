@@ -5,6 +5,8 @@ namespace App\Observers;
 use App\Jobs\RefreshHomePageCache;
 use App\Jobs\RefreshProfileReviewAiAnalysis;
 use App\Models\Profile;
+use App\Support\SitemapCache;
+use App\Support\TopRatingIndexCache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
 
@@ -38,6 +40,8 @@ class ProfileObserver
             'contact_clicks_count',
             'website_clicks_count',
             'dovira_recommendation_status',
+            'rating_placement',
+            'rating_priority',
         ]);
 
         if ($publicFieldsTouched && ($this->isPublished($profile) || $this->wasPublishedBefore($profile))) {
@@ -70,6 +74,8 @@ class ProfileObserver
             Cache::forget('public:catalog:category-filters:v1');
             Cache::forget('public:catalog:category-options:v1');
             Cache::forget('public:catalog:regions:v2');
+            SitemapCache::forget();
+            TopRatingIndexCache::forget();
 
             RefreshHomePageCache::dispatch()->afterCommit();
         });

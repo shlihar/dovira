@@ -7,6 +7,7 @@ use App\Services\Payments\MonopayClient;
 use App\Services\Payments\PaymentFulfillmentService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Log;
 
 class PaymentWebhookController extends Controller
 {
@@ -21,6 +22,15 @@ class PaymentWebhookController extends Controller
         $rawBody = $request->getContent();
 
         if (! MonopayClient::make()->verifyWebhookSignature($rawBody, $request->header('X-Sign'))) {
+            // Без цього логу відкинутий вебхук — сліпа зона: оплата проходить у
+            // monopay, PRO не активується, і в логах порожньо (кейс 14.09.2026).
+            Log::warning('Monopay webhook rejected: signature verification failed.', [
+                'has_signature' => $request->hasHeader('X-Sign'),
+                'invoice_id' => (string) data_get(json_decode($rawBody, true), 'invoiceId', ''),
+                'reference' => (string) data_get(json_decode($rawBody, true), 'reference', ''),
+                'ip' => $request->ip(),
+            ]);
+
             abort(403);
         }
 

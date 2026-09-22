@@ -24,7 +24,8 @@ class LocalizeReviewAvatars extends Command
     protected $signature = 'dovira:localize-review-avatars
         {--all : Усі відгуки з сирим http-аватаром, а не лише Apify Google Maps}
         {--limit=0 : Обмежити кількість унікальних URL}
-        {--dry-run : Порахувати без завантажень}';
+        {--dry-run : Порахувати без завантажень}
+        {--force : Запустити навіть коли TOP20_BULK_IMPORT_DOWNLOAD_REVIEW_AVATARS=false}';
 
     protected $description = 'Локалізує аватарки зовнішніх відгуків (Google-URL → локальний сторедж).';
 
@@ -34,6 +35,13 @@ class LocalizeReviewAvatars extends Command
     {
         $dryRun = (bool) $this->option('dry-run');
         $limit = (int) $this->option('limit');
+
+        if (! (bool) config('top20_bulk_import.download_review_avatars', false) && ! $this->option('force')) {
+            $this->warn('Локалізацію аватарок вимкнено: TOP20_BULK_IMPORT_DOWNLOAD_REVIEW_AVATARS=false.');
+            $this->line('Якщо точно треба завантажити аватарки, запустіть з --force.');
+
+            return self::SUCCESS;
+        }
 
         $query = DB::table('profile_reviews')
             ->where('external_review_author_avatar_url', 'like', 'http%');

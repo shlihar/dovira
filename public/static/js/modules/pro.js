@@ -1940,34 +1940,6 @@ const initProAccountWorkspace = (shell) => {
                 }
             });
         };
-        const setReviewVisibilityLabels = (root, status, { compact = false } = {}) => {
-            if (!root) return;
-
-            const input = root.querySelector('[name="status"]');
-            const button = root.querySelector('button');
-            const icon = button?.querySelector('i');
-            const label = button?.querySelector('span');
-            const isHidden = status === 'hidden';
-
-            if (input) {
-                input.value = isHidden ? 'published' : 'hidden';
-            }
-
-            if (button) {
-                button.setAttribute('aria-label', isHidden ? 'Показати відгук' : 'Сховати відгук');
-            }
-
-            if (icon) {
-                icon.classList.remove('fa-eye', 'fa-eye-slash');
-                icon.classList.add(isHidden ? 'fa-eye' : 'fa-eye-slash');
-            }
-
-            if (label) {
-                label.textContent = isHidden
-                    ? (compact ? 'Показати' : 'Показати відгук')
-                    : (compact ? 'Сховати' : 'Сховати відгук');
-            }
-        };
         const setReviewReplyLabels = (root, hasReply, replyBody = '') => {
             if (!root) return;
 
@@ -2012,7 +1984,6 @@ const initProAccountWorkspace = (shell) => {
             if (status) {
                 card.dataset.reviewStatus = status;
                 card.classList.toggle('is-hidden-review', status === 'hidden');
-                setReviewVisibilityLabels(card.querySelector('.pro-reviews-card__quick-visibility'), status, { compact: true });
             }
 
             if (typeof hasReply === 'boolean') {
@@ -2027,7 +1998,6 @@ const initProAccountWorkspace = (shell) => {
                 const activeDetail = detailPanel?.querySelector('.pro-reviews-detail');
                 if (status) {
                     activeDetail?.classList.toggle('is-hidden-review', status === 'hidden');
-                    setReviewVisibilityLabels(detailPanel?.querySelector('[data-review-visibility-form]'), status);
                 }
 
                 if (typeof hasReply === 'boolean') {
@@ -2232,40 +2202,9 @@ const initProAccountWorkspace = (shell) => {
             }
         };
 
-        // Toast з кнопкою «Скасувати» після приховання — захист від
-        // випадкового тапу без модального підтвердження.
-        let undoToastEl = null;
-        let undoToastTimer = null;
-
-        const showHideUndoToast = (form) => {
-            undoToastEl?.remove();
-            window.clearTimeout(undoToastTimer);
-
-            const toast = document.createElement('div');
-            toast.className = 'pro-review-undo-toast';
-            toast.setAttribute('role', 'status');
-            toast.innerHTML = `
-                <i class="fa-solid fa-eye-slash" aria-hidden="true"></i>
-                <span>Відгук сховано</span>
-                <button type="button" class="pro-review-undo-toast__btn">Скасувати</button>
-            `;
-            toast.querySelector('button').addEventListener('click', async () => {
-                toast.remove();
-                window.clearTimeout(undoToastTimer);
-                // Після приховання форма вже перемкнута на status=published —
-                // повторний сабміт повертає відгук.
-                await submitReviewAction(form);
-            });
-
-            document.body.appendChild(toast);
-            undoToastEl = toast;
-            undoToastTimer = window.setTimeout(() => toast.remove(), 6000);
-        };
-
         const submitReviewAction = async (form) => {
             const reviewId = form.dataset.reviewId || form.querySelector('[name="review_id"]')?.value || '';
             const submitButtons = Array.from(form.querySelectorAll('button[type="submit"]'));
-            const isVisibilityMutation = form.matches('[data-review-visibility-form]');
             const isReplyMutation = form.matches('[data-review-reply-form]');
             const isReportMutation = form.matches('[data-review-report-form]');
             const replyBody = isReplyMutation
@@ -2299,18 +2238,7 @@ const initProAccountWorkspace = (shell) => {
 
                 persistActiveReviewId(payload?.review_id || reviewId);
 
-                if (isVisibilityMutation && payload?.review_status) {
-                    updateReviewCardState(reviewId, { status: payload.review_status });
-
-                    if (payload.review_status === 'hidden') {
-                        // Замість звичайного тоста — undo, щоб можна було повернути.
-                        showHideUndoToast(form);
-                    } else {
-                        setProfileStatus(payload?.message || 'Відгук оновлено.');
-                    }
-                } else {
-                    setProfileStatus(payload?.message || 'Відгук оновлено.');
-                }
+                setProfileStatus(payload?.message || 'Відгук оновлено.');
 
                 if (isReplyMutation) {
                     updateReviewCardState(reviewId, {
@@ -2408,7 +2336,7 @@ const initProAccountWorkspace = (shell) => {
         reviewWorkspace.addEventListener('submit', async (event) => {
             const form = event.target;
             if (!(form instanceof HTMLFormElement)) return;
-            if (!form.matches('[data-review-reply-form], [data-review-visibility-form], [data-review-report-form]')) return;
+            if (!form.matches('[data-review-reply-form], [data-review-report-form]')) return;
 
             event.preventDefault();
             await submitReviewAction(form);
@@ -3997,6 +3925,42 @@ const initProProfileSectionAccordion = (shell) => {
     });
 };
 
+const initProUpgradePopup = (shell) => {
+    const popup = shell.querySelector('[data-pro-upgrade-popup]');
+    if (!popup || popup.dataset.bound === 'true') return;
+
+    popup.dataset.bound = 'true';
+    const profileId = popup.dataset.profileId || 'current';
+    const storageKey = `pro_upgrade_popup_seen_${profileId}`;
+
+    try {
+        if (window.localStorage.getItem(storageKey) === '1') return;
+    } catch (error) {
+        // Private browsing can block localStorage; the popup still works.
+    }
+
+    const close = () => {
+        popup.hidden = true;
+        document.body.classList.remove('is-pro-upgrade-popup-open');
+        try { window.localStorage.setItem(storageKey, '1'); } catch (error) {}
+    };
+
+    const open = () => {
+        popup.hidden = false;
+        document.body.classList.add('is-pro-upgrade-popup-open');
+    };
+
+    popup.addEventListener('click', (event) => {
+        if (event.target.closest('[data-pro-upgrade-popup-close]')) close();
+    });
+
+    document.addEventListener('keydown', (event) => {
+        if (!popup.hidden && event.key === 'Escape') close();
+    });
+
+    window.setTimeout(open, 650);
+};
+
 export const initProAccountPage = (root = document) => {
     if (!document.body.classList.contains('page-pro-account')) return;
 
@@ -4017,6 +3981,7 @@ export const initProAccountPage = (root = document) => {
     initProAccountWorkspace(shell);
     initProAccountAjaxNavigation(shell);
     initProProfileSectionAccordion(shell);
+    initProUpgradePopup(shell);
 };
 
 initProHeader();
@@ -4132,6 +4097,354 @@ const initWidgetFloatCorner = () => {
 };
 
 initWidgetFloatCorner();
+
+// --- Блок відгуків: вибір мінімального рейтингу оновлює превʼю і сніпет,
+// а превʼю-iframe авторозмірюється тим самим postMessage, що й на сайтах
+// власників (див. WidgetController::reviewsLoader).
+const initWidgetReviewsOption = () => {
+    document.addEventListener('click', (event) => {
+        const btn = event.target.closest('[data-widget-reviews-min]');
+        if (!btn) return;
+
+        const option = btn.closest('[data-widget-reviews-option]');
+        if (!option) return;
+
+        const min = btn.dataset.widgetReviewsMin || '4';
+
+        option.querySelectorAll('[data-widget-reviews-min]').forEach((node) => {
+            const active = node === btn;
+            node.classList.toggle('is-copied', active);
+            node.setAttribute('aria-pressed', active ? 'true' : 'false');
+        });
+
+        const preview = option.querySelector('[data-widget-reviews-preview]');
+        if (preview) {
+            preview.src = (preview.dataset.baseSrc || '') + '?min=' + encodeURIComponent(min);
+        }
+
+        const snippet = option.querySelector('[data-widget-reviews-snippet]');
+        if (snippet) {
+            snippet.value = '<!-- DOVIRA блок відгуків -->\n'
+                + '<script src="' + (snippet.dataset.baseSrc || '')
+                + '" data-layout="carousel" data-min-rating="' + min + '" async><\/script>';
+        }
+    });
+
+    window.addEventListener('message', (event) => {
+        const data = event.data || {};
+        if (data.doviraWidget !== 'reviews') return;
+        document.querySelectorAll('[data-widget-reviews-preview]').forEach((frame) => {
+            if (frame.contentWindow !== event.source) return;
+            const height = parseInt(data.height, 10);
+            if (height > 0) frame.style.height = height + 'px';
+        });
+    });
+};
+
+initWidgetReviewsOption();
+
+// --- Разовий попап «Покажіть рейтинг на своєму сайті» ---
+// Показується один раз на браузер при вході в кабінет (localStorage-прапорець),
+// CTA перемикає на вкладку «Огляд» і скролить до картки віджетів.
+const initWidgetPromo = () => {
+    const promo = document.querySelector('[data-widget-promo]');
+    if (!promo) return;
+
+    const STORAGE_KEY = 'doviraWidgetPromoSeen';
+    try {
+        if (localStorage.getItem(STORAGE_KEY) === '1') return;
+    } catch (error) { /* приватний режим — показуємо як завжди */ }
+
+    const dismiss = () => {
+        promo.hidden = true;
+        try { localStorage.setItem(STORAGE_KEY, '1'); } catch (error) { /* ok */ }
+    };
+
+    window.setTimeout(() => { promo.hidden = false; }, 1200);
+
+    promo.querySelectorAll('[data-widget-promo-close]').forEach((el) => {
+        el.addEventListener('click', dismiss);
+    });
+
+    promo.querySelector('[data-widget-promo-go]')?.addEventListener('click', () => {
+        dismiss();
+        const card = document.querySelector('.pro-widget-card');
+        if (card?.closest('[data-pro-tab-panel]')?.hidden) {
+            document.querySelector('[data-pro-tab-trigger][data-pro-tab-target="overview"]')?.click();
+        }
+        window.setTimeout(() => {
+            document.querySelector('.pro-widget-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 200);
+    });
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && !promo.hidden) dismiss();
+    });
+};
+
+initWidgetPromo();
+
+// --- Заявки: воронка статусів (new → in_progress → done) і фільтри ---
+const initLeadStatuses = () => {
+    const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+
+    const recountFilters = () => {
+        const items = Array.from(document.querySelectorAll('[data-lead-item]'));
+        ['new', 'in_progress', 'done'].forEach((status) => {
+            const badge = document.querySelector(`[data-lead-count="${status}"]`);
+            if (badge) badge.textContent = String(items.filter((item) => item.dataset.leadStatus === status).length);
+        });
+    };
+
+    const applyFilter = (status) => {
+        document.querySelectorAll('[data-lead-item]').forEach((item) => {
+            item.hidden = status !== 'all' && item.dataset.leadStatus !== status;
+        });
+    };
+
+    document.addEventListener('click', (event) => {
+        const filterBtn = event.target.closest('[data-lead-filter]');
+        if (filterBtn) {
+            const wrap = filterBtn.closest('[data-lead-filters]');
+            wrap?.querySelectorAll('[data-lead-filter]').forEach((node) => {
+                node.classList.toggle('is-active', node === filterBtn);
+            });
+            applyFilter(filterBtn.dataset.leadFilter || 'all');
+        }
+    });
+
+    document.addEventListener('click', async (event) => {
+        const statusBtn = event.target.closest('[data-lead-set-status]');
+        if (!statusBtn) return;
+
+        const group = statusBtn.closest('[data-lead-status-url]');
+        const item = statusBtn.closest('[data-lead-item]');
+        const status = statusBtn.dataset.leadSetStatus || '';
+        if (!group || !item || !status || item.dataset.leadStatus === status) return;
+
+        const buttons = Array.from(group.querySelectorAll('[data-lead-set-status]'));
+        buttons.forEach((node) => { node.disabled = true; });
+        try {
+            const response = await fetch(group.dataset.leadStatusUrl, {
+                method: 'PATCH',
+                credentials: 'same-origin',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json',
+                    ...(csrf ? { 'X-CSRF-TOKEN': csrf } : {}),
+                },
+                body: JSON.stringify({ status }),
+            });
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok || !data.ok) throw new Error('lead status update failed');
+
+            item.dataset.leadStatus = status;
+            item.classList.remove('is-unread');
+            buttons.forEach((node) => {
+                node.classList.toggle('is-active', node === statusBtn);
+            });
+            recountFilters();
+            // Якщо активний фільтр більше не відповідає заявці — ховаємо її.
+            const activeFilter = document.querySelector('[data-lead-filter].is-active')?.dataset.leadFilter || 'all';
+            applyFilter(activeFilter);
+        } catch (error) {
+            // Мовчазний відкат: кнопки просто розблокуються, стан не зміниться.
+        } finally {
+            buttons.forEach((node) => { node.disabled = false; });
+        }
+    });
+};
+
+initLeadStatuses();
+
+// --- Запит на перегляд досьє (PRO): кнопка → форма → статус «надіслано» ---
+const initDossierRevision = () => {
+    // Згортання/розгортання превʼю досьє.
+    document.addEventListener('click', (event) => {
+        const toggle = event.target.closest('[data-dossier-preview-toggle]');
+        if (!toggle) return;
+        const preview = toggle.closest('[data-dossier-revision]')?.querySelector('[data-dossier-preview]');
+        if (!preview) return;
+        const collapsed = preview.classList.toggle('is-collapsed');
+        toggle.textContent = collapsed ? 'Показати повністю' : 'Згорнути';
+    });
+
+    // Розкриття форми з інтро-рядка і скасування назад.
+    document.addEventListener('click', (event) => {
+        const openBtn = event.target.closest('[data-dossier-revision-open]');
+        if (openBtn) {
+            const box = openBtn.closest('[data-dossier-revision]');
+            const intro = box?.querySelector('[data-dossier-revision-intro]');
+            const form = box?.querySelector('[data-dossier-revision-form]');
+            if (intro) intro.hidden = true;
+            if (form) {
+                form.hidden = false;
+                form.querySelector('[data-dossier-revision-message]')?.focus();
+            }
+            return;
+        }
+
+        const cancelBtn = event.target.closest('[data-dossier-revision-cancel]');
+        if (cancelBtn) {
+            const box = cancelBtn.closest('[data-dossier-revision]');
+            const intro = box?.querySelector('[data-dossier-revision-intro]');
+            const form = box?.querySelector('[data-dossier-revision-form]');
+            const error = box?.querySelector('[data-dossier-revision-error]');
+            if (form) form.hidden = true;
+            if (intro) intro.hidden = false;
+            if (error) error.hidden = true;
+        }
+    });
+
+    document.addEventListener('click', async (event) => {
+        const submit = event.target.closest('[data-dossier-revision-submit]');
+        if (!submit) return;
+
+        const box = submit.closest('[data-dossier-revision]');
+        const textarea = box?.querySelector('[data-dossier-revision-message]');
+        const errorNote = box?.querySelector('[data-dossier-revision-error]');
+        const label = submit.querySelector('[data-dossier-revision-submit-label]');
+        if (!box || !textarea) return;
+
+        const setError = (msg = '') => {
+            if (!errorNote) return;
+            errorNote.textContent = msg;
+            errorNote.hidden = msg === '';
+        };
+
+        const message = String(textarea.value || '').trim();
+        if (message.length < 20) {
+            setError('Опишіть детальніше (від 20 символів), що саме неточне.');
+            return;
+        }
+
+        setError('');
+        submit.disabled = true;
+        if (label) label.textContent = 'Надсилаємо…';
+        try {
+            const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+            const response = await fetch(box.dataset.dossierRevisionUrl, {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json',
+                    ...(csrf ? { 'X-CSRF-TOKEN': csrf } : {}),
+                },
+                body: JSON.stringify({ message }),
+            });
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok || !data.ok) {
+                setError(data.error || data.message || Object.values(data.errors || {}).flat()[0] || 'Не вдалося надіслати. Спробуйте ще раз.');
+                return;
+            }
+            const form = box.querySelector('[data-dossier-revision-form]');
+            const intro = box.querySelector('[data-dossier-revision-intro]');
+            const sent = box.querySelector('[data-dossier-revision-sent]');
+            if (form) form.hidden = true;
+            if (intro) intro.hidden = true;
+            if (sent) sent.hidden = false;
+        } catch (error) {
+            setError('Помилка мережі. Спробуйте ще раз.');
+        } finally {
+            submit.disabled = false;
+            if (label) label.textContent = 'Надіслати на перевірку';
+        }
+    });
+};
+
+initDossierRevision();
+
+// --- Прайс послуг: рядки «тип ціни / сума / опис» будуються з чипів послуг ---
+// Назва завжди береться з чипа (додав/видалив послугу — рядок зʼявився/зник),
+// введені значення переживають перебудову: тримаємо їх у Map за назвою.
+const initServicePriceEditor = () => {
+    const box = document.querySelector('[data-service-prices]');
+    const list = box?.querySelector('[data-service-prices-list]');
+    const chipsRoot = document.querySelector('[data-service-list]');
+    if (!box || !list || !chipsRoot) return;
+
+    let existing = {};
+    try { existing = JSON.parse(box.dataset.existing || '{}') || {}; } catch (error) { existing = {}; }
+    const state = new Map(Object.entries(existing));
+
+    const chipNames = () => Array.from(chipsRoot.querySelectorAll('input[name="service_names[]"]'))
+        .map((input) => input.value.trim())
+        .filter(Boolean);
+
+    const rememberCurrent = () => {
+        list.querySelectorAll('[data-price-row]').forEach((row) => {
+            state.set(row.dataset.priceRow, {
+                type: row.querySelector('[data-price-type]')?.value || '',
+                price: row.querySelector('[data-price-value]')?.value || '',
+                price_max: row.querySelector('[data-price-max]')?.value || '',
+                description: row.querySelector('[data-price-desc]')?.value || '',
+            });
+        });
+    };
+
+    const syncRowState = (row) => {
+        const type = row.querySelector('[data-price-type]')?.value || '';
+        const price = row.querySelector('[data-price-value]');
+        const max = row.querySelector('[data-price-max]');
+        if (price) price.disabled = type === '' || type === 'negotiable';
+        if (max) max.hidden = type !== 'range';
+    };
+
+    const escapeHtml = (value) => value.replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+
+    const rebuild = () => {
+        rememberCurrent();
+        const names = chipNames();
+        // Порядок збережених рядків: спершу як у наявному прайсі (sort), нові — в кінці.
+        names.sort((a, b) => ((state.get(a)?.sort ?? 999) - (state.get(b)?.sort ?? 999)));
+
+        list.innerHTML = '';
+        if (!names.length) {
+            list.innerHTML = '<p class="pro-service-prices__empty">Додайте послуги вище — тут зʼявляться рядки для цін.</p>';
+            return;
+        }
+
+        names.forEach((name, index) => {
+            const saved = state.get(name) || {};
+            const row = document.createElement('div');
+            row.className = 'pro-service-prices__row';
+            row.dataset.priceRow = name;
+            row.innerHTML = `
+                <span class="pro-service-prices__name">${escapeHtml(name)}</span>
+                <select name="service_prices[${index}][type]" data-price-type aria-label="Тип ціни — ${escapeHtml(name)}">
+                    <option value="">Без ціни</option>
+                    <option value="fixed">Фіксована</option>
+                    <option value="from">Від</option>
+                    <option value="range">Діапазон</option>
+                    <option value="negotiable">Договірна</option>
+                </select>
+                <input type="number" name="service_prices[${index}][price]" data-price-value min="1" max="9000000" placeholder="грн" aria-label="Ціна — ${escapeHtml(name)}">
+                <input type="number" name="service_prices[${index}][price_max]" data-price-max min="1" max="9000000" placeholder="до, грн" hidden aria-label="Максимальна ціна — ${escapeHtml(name)}">
+                <input type="text" name="service_prices[${index}][description]" data-price-desc maxlength="300" placeholder="Короткий опис (необовʼязково)" aria-label="Опис — ${escapeHtml(name)}">
+                <input type="hidden" name="service_prices[${index}][name]" value="${escapeHtml(name)}">
+            `;
+            const typeSelect = row.querySelector('[data-price-type]');
+            if (typeSelect) typeSelect.value = saved.type || '';
+            row.querySelector('[data-price-value]').value = saved.price ?? '';
+            row.querySelector('[data-price-max]').value = saved.price_max ?? '';
+            row.querySelector('[data-price-desc]').value = saved.description ?? '';
+            syncRowState(row);
+            list.appendChild(row);
+        });
+    };
+
+    list.addEventListener('change', (event) => {
+        const row = event.target.closest('[data-price-row]');
+        if (row && event.target.matches('[data-price-type]')) syncRowState(row);
+    });
+
+    // Чипи міняються без подій — стежимо за DOM.
+    new MutationObserver(rebuild).observe(chipsRoot, { childList: true, subtree: true });
+    rebuild();
+};
+
+initServicePriceEditor();
 
 // --- Перемикач режиму кнопки звʼязку в редакторі профілю ---
 // Делеговано на document: переживає Livewire-перемальовування форми.

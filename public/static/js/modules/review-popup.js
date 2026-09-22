@@ -442,6 +442,29 @@
         document.documentElement.style.scrollBehavior = prev;
     };
 
+    // Turnstile-токен живе ~5 хв: оновлюємо при відкритті попапа і після
+    // невдалого сабміту — інакше гість, що відкрив форму пізніше чи довго
+    // писав, отримує «не вдалося підтвердити, що ви не робот» без жодної
+    // видимої перевірки. Якщо auto-render віджет пропустив (прихований
+    // контейнер) — рендеримо явно.
+    const refreshTurnstile = () => {
+        const container = popup.querySelector('.cf-turnstile');
+        if (!container || typeof window.turnstile === 'undefined') return;
+        try {
+            if (container.querySelector('iframe')) {
+                window.turnstile.reset(container);
+            } else {
+                window.turnstile.render(container);
+            }
+        } catch (error) {
+            // Віджет у неконсистентному стані — пробуємо перерендерити з нуля.
+            try {
+                container.innerHTML = '';
+                window.turnstile.render(container);
+            } catch (renderError) { /* капчі не буде — сервер поверне зрозумілу помилку */ }
+        }
+    };
+
     const openPopup = (prefill = null) => {
         window.clearTimeout(closeTimer);
         popup.hidden = false;
@@ -452,6 +475,7 @@
         resetDoneState();
         setError('');
         setSuccess('');
+        refreshTurnstile();
         setPopupMode(prefill?.mode === 'edit' ? 'edit' : 'create');
         editReviewId = prefill?.reviewId || null;
 
@@ -562,6 +586,9 @@
         } catch (error) {
             window.doviraTrack?.('review_submit_error', profileSlugInput.value || '');
             setError(error.message || 'Не вдалося надіслати відгук.');
+            // Використаний/протухлий Turnstile-токен не пройде вдруге —
+            // оновлюємо, щоб повторний сабміт мав свіжий.
+            refreshTurnstile();
         } finally {
             if (submitButton) submitButton.disabled = false;
         }

@@ -259,7 +259,10 @@ body.page-profile .footer {
   align-items: center;
 }
 
-.profile-hero__main > .profile-hero__actions {
+.profile-hero__main > .profile-hero__actions,
+.profile-hero__main > .profile-hero__claim {
+  /* Друга колонка сітки шапки: без цього claim-лінк потрапляв у колонку
+     логотипа (136px) і стискався в три рядки. */
   grid-column: 2;
 }
 
@@ -510,11 +513,14 @@ border: 1px solid #edf2ff;
   gap: 8px;
 }
 
+/* «Оновлено {дата}» — нейтральна мета-лінія свіжості (не зелений сигнал «добре»). */
+.profile-hero__trust-item--updated .profile-hero__trust-item-left { color: #6b7a99; font-weight: 500; }
+.profile-hero__trust-item--updated .profile-hero__trust-item-left i { color: #97a3ba; }
+
 .profile-hero__trust-ok {
   font-size: 14px;
 }
 
-/* Рядок досьє в картці довіри: клікабельний, веде до блоку досьє */
 .profile-hero__trust-dossier {
   width: 100%;
   border: 0;
@@ -535,6 +541,18 @@ border: 1px solid #edf2ff;
 .profile-hero__trust-dossier--yellow .profile-hero__trust-item-left i { color: #e8a13c; }
 .profile-hero__trust-dossier--green .profile-hero__trust-item-left i { color: #22a565; }
 
+.profile-hero__trust-dossier-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  color: #2f6ef9;
+  font-size: 12.5px;
+  font-weight: 650;
+  line-height: 1.2;
+  text-align: right;
+}
+
 .profile-hero__trust-dossier-arrow {
   font-size: 10px;
   color: #9fb0cf;
@@ -548,6 +566,10 @@ border: 1px solid #edf2ff;
 .profile-hero__trust-dossier:hover .profile-hero__trust-dossier-arrow {
   color: #2f6ef9;
   transform: translateX(2px);
+}
+
+.profile-hero__trust-dossier:hover .profile-hero__trust-dossier-action {
+  text-decoration: underline;
 }
 
 .profile-hero__trust-dossier:focus-visible {
@@ -780,9 +802,12 @@ line-height: 1.58;
 }
 
 .profile-pro-block--first .profile-quick-stats__copy strong.is-text {
-  font-size: 17px;
-  line-height: 1.1;
-  white-space: nowrap;
+  font-size: 16px;
+  line-height: 1.12;
+  /* Текстові значення (напр. «в день звернення») переносимо, а не ріжемо
+     за край картки. Місце під два рядки дає min-height картки. */
+  white-space: normal;
+  overflow-wrap: break-word;
 }
 
 .profile-pro-block--first .profile-quick-stats__copy small {
@@ -2127,7 +2152,7 @@ line-height: 1.45;
   padding: 16px;
 }
 
-.profile-side-card h3 {
+.profile-side-card :is(h2, h3) {
   margin: 0 0 12px;
   color: #1b3568;
   font-size: 20px;
@@ -2774,12 +2799,12 @@ line-height: 1.45;
     margin-bottom: 8px;
   }
 
-  .page-profile .profile-pro-section-head h3 {
+  .page-profile .profile-pro-section-head :is(h2, h3) {
     font-size: 15px;
     gap: 8px;
   }
 
-  .page-profile .profile-pro-section-head h3 i {
+  .page-profile .profile-pro-section-head :is(h2, h3) i {
     font-size: 14px;
   }
 
@@ -3093,12 +3118,78 @@ line-height: 1.45;
 }
 
 .profile-side {
-  position: sticky;
-  top: calc(var(--header-h) + 16px);
+  /* Контейнер sticky: на десктопі розтягується на всю висоту колонки (див.
+     медіа нижче), а самі картки живуть у .profile-side__inner. */
   align-self: start;
+}
+.profile-side__inner {
   display: grid;
   gap: 12px;
   align-content: start;
+}
+
+/* Sticky-сайдбар на десктопі: контакти й підтвердження лишаються в полі зору,
+   поки гортаєш довгий список відгуків (раніше права колонка порожніла).
+   Стара проблема «сайдбар вищий за екран і забирає висоту» знята обмеженням
+   max-height + внутрішнім скролом; body має overflow-x: clip саме під це. */
+/* «Розумний» sticky (JS у lawyer.blade): контейнер на всю висоту колонки,
+   внутрішній блок липне верхом або низом залежно від напрямку скролу, а між
+   ними їде разом зі сторінкою — тому не стрибає. Без внутрішнього скролу. */
+/* Safari: коли будь-який предок обрізає переповнення (overflow-x: clip на
+   html/body/main/.profile-page), закріплений блок усередині дрижить на піксель
+   під час скролу — він потрапляє в обрізаний шар і його позиція щокадру
+   округлюється по-різному. У Chrome цього не видно. На сторінці профілю
+   обрізання не потрібне: перевірено на ширинах 901–2560, горизонтальної
+   прокрутки без нього не виникає. */
+@media (min-width: 901px) {
+  html:has(body.page-profile),
+  html:has(body.page-profile) body.page-profile,
+  html:has(body.page-profile) main,
+  body.page-profile .profile-page { overflow-x: visible; }
+}
+
+@media (min-width: 901px) {
+  .profile-side { align-self: stretch; position: relative; }
+  /* Позицію «прилип» ставить JS через position: fixed (sticky дрижить при
+     дробовому масштабі екрана). Sticky лишається запасним варіантом, якщо JS
+     не виконався. */
+  .profile-side__inner { position: sticky; top: calc(var(--header-h, 76px) + 16px); gap: 10px; }
+  /* Запас під довантаження відгуків: поки є що вантажити, колонка не
+     «закінчується» під сайдбаром і той не їде вгору/вниз при кожному
+     автопідвантаженні. Знімається, коли всі відгуки показано. */
+  .profile-reviews-sentinel.is-tall { min-height: 40vh; }
+
+
+  /* Компактний сайдбар: уся колонка (контакти + власник + 3 рекомендації)
+     має вміщатися в екран ноутбука (~780px), щоб sticky був простим і
+     плавним — без JS-перемикання «липнути верхом/низом». */
+  .profile-side .profile-side-card { padding: 14px; border-radius: 16px; }
+  .profile-side .profile-side-card :is(h2, h3) { font-size: 15px; margin: 0 0 8px; letter-spacing: -.01em; }
+  .profile-side .profile-contact-actions { gap: 6px; }
+  .profile-side .profile-contact-action { padding: 7px 10px; gap: 10px; border-radius: 12px; }
+  .profile-side .profile-contact-action__icon { width: 32px; height: 32px; flex-basis: 32px; border-radius: 9px; font-size: 13px; }
+  .profile-side .profile-contact-action__text strong { font-size: 13.5px; }
+  .profile-side .profile-contact-action__text span { font-size: 12.5px; -webkit-line-clamp: 1; line-clamp: 1; }
+  .profile-side .profile-contact-extra-phones { margin-top: 6px; font-size: 12.5px; }
+
+  .profile-side .profile-side-owner { padding: 12px 14px; border-radius: 16px; display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: 'title btn' 'text btn'; column-gap: 12px; align-items: center; }
+  .profile-side .profile-side-owner b { grid-area: title; font-size: 14px; margin-bottom: 2px; }
+  .profile-side .profile-side-owner p { grid-area: text; margin: 0; font-size: 12.5px; line-height: 1.35; }
+  .profile-side .profile-side-owner a { grid-area: btn; padding: 9px 12px; font-size: 13px; border-radius: 10px; white-space: nowrap; }
+
+  .profile-side .profile-side-verified { padding: 10px 14px; gap: 10px; grid-template-columns: 32px minmax(0, 1fr); border-radius: 16px; }
+  .profile-side .profile-side-verified i { width: 32px; height: 32px; font-size: 13px; }
+  .profile-side .profile-side-verified b { font-size: 14px; }
+  .profile-side .profile-side-verified span { font-size: 12.5px; }
+
+  .profile-side .profile-side-related { padding: 14px 14px 10px; }
+  .profile-side .profile-side-related > h2 { margin-bottom: 4px; }
+  .profile-side .profile-side-related__list a { grid-template-columns: 34px minmax(0, 1fr); gap: 10px; padding: 7px 0; }
+  .profile-side .profile-side-related__logo { width: 34px; height: 34px; border-radius: 9px; font-size: 13px; }
+  .profile-side .profile-side-related__meta { gap: 1px; }
+  .profile-side .profile-side-related__meta > b { font-size: 13.5px; -webkit-line-clamp: 1; line-clamp: 1; }
+  .profile-side .profile-side-related__sub { font-size: 12px; }
+  .profile-side .profile-side-related__all { margin-top: 6px; padding-top: 8px; font-size: 13px; }
 }
 
 .profile-side-actions {
@@ -3197,7 +3288,7 @@ line-height: 1.45;
   margin-bottom: 12px;
 }
 
-.profile-pro-section-head h3 {
+.profile-pro-section-head :is(h2, h3) {
   margin: 0;
   display: inline-flex;
   align-items: center;
@@ -3207,7 +3298,7 @@ line-height: 1.45;
   font-weight: 800;
 }
 
-.profile-pro-section-head h3 i {
+.profile-pro-section-head :is(h2, h3) i {
   color: #2f6ef9;
   font-size: 15px;
 }
@@ -4058,7 +4149,7 @@ body.is-profile-gallery-open {
   padding: 14px;
 }
 
-.profile-contacts-layout .profile-side-card h3 {
+.profile-contacts-layout .profile-side-card :is(h2, h3) {
   margin: 0 0 10px;
   font-size: 18px;
 }
@@ -4413,7 +4504,7 @@ body.is-profile-gallery-open {
     box-shadow: none;
   }
 
-  .profile-reviews-mobile-extras .profile-side-card h3 {
+  .profile-reviews-mobile-extras .profile-side-card :is(h2, h3) {
     margin-bottom: 8px;
     font-size: 15px;
   }
@@ -4929,7 +5020,13 @@ body.is-profile-gallery-open {
   }
 
   body.page-profile .profile-page {
-    padding-top: 72px;
+    /* Через змінну — очищає фіксовану шапку (враховує notch), але без
+       зайвого зазору. Раніше фіксовані 72px давали ~56px порожнечі. */
+    padding-top: calc(var(--header-h) + 14px);
+  }
+
+  body.page-profile .profile-page > .container > .profile-hero:first-child {
+    margin-top: 8px;
   }
 
   .page-profile .container {
@@ -5605,7 +5702,7 @@ body.is-profile-gallery-open {
     box-shadow: none;
   }
 
-  .page-profile .profile-reviews-mobile-extras .profile-side-card h3 {
+  .page-profile .profile-reviews-mobile-extras .profile-side-card :is(h2, h3) {
     font-size: 14px;
     margin-bottom: 8px;
     color: var(--c-heading);
@@ -6493,7 +6590,7 @@ body.is-profile-gallery-open {
     border-bottom: 1px solid #edf2fd;
   }
 
-  .page-profile .profile-mobile-review-sheet__head h3 {
+  .page-profile .profile-mobile-review-sheet__head :is(h3, .sheet-title) {
     margin: 0;
     display: inline-flex;
     align-items: center;
@@ -6503,7 +6600,7 @@ body.is-profile-gallery-open {
     color: #1e293b;
   }
 
-  .page-profile .profile-mobile-review-sheet__head h3 i {
+  .page-profile .profile-mobile-review-sheet__head :is(h3, .sheet-title) i {
     color: #2f6df4;
     font-size: 19px;
   }
@@ -6599,7 +6696,9 @@ body.is-profile-gallery-open {
 
   .page-profile #profile-tab-info .profile-pro-block--first .profile-quick-stats__copy strong.is-text {
     font-size: clamp(10px, 2.7vw, 13px);
-    white-space: nowrap;
+    white-space: normal;
+    overflow-wrap: break-word;
+    line-height: 1.12;
   }
 
   .page-profile #profile-tab-info .profile-pro-block--first .profile-quick-stats__copy small {
@@ -6655,7 +6754,7 @@ body.is-profile-gallery-open {
     border-radius: 15px;
   }
 
-  .page-profile .profile-reviews-mobile-extras .profile-side-card h3 {
+  .page-profile .profile-reviews-mobile-extras .profile-side-card :is(h2, h3) {
     margin-bottom: 9px;
     font-size: 14px;
     line-height: 1.2;
@@ -7384,11 +7483,6 @@ body.is-lead-popup-open {
   font-weight: 700;
 }
 
-.profile-dossier__badge--owner {
-  background: #fff4e0;
-  color: #9a6a1d;
-}
-
 .profile-dossier__date {
   color: #7d8aa3;
   font-size: 12.5px;
@@ -7631,3 +7725,263 @@ body.is-lead-popup-open {
     font-size: 16px;
   }
 }
+
+/* Контакти вгорі вкладки «Інформація». На десктопі їх показує бічна колонка,
+   тож дубль у контенті ховаємо — блок лишається лише для мобільного. */
+@media (min-width: 761px) {
+  .profile-info-contacts {
+    display: none;
+  }
+}
+
+/* На мобільному блок після контактів (досьє або «Коротко про спеціаліста»)
+   знову отримує верхній роздільник — інакше два --first-блоки склеюються. */
+@media (max-width: 760px) {
+  .profile-info-contacts + .profile-pro-block--first {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid #e5eefc;
+  }
+}
+
+/* ─── Попап підтвердження профілю (трафік із розсилок) ─── */
+.profile-claim-popup { position: fixed; inset: 0; z-index: 1200; display: flex; align-items: center; justify-content: center; padding: 18px; }
+.profile-claim-popup[hidden] { display: none; }
+.profile-claim-popup__backdrop { position: absolute; inset: 0; background: rgba(15, 23, 42, .48); backdrop-filter: blur(2px); }
+.profile-claim-popup__card { position: relative; width: 100%; max-width: 420px; background: #fff; border-radius: 18px; padding: 26px 24px 22px; box-shadow: 0 24px 64px rgba(15, 23, 42, .28); text-align: center; animation: claimPopupIn .28s ease; }
+@keyframes claimPopupIn { from { opacity: 0; transform: translateY(14px) scale(.97); } to { opacity: 1; transform: none; } }
+.profile-claim-popup__x { position: absolute; top: 10px; right: 10px; width: 32px; height: 32px; border: 0; border-radius: 9px; background: #f1f4f9; color: #6b7a99; cursor: pointer; font-size: 14px; }
+.profile-claim-popup__x:hover { background: #e6ebf4; color: #1f3f75; }
+.profile-claim-popup__badge { display: inline-flex; align-items: center; justify-content: center; width: 46px; height: 46px; border-radius: 14px; background: #e8f0ff; color: #2f6ef9; font-size: 19px; margin-bottom: 12px; }
+.profile-claim-popup__title { margin: 0 0 8px; font-size: 19px; font-weight: 750; color: #14213a; }
+.profile-claim-popup__text { margin: 0 0 16px; font-size: 14.5px; line-height: 1.5; color: #4a5a78; }
+.profile-claim-popup__cta { display: block; width: 100%; box-sizing: border-box; padding: 13px 18px; border-radius: 12px; background: #2f6ef9; color: #fff; font-weight: 720; font-size: 15px; text-decoration: none; transition: background .15s ease; }
+.profile-claim-popup__cta:hover { background: #1f57d6; color: #fff; }
+.profile-claim-popup__later { display: block; width: 100%; margin-top: 9px; padding: 9px; border: 0; background: transparent; color: #8a96ad; font: inherit; font-size: 13.5px; cursor: pointer; }
+.profile-claim-popup__later:hover { color: #4a5a78; text-decoration: underline; }
+@media (max-width: 560px) {
+  .profile-claim-popup { align-items: flex-end; padding: 0; }
+  .profile-claim-popup__card { max-width: none; border-radius: 18px 18px 0 0; animation-name: claimPopupUp; }
+  @keyframes claimPopupUp { from { transform: translateY(100%); } to { transform: none; } }
+}
+
+/* Оцінка з власних відгуків Dovira — контентний відповідник AggregateRating
+   у розмітці (Google вимагає, щоб рейтинг у schema був видимий на сторінці). */
+.profile-native-rating {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 7px;
+  margin: 0;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: #fff8e6;
+  border: 1px solid #f5d68a;
+  font-size: 13.5px;
+  color: #6b5320;
+  white-space: nowrap;
+}
+.profile-native-rating i { color: #eab308; font-size: 12px; }
+.profile-native-rating strong { font-size: 15px; font-weight: 750; color: #4a3c14; }
+.profile-native-rating span { color: #7b6836; }
+
+/* ─── Сайдбар профілю: «Схожі» + owner-CTA ───────────────────────────────
+   Компактні картки в колонці під контактами. Широка карусель «Схожі
+   профілі» лишається в потоці для мобільних (сайдбар там прихований),
+   тому на десктопі її ховаємо — інакше блок дублювався б. */
+/* Рекомендації в сайдбарі — мінімалістичний список: лого, назва, один
+   рядок метаданих. Без бейджів, рамок і міста: у вузькій колонці кожен
+   зайвий елемент додає висоти більше, ніж користі. */
+.profile-side-related { padding: 18px 16px 14px; }
+.profile-side-related > h2 { margin: 0 0 10px; }
+
+.profile-side-related__list { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; }
+
+.profile-side-related__list a {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr);
+  align-items: center;
+  gap: 11px;
+  padding: 10px 0;
+  text-decoration: none;
+}
+.profile-side-related__list li:not(:last-child) a { border-bottom: 1px solid #f1f4f9; }
+.profile-side-related__list a:hover .profile-side-related__meta > b { color: #2f6ef9; }
+
+.profile-side-related__logo {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #f3f6fc;
+  display: grid;
+  place-items: center;
+  color: #6b82a8;
+  font-size: 15px;
+  font-weight: 700;
+}
+.profile-side-related__logo img { width: 100%; height: 100%; object-fit: cover; }
+
+.profile-side-related__meta { min-width: 0; display: grid; gap: 3px; }
+.profile-side-related__meta > b {
+  color: #1b3568;
+  font-size: 14px;
+  font-weight: 650;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  transition: color .15s ease;
+}
+
+/* Один рядок метаданих: жовта зірка, оцінка, кількість відгуків. */
+.profile-side-related__sub {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #8697b4;
+  font-size: 12.5px;
+}
+/* Специфічніше за `.profile-side-card li i` (іконки контактів), інакше
+   зірка успадковувала синій колір і ширину 18px від того правила. */
+.profile-side-related .profile-side-related__sub i {
+  width: auto;
+  color: #f5b301;
+  font-size: 11px;
+}
+.profile-side-related__sub strong { color: #334e77; font-weight: 700; }
+
+.profile-side-related__all {
+  display: block;
+  margin-top: 10px;
+  padding-top: 11px;
+  border-top: 1px solid #f1f4f9;
+  color: #2f6ef9;
+  font-size: 13.5px;
+  font-weight: 650;
+  text-decoration: none;
+}
+.profile-side-related__all:hover { text-decoration: underline; }
+
+.profile-side-owner {
+  padding: 20px 18px;
+  border-radius: 18px;
+  background: linear-gradient(160deg, #2f6ef9 0%, #1f52c9 100%);
+  color: #fff;
+  box-shadow: 0 10px 22px rgba(35, 75, 147, .16);
+}
+.profile-side-owner b { display: block; font-size: 17px; font-weight: 750; margin-bottom: 6px; }
+.profile-side-owner p { margin: 0 0 14px; font-size: 14px; line-height: 1.5; color: rgba(255, 255, 255, .9); }
+.profile-side-owner a {
+  display: block;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: #fff;
+  color: #1f52c9;
+  font-weight: 720;
+  font-size: 15px;
+  text-align: center;
+  text-decoration: none;
+}
+.profile-side-owner a:hover { background: #eef3fc; }
+
+/* Заявлений профіль: замість CTA «Отримати доступ» — спокійний trust-сигнал,
+   що власник підтвердив права (той самий сенс, що бейдж у шапці). */
+.profile-side-verified {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: #eefaf3;
+  border: 1px solid rgba(102, 207, 149, .45);
+}
+.profile-side-verified i {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #66cf95;
+  color: #fff;
+  font-size: 17px;
+}
+.profile-side-verified b { display: block; font-size: 15px; font-weight: 750; color: #1a5c3a; }
+.profile-side-verified span { display: block; margin-top: 2px; font-size: 13px; line-height: 1.4; color: #3d7a58; }
+
+@media (min-width: 901px) {
+  .page-profile .best-lawyers { display: none; }
+}
+
+/* Мобільний дубль owner-CTA: на десктопі його роль виконує блок у сайдбарі. */
+.profile-side-owner--mobile { margin-top: 12px; }
+@media (min-width: 901px) {
+  .profile-side-owner--mobile { display: none; }
+}
+
+/* Claim-лінк у шапці профілю: помітний, але не перетягує увагу з головних
+   дій — тонка пунктирна рамка замість заливки, стрілка на hover. */
+.profile-hero__claim {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  /* Блок на ширину колонки з обмеженням: inline-flex + fit-content у
+     вузькій сітці шапки рахував ширину по батьку, і текст вилазив за
+     пунктирну рамку. Flex + max-width тримає рамку навколо тексту. */
+  width: fit-content;
+  max-width: 100%;
+  margin-top: 12px;
+  padding: 9px 14px;
+  border: 1px dashed #b9cdf2;
+  border-radius: 12px;
+  background: #f7faff;
+  color: #45618f;
+  font-size: 13.5px;
+  line-height: 1.35;
+  text-decoration: none;
+  transition: border-color .15s ease, background .15s ease, color .15s ease;
+}
+.profile-hero__claim b { color: #2f6ef9; font-weight: 700; }
+.profile-hero__claim i { color: #2f6ef9; font-size: 14px; }
+.profile-hero__claim:hover {
+  border-color: #2f6ef9;
+  background: #eef4ff;
+  color: #1f3f75;
+}
+@media (max-width: 560px) {
+  /* Селектор із батьком — щоб перебити `.profile-hero__main > .profile-hero__claim`
+     (grid-column: 2). Інакше блок лишався у другій колонці й був зміщений
+     праворуч на ширину логотипа замість того, щоб стояти по центру картки. */
+  .profile-hero__main > .profile-hero__claim {
+    grid-column: 1 / -1;
+    width: 100%;
+    max-width: none;
+    justify-content: center;
+    margin-top: 10px;
+    white-space: normal;
+    text-align: center;
+  }
+}
+
+
+/* «Дивіться також» унизу профілю: компактні текстові лінки на посадкові
+   «категорія × місто». Дають категорійним сторінкам внутрішню вагу з
+   десятків тисяч профілів (раніше — лише хлібні крихти), але не займають
+   місця картками. Ховати не можна: приховані лінки Google знецінює. */
+.profile-seo-links {
+  margin: 22px 0 4px;
+  padding: 14px 18px;
+  border-top: 1px solid rgba(185, 205, 241, 0.5);
+  font-size: 13px;
+  line-height: 1.7;
+  color: #8a97b4;
+}
+.profile-seo-links__row { margin: 0; }
+.profile-seo-links__row + .profile-seo-links__row { margin-top: 4px; }
+.profile-seo-links__label { font-weight: 700; color: #64748b; margin-right: 4px; }
+.profile-seo-links__sep { margin: 0 6px; color: #c3cbe0; }
+.profile-seo-links a { color: #4b5f8a; text-decoration: none; }
+.profile-seo-links a:hover { color: #2f6df4; text-decoration: underline; }

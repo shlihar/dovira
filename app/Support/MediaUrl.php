@@ -166,18 +166,11 @@ final class MediaUrl
 
     public static function profileLogoUrl(Profile $profile, int $width): ?string
     {
-        $url = self::thumbUrl($profile->logo_url, $width);
-        if ($url !== null) {
-            return $url;
-        }
-
-        try {
-            $fallbackPath = GeneratedProfileLogo::ensure($profile);
-        } catch (Throwable) {
-            return null;
-        }
-
-        return self::publicImageUrl($fallbackPath);
+        // Без генерації fallback-SVG на диску: коли реального лого нема —
+        // повертаємо null, і у в'юхах спрацьовує CSS-заглушка (градієнт +
+        // ініціали, вона вже реалізована). Раніше кожен профіль без лого писав
+        // окремий SVG-файл — десятки тисяч файлів вичерпували іноди хостингу.
+        return self::thumbUrl($profile->logo_url, $width);
     }
 
     public static function realProfileLogoUrl(Profile $profile, int $width): ?string
@@ -197,18 +190,9 @@ final class MediaUrl
 
     public static function avatarUrl(?string $value, ?string $seed, int $width): ?string
     {
-        $url = self::thumbUrl($value, $width);
-        if ($url !== null) {
-            return $url;
-        }
-
-        try {
-            $fallbackPath = GeneratedAvatarImage::ensure($seed);
-        } catch (Throwable) {
-            return null;
-        }
-
-        return self::publicImageUrl($fallbackPath);
+        // Як і profileLogoUrl — без генерації fallback-файлу: null → CSS-заглушка
+        // (ініціали). $seed лишаємо в сигнатурі для сумісності викликів.
+        return self::thumbUrl($value, $width);
     }
 
     /**
@@ -402,7 +386,21 @@ final class MediaUrl
             }
         }
 
+        if (self::isLegacyPrivateProfileLogoPath($normalizedPath) && Storage::disk('local')->exists($normalizedPath)) {
+            return Storage::disk('local')->path($normalizedPath);
+        }
+
         return null;
+    }
+
+    private static function isLegacyPrivateProfileLogoPath(string $path): bool
+    {
+        $path = ltrim($path, '/');
+        if (! Str::startsWith($path, 'profiles/logos/')) {
+            return false;
+        }
+
+        return in_array(strtolower(pathinfo($path, PATHINFO_EXTENSION)), ['jpg', 'jpeg', 'png', 'webp', 'gif'], true);
     }
 
     private static function isManagedLocalPath(string $path): bool

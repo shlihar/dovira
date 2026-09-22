@@ -79,7 +79,11 @@
 * { box-sizing: border-box; }
 html, body { height: 100%; }
 html {
-    scroll-behavior: smooth;
+    /* БЕЗ scroll-behavior: smooth. Він анімував КОЖЕН крок колеса ~700 мс, і
+       наступний крок перебивав попередню анімацію — сторінка (і sticky-сайдбар
+       у ній) смикались замість рівного скролу. Плавність там, де вона потрібна
+       (клік по якорю, перехід до відгуку), задається явно в JS через
+       scrollTo({ behavior: 'smooth' }). */
     scroll-padding-top: calc(var(--header-h) + 10px);
     -webkit-tap-highlight-color: transparent;
     /* App-like: no double-tap zoom, no tap delay. */

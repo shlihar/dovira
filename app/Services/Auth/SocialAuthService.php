@@ -34,41 +34,6 @@ class SocialAuthService
     }
 
     /**
-     * @param  array{
-     *     id:string,
-     *     first_name:?string,
-     *     last_name:?string,
-     *     username:?string,
-     *     photo_url:?string
-     * }  $telegramUser
-     * @return array{user: User, created: bool}
-     */
-    public function resolveTelegramUser(array $telegramUser): array
-    {
-        $name = trim(implode(' ', array_filter([
-            trim((string) ($telegramUser['first_name'] ?? '')),
-            trim((string) ($telegramUser['last_name'] ?? '')),
-        ])));
-
-        if ($name === '') {
-            $username = trim((string) ($telegramUser['username'] ?? ''));
-            $name = $username !== '' ? '@' . ltrim($username, '@') : 'Telegram користувач';
-        }
-
-        return $this->resolveUser(
-            provider: 'telegram',
-            providerId: trim((string) $telegramUser['id']),
-            email: null,
-            name: $name,
-            avatarUrl: $this->nullableString($telegramUser['photo_url'] ?? null),
-            extra: [
-                'telegram_username' => $this->nullableString($telegramUser['username'] ?? null),
-            ],
-        );
-    }
-
-    /**
-     * @param  array<string, mixed>  $extra
      * @return array{user: User, created: bool}
      */
     private function resolveUser(
@@ -77,11 +42,10 @@ class SocialAuthService
         ?string $email,
         string $name,
         ?string $avatarUrl,
-        array $extra = [],
     ): array {
         $providerColumn = $this->providerColumn($provider);
 
-        return DB::transaction(function () use ($provider, $providerId, $email, $name, $avatarUrl, $extra, $providerColumn): array {
+        return DB::transaction(function () use ($provider, $providerId, $email, $name, $avatarUrl, $providerColumn): array {
             $created = false;
 
             $user = User::query()
@@ -120,10 +84,6 @@ class SocialAuthService
                 $user->email_verified_at = now();
             }
 
-            if ($provider === 'telegram' && filled($extra['telegram_username'] ?? null)) {
-                $user->telegram_username = (string) $extra['telegram_username'];
-            }
-
             $user->save();
 
             return [
@@ -137,7 +97,6 @@ class SocialAuthService
     {
         return match ($provider) {
             'google' => 'google_id',
-            'telegram' => 'telegram_id',
             default => throw new \InvalidArgumentException('Unsupported social provider: ' . $provider),
         };
     }

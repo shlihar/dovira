@@ -22,12 +22,17 @@ class ProfileInfolist
                     TextEntry::make('city')->label('Місто')->placeholder('—'),
                     TextEntry::make('rating_avg')->label('Рейтинг')->numeric(decimalPlaces: 1),
                     TextEntry::make('reviews_count')->label('Відгуки')->numeric(),
+                    TextEntry::make('views_count')->label('Перегляди профілю')->numeric(),
+                    TextEntry::make('impressions_count')->label('Покази картки')->numeric(),
+                    TextEntry::make('total_seen')
+                        ->label('Показів разом')
+                        ->state(fn ($record) => number_format((int) $record->impressions_count + (int) $record->views_count, 0, '.', ' ')),
                     TextEntry::make('completeness')
                         ->label('Повнота профілю')
                         ->state(fn ($record) => $record->completenessPercent() . '%'),
                     IconEntry::make('is_verified')->label('Verified')->boolean(),
                     IconEntry::make('owner_verified_status')
-                        ->label('Синя галочка')
+                        ->label('Права власника')
                         ->boolean()
                         ->state(fn ($record) => (bool) ($record->is_owner_verified || $record->has_approved_claim)),
                     IconEntry::make('is_pro')->label('PRO')->boolean(),

@@ -1,0 +1,26 @@
+No syntax errors detected in /home/nu625309/dovira-profile-index-ZgqHVZB7/config/seo_profile_ids.php
+No syntax errors detected in /home/nu625309/dovira-profile-index-ZgqHVZB7/app/Support/ProfileSeoIndexPolicy.php
+No syntax errors detected in /home/nu625309/dovira-profile-index-ZgqHVZB7/config/seo.php
+
+   INFO  Configuration cached successfully.  
+
+{
+  "stage": "/home/nu625309/dovira-profile-index-ZgqHVZB7",
+  "deployed": [
+    {
+      "path": "config/seo_profile_ids.php",
+      "before": null,
+      "after": "cc8315cb853f1fd205638cac36331768be4505430acf9756a079ec355259f3a3"
+    },
+    {
+      "path": "app/Support/ProfileSeoIndexPolicy.php",
+      "before": "7d561f79af028b9460dac11dbd0783b3c308af3a429419a2272a0b9341b5275e",
+      "after": "6fcb0d1a8f702e75a1abc4d14274a2ef8bbcbfbf29531dea73c29c36be41f169"
+    },
+    {
+      "path": "config/seo.php",
+      "before": "e423deb40a8dcd21c2628c0b8452956a8c7d90ac6fd3a965a42c591f9ef75e6a",
+      "after": "638e8c6c8e081c8ea59672b46d82a060fac0bf50aa5821b0f725352ee53423fe"
+    }
+  ]
+}

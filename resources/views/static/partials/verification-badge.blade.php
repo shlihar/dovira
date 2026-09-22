@@ -36,7 +36,7 @@
 
 @if ($tier)
     <span class="owner-verified-badge {{ $tierClass }} {{ $modifier }}" @if ($tooltip) tabindex="0" @endif aria-label="{{ $tierAria }}">
-        <img src="{{ asset('static/assets/icons/owner-verified-badge-2.svg') }}" alt="" aria-hidden="true">
+        <img width="20" height="20" src="{{ asset('static/assets/icons/owner-verified-badge-2.svg') }}" alt="" aria-hidden="true">
         @if ($tooltip)
             <span class="owner-verified-badge__tip" role="tooltip"><b>{{ $tipTitle }}</b><br>{{ $tipBody }}</span>
         @endif

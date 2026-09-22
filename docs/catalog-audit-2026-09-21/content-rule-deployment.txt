@@ -1,0 +1,38 @@
+No syntax errors detected in /home/nu625309/dovira-content-index-l4SpVkD0/app/Support/ProfileSeoIndexPolicy.php
+No syntax errors detected in /home/nu625309/dovira-content-index-l4SpVkD0/app/Http/Controllers/CatalogPageController.php
+No syntax errors detected in /home/nu625309/dovira-content-index-l4SpVkD0/app/Http/Controllers/SeoController.php
+No syntax errors detected in /home/nu625309/dovira-content-index-l4SpVkD0/app/Support/SitemapCache.php
+No syntax errors detected in /home/nu625309/dovira-content-index-l4SpVkD0/config/seo.php
+
+   INFO  Configuration cached successfully.  
+
+{
+  "stage": "/home/nu625309/dovira-content-index-l4SpVkD0",
+  "deployed": [
+    {
+      "path": "app/Support/ProfileSeoIndexPolicy.php",
+      "before": "8b6d8a64e57ceb013cd08e9c4617f10ef1074ae1a60214bb82a275de5f626e34",
+      "after": "3a3e7f67f7b1c9d12db833d578e8c5f485fef77156f8cd2ed89fe32247d1e3c4"
+    },
+    {
+      "path": "app/Http/Controllers/CatalogPageController.php",
+      "before": "ae9843f476d04d0ddcfcb456c9769398a5a32337e9ba8d51f0970d65b9bb88ac",
+      "after": "b455e350394d02d85716a21301b76fa4a2ba28c8751bbe07161771d04fab808a"
+    },
+    {
+      "path": "app/Http/Controllers/SeoController.php",
+      "before": "ecb8467bb7d718a5a8f49a23affb815b6cd9b57a07dc0e77cf34c44b26492e2c",
+      "after": "ecb8467bb7d718a5a8f49a23affb815b6cd9b57a07dc0e77cf34c44b26492e2c"
+    },
+    {
+      "path": "app/Support/SitemapCache.php",
+      "before": "2341d0efa96c6675362c6035fa9c536b8f9a01be96d7b4afd851fe9adf700785",
+      "after": "2341d0efa96c6675362c6035fa9c536b8f9a01be96d7b4afd851fe9adf700785"
+    },
+    {
+      "path": "config/seo.php",
+      "before": "6e48d7722800d902a0775369567b8ff41aafd372b29ac2977997f4f2cd4da2ad",
+      "after": "6e48d7722800d902a0775369567b8ff41aafd372b29ac2977997f4f2cd4da2ad"
+    }
+  ]
+}

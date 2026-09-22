@@ -13,8 +13,6 @@
 @section('content')
 @php
     $legalContactEmail = config('site_contacts.email', 'info@mydovira.com');
-    $legalContactPhone = config('site_contacts.phone', '+380937269578');
-    $legalContactPhoneHref = '+' . preg_replace('/\D+/', '', $legalContactPhone);
     $legalSupportTelegram = ltrim((string) config('site_contacts.telegram_username', 'dovira_support'), '@');
     $legalSupportUrl = 'https://t.me/' . $legalSupportTelegram;
 @endphp
@@ -66,7 +64,7 @@
             <p>Для входу через соціальні мережі використовуються Google, Facebook і Telegram — вони обробляють дані за власними політиками. Для захисту форм від спаму може використовуватися Cloudflare Turnstile.</p>
 
             <h2>8. Контакти</h2>
-            <p>З питань персональних даних пишіть на <a href="mailto:{{ $legalContactEmail }}">{{ $legalContactEmail }}</a>, у Telegram <a href="{{ $legalSupportUrl }}" target="_blank" rel="noopener noreferrer">{{ '@' . $legalSupportTelegram }}</a> або телефонуйте <a href="tel:{{ $legalContactPhoneHref }}">{{ $legalContactPhone }}</a>. Ми відповідаємо протягом 30 днів.</p>
+            <p>З питань персональних даних пишіть на <a href="mailto:{{ $legalContactEmail }}">{{ $legalContactEmail }}</a> або в Telegram <a href="{{ $legalSupportUrl }}" target="_blank" rel="noopener noreferrer">{{ '@' . $legalSupportTelegram }}</a>. Ми відповідаємо протягом 30 днів.</p>
 
             <p>Ми можемо оновлювати цю Політику; чинна редакція завжди доступна на цій сторінці. Також дивіться <a href="{{ route('terms') }}">Умови використання</a>.</p>
         </article>

@@ -7,13 +7,14 @@ use App\Models\Profile;
 use App\Models\ProfileClaim;
 use App\Models\ProfileReview;
 use App\Models\ProSubscription;
+use App\Models\ReviewReport;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 /**
  * Адмін-сповіщення в Telegram про ключові події платформи: новий відгук,
- * новий профіль, заявка на профіль, PRO-підписка. Реальна доставка йде
- * через чергу (SendTelegramAdminMessage), тож виклики не блокують запит.
+ * новий профіль, заявка на профіль, PRO-підписка. Доставляємо after response,
+ * щоб повідомлення не залежали від окремого queue worker.
  */
 class TelegramAdminNotifier
 {
@@ -32,7 +33,7 @@ class TelegramAdminNotifier
         }
 
         foreach ($this->chatIds() as $chatId) {
-            SendTelegramAdminMessage::dispatch((string) $chatId, $text)->afterCommit();
+            SendTelegramAdminMessage::dispatchAfterResponse((string) $chatId, $text);
         }
     }
 
@@ -66,6 +67,49 @@ class TelegramAdminNotifier
         $this->send(implode("\n", $lines));
     }
 
+    public function newReviewReport(ReviewReport $report): void
+    {
+        if ($this->chatIds() === []) {
+            return;
+        }
+
+        $report->loadMissing(['review.profile', 'reporter']);
+        $review = $report->review;
+        $profile = $review?->profile;
+        $rating = (int) ($review?->rating ?? 0);
+
+        $lines = [
+            '🚩 <b>Нова скарга на відгук</b> — '.$this->escape($profile?->name ?? 'Профіль'),
+        ];
+
+        if ($review) {
+            $stars = $rating > 0 ? str_repeat('⭐', max(1, min(5, $rating))) : '';
+            $author = trim((string) ($review->author_name ?: 'Анонім'));
+            $lines[] = trim("Відгук {$stars} ({$rating}/5) від ".$this->escape($author));
+            $body = Str::limit(trim((string) $review->body), 200, '…');
+            if ($body !== '') {
+                $lines[] = '«'.$this->escape($body).'»';
+            }
+        }
+
+        $lines[] = 'Причина: '.$this->escape(trim((string) $report->reason) ?: '—');
+        if ($details = trim((string) $report->details)) {
+            $lines[] = 'Деталі: '.$this->escape(Str::limit($details, 300, '…'));
+        }
+        if ($email = trim((string) ($report->reporter?->email ?? ''))) {
+            $lines[] = '👤 '.$this->escape($email);
+        }
+
+        $lines[] = '';
+        $lines[] = 'Розглянути у розділі «Скарги на відгуки» адмінки.';
+        if ($url = $this->profileUrl($profile)) {
+            $lines[] = '';
+            $lines[] = $url;
+        }
+
+        $this->send(implode("\n", $lines));
+    }
+
     public function newProfile(Profile $profile): void
     {
         if ($this->chatIds() === []) {
@@ -90,7 +134,7 @@ class TelegramAdminNotifier
         $this->send(implode("\n", $lines));
     }
 
-    public function newClaim(ProfileClaim $claim): void
+    public function newClaim(ProfileClaim $claim, bool $updated = false): void
     {
         if ($this->chatIds() === []) {
             return;
@@ -99,14 +143,41 @@ class TelegramAdminNotifier
         $claim->loadMissing(['profile', 'user']);
 
         $lines = [
-            '📨 <b>Нова заявка на профіль</b>',
+            $updated ? '📨 <b>Заявку на профіль оновлено</b>' : '📨 <b>Нова заявка на профіль</b>',
             $this->escape((string) ($claim->profile?->name ?? 'Профіль')),
         ];
         if ($email = trim((string) ($claim->user?->email ?? ''))) {
             $lines[] = '👤 '.$this->escape($email);
         }
+        if ($role = trim((string) $claim->company_role)) {
+            $lines[] = 'Роль: '.$this->escape($role);
+        }
         $lines[] = '';
         $lines[] = 'Перевірити у модерації заявок.';
+
+        $this->send(implode("\n", $lines));
+    }
+
+    public function claimApproved(ProfileClaim $claim, string $source): void
+    {
+        if ($this->chatIds() === []) {
+            return;
+        }
+
+        $claim->loadMissing(['profile', 'user']);
+
+        $lines = [
+            '✅ <b>Профіль підтверджено</b>',
+            $this->escape((string) ($claim->profile?->name ?? 'Профіль')),
+            'Джерело: '.$this->escape($source),
+        ];
+        if ($email = trim((string) ($claim->user?->email ?? ''))) {
+            $lines[] = '👤 '.$this->escape($email);
+        }
+        if ($url = $this->profileUrl($claim->profile)) {
+            $lines[] = '';
+            $lines[] = $url;
+        }
 
         $this->send(implode("\n", $lines));
     }
@@ -124,6 +195,28 @@ class TelegramAdminNotifier
             $this->escape((string) ($subscription->profile?->name ?? 'Профіль')),
             'План: '.$this->escape((string) ($subscription->plan ?? '—')),
         ];
+
+        $this->send(implode("\n", $lines));
+    }
+
+    public function newDossierRevisionRequest(\App\Models\DossierRevisionRequest $request): void
+    {
+        if ($this->chatIds() === []) {
+            return;
+        }
+
+        $profile = $request->profile;
+        $lines = [
+            '📝 <b>Запит на перегляд досьє</b>',
+            $this->escape((string) ($profile?->name ?? 'Профіль #' . $request->profile_id)),
+            'Від: ' . $this->escape((string) ($request->user?->email ?? '—')),
+            '',
+            '«' . $this->escape(mb_substr((string) $request->message, 0, 700)) . '»',
+        ];
+
+        if ($url = $this->profileUrl($profile)) {
+            $lines[] = $url;
+        }
 
         $this->send(implode("\n", $lines));
     }

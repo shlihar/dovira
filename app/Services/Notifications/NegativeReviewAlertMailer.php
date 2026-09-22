@@ -57,19 +57,32 @@ class NegativeReviewAlertMailer
         }
 
         // --- Незаявлений профіль: холодний аутріч (за прапорцем) ---
+        $this->sendOutreachFor($profile, $review);
+    }
+
+    /**
+     * Аутріч-лист про негативний відгук на НЕзаявлений профіль. Усі гарди
+     * (прапорець, opt-out, валідний email, тротлінг) всередині. Публічний,
+     * бо його використовує і backlog-кампанія (dovira:outreach:negative-backlog),
+     * якій треба обійти лише гард «імпортований відгук» у handle().
+     */
+    public function sendOutreachFor(Profile $profile, ProfileReview $review): bool
+    {
         if (! config('services.review_outreach.enabled')) {
-            return;
+            return false;
         }
+
+        $prefs = (array) ($profile->notification_preferences ?? []);
         if (! empty($prefs['outreach_opted_out'])) {
-            return;
+            return false;
         }
 
         $email = trim((string) ($profile->email ?? ''));
         if ($email === '' || ! filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            return;
+            return false;
         }
         if ($this->recentlyEmailed($email)) {
-            return;
+            return false;
         }
 
         $this->send(
@@ -81,15 +94,21 @@ class NegativeReviewAlertMailer
             ctaUrl: route('profile.show', ['slug' => $profile->slug]),
             unsubscribeUrl: URL::signedRoute('review-outreach.unsubscribe', ['profile' => $profile->id]),
         );
+
+        return true;
     }
 
     private function recentlyEmailed(string $email): bool
     {
         $days = max(1, (int) config('services.review_outreach.throttle_days', 30));
 
+        // Дві теми: історична «Про ваш бізнес…» і чинна «Негативний відгук про…».
         return (bool) rescue(fn (): bool => EmailLog::query()
             ->where('to_email', $email)
-            ->where('subject', 'like', 'Про ваш бізнес%')
+            ->where(function ($q): void {
+                $q->where('subject', 'like', 'Про ваш бізнес%')
+                    ->orWhere('subject', 'like', 'Негативний відгук про%');
+            })
             ->where('created_at', '>=', now()->subDays($days))
             ->exists(), false);
     }

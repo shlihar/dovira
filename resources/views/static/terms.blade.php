@@ -13,8 +13,6 @@
 @section('content')
 @php
     $legalContactEmail = config('site_contacts.email', 'info@mydovira.com');
-    $legalContactPhone = config('site_contacts.phone', '+380937269578');
-    $legalContactPhoneHref = '+' . preg_replace('/\D+/', '', $legalContactPhone);
     $legalSupportTelegram = ltrim((string) config('site_contacts.telegram_username', 'dovira_support'), '@');
     $legalSupportUrl = 'https://t.me/' . $legalSupportTelegram;
 @endphp
@@ -68,7 +66,7 @@
             <p>Ми можемо оновлювати ці Умови; чинна редакція публікується на цій сторінці. Продовження користування сайтом після змін означає згоду з ними.</p>
 
             <h2>9. Контакти</h2>
-            <p>Питання щодо цих Умов: <a href="mailto:{{ $legalContactEmail }}">{{ $legalContactEmail }}</a>, Telegram <a href="{{ $legalSupportUrl }}" target="_blank" rel="noopener noreferrer">{{ '@' . $legalSupportTelegram }}</a>, телефон <a href="tel:{{ $legalContactPhoneHref }}">{{ $legalContactPhone }}</a>. Обробка персональних даних описана в <a href="{{ route('privacy') }}">Політиці конфіденційності</a>.</p>
+            <p>Питання щодо цих Умов: <a href="mailto:{{ $legalContactEmail }}">{{ $legalContactEmail }}</a> або Telegram <a href="{{ $legalSupportUrl }}" target="_blank" rel="noopener noreferrer">{{ '@' . $legalSupportTelegram }}</a>. Обробка персональних даних описана в <a href="{{ route('privacy') }}">Політиці конфіденційності</a>.</p>
         </article>
     </div>
 </section>

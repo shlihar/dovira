@@ -11,11 +11,13 @@ use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
+use Filament\View\PanelsRenderHook;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
+use Illuminate\Support\HtmlString;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 
 class AdminPanelProvider extends PanelProvider
@@ -30,6 +32,10 @@ class AdminPanelProvider extends PanelProvider
             ->viteTheme('resources/css/filament/admin/theme.css')
             ->plugin(BriskTheme::make())
             ->login()
+            ->renderHook(
+                PanelsRenderHook::SCRIPTS_AFTER,
+                fn (): HtmlString => new HtmlString(view('filament.partials.login-autofill-sync')->render())
+            )
             ->darkMode(isForced: true)
             ->colors([
                 'primary' => Color::Blue,

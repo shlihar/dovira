@@ -1,0 +1,37 @@
+[
+  {
+    "table": "profiles",
+    "id": 251772,
+    "profile_id": 251772,
+    "field": "name",
+    "excerpt": "Dream Hills, житловий комплекс"
+  },
+  {
+    "table": "profiles",
+    "id": 251772,
+    "profile_id": 251772,
+    "field": "description",
+    "excerpt": "<h3><strong>ЖК «Dream Hills» — квартири комфорт-класу у Хмельницькому</strong></h3>\n<p>«Dream Hills» — житловий комплекс комфорт-класу у Хмельницькому, орієнтований на малоповерхову забу"
+  },
+  {
+    "table": "profiles",
+    "id": 251772,
+    "profile_id": 251772,
+    "field": "short_description",
+    "excerpt": "ЖК «Dream Hills» — квартири комфорт-класу у Хмельницькому\n\n«Dream Hills» — житловий комплекс комфорт-класу у Хмельницькому, орієнтований на малоповерхову забудову, приватніст"
+  },
+  {
+    "table": "profile_data_sources",
+    "id": 44233,
+    "profile_id": 251772,
+    "field": "title",
+    "excerpt": "Top20 import · Dream Hills, житловий комплекс"
+  },
+  {
+    "table": "profile_data_sources",
+    "id": 44233,
+    "profile_id": 251772,
+    "field": "url",
+    "excerpt": "https://top20.ua/khm/stroitelstvo-i-remont/zastroyschik/dream-hills-zhiloy-kompleks.html"
+  }
+]

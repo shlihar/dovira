@@ -49,9 +49,14 @@ class ProfileClaimsTable
                     ->label('Роль')
                     ->placeholder('—')
                     ->limit(22),
-                IconColumn::make('profile.is_owner_verified')
-                    ->label('Owner verified')
-                    ->boolean(),
+                IconColumn::make('owner_verified_status')
+                    ->label('Права власника')
+                    ->boolean()
+                    ->state(fn ($record) => (bool) (
+                        $record->status === 'approved'
+                        || $record->profile?->is_owner_verified
+                        || $record->profile?->owner_user_id
+                    )),
                 TextColumn::make('created_at')
                     ->label('Створено')
                     ->dateTime('d.m.Y H:i')

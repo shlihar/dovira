@@ -1,0 +1,152 @@
+[
+    {
+        "profile_id": 17091,
+        "full_name": "Estetium, стоматологія",
+        "city": "Київ",
+        "category": "Стоматології",
+        "profile_url": "https://mydovira.com/profiles/estetium-stomatologiia",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "проспект Бажана, 16",
+            "phone": "(097) 221 22 21",
+            "type": "company",
+            "rating_avg": 5,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 17145,
+        "full_name": "Identico, центр імплантації зубів",
+        "city": "Київ",
+        "category": "Стоматології",
+        "profile_url": "https://mydovira.com/profiles/identico-centr-implantaciyi-zubiv",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Солом'янська, 20В",
+            "phone": "(066) 555 76 07, (044) 22 25 67 0, (073) 555 76 07",
+            "type": "company",
+            "rating_avg": 4.92,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 17185,
+        "full_name": "Мрія-С, стоматологічний центр",
+        "city": "Київ",
+        "category": "Стоматології",
+        "profile_url": "https://mydovira.com/profiles/mriia-s-stomatologicnii-centr",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "зупинка Порошинка Героїв в України, 2",
+            "phone": "(067) 324 55 61, (099) 324 53 37",
+            "type": "company",
+            "rating_avg": 4.9,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 17247,
+        "full_name": "Перлина, стоматологія",
+        "city": "Київ",
+        "category": "Стоматології",
+        "profile_url": "https://mydovira.com/profiles/perlina-stomatologiia",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Боголюбова, 18, ЖК Софія",
+            "phone": "(067) 772 97 95, (044) 50 27 62 6, (095) 915 45 26",
+            "type": "company",
+            "rating_avg": 4.97,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 17436,
+        "full_name": "MediBloom, медичний центр",
+        "city": "Київ",
+        "category": "Стоматології",
+        "profile_url": "https://mydovira.com/profiles/medibloom-medicnii-centr",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Голосіївський проспект, 130 / 57",
+            "phone": "(068) 100 28 88",
+            "type": "company",
+            "rating_avg": 5,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 17460,
+        "full_name": "Smile Lab, стоматологічна клініка",
+        "city": "Київ",
+        "category": "Стоматології",
+        "profile_url": "https://mydovira.com/profiles/smile-lab-stomatologicna-klinika",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Довженка, 3",
+            "phone": "(067) 724 10 39",
+            "type": "company",
+            "rating_avg": 4.88,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 17536,
+        "full_name": "White Clinic, стоматологія",
+        "city": "Київ",
+        "category": "Стоматології",
+        "profile_url": "https://mydovira.com/profiles/white-clinic-stomatologiia",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Драгоманова, 2",
+            "phone": "(093) 432 38 09, (093) 432 28 96",
+            "type": "company",
+            "rating_avg": 4.83,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 17698,
+        "full_name": "C.D.clinic, стоматологічна клініка",
+        "city": "Київ",
+        "category": "Стоматології",
+        "profile_url": "https://mydovira.com/profiles/cdclinic-stomatologicna-klinika",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Гарматна, 38А",
+            "phone": "(073) 052 29 69",
+            "type": "company",
+            "rating_avg": 4.82,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 17726,
+        "full_name": "Супрем, стоматологічна клініка",
+        "city": "Київ",
+        "category": "Стоматології",
+        "profile_url": "https://mydovira.com/profiles/suprem-stomatologicna-klinika",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Гетьмана Павла Скоропадського, 51/102",
+            "phone": "(093) 449 26 95, (067) 449 26 95",
+            "type": "company",
+            "rating_avg": 4.96,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 17782,
+        "full_name": "Fedoruk dental, стоматологія",
+        "city": "Київ",
+        "category": "Стоматології",
+        "profile_url": "https://mydovira.com/profiles/fedoruk-dental-stomatologiia",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Лісківська, 6",
+            "phone": "(068) 466 54 24",
+            "type": "company",
+            "rating_avg": 4.95,
+            "reviews_count": 100
+        }
+    }
+]

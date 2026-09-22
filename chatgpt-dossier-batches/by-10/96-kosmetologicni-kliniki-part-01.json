@@ -1,0 +1,152 @@
+[
+    {
+        "profile_id": 8514,
+        "full_name": "Клініка доктора Онутчака, стоматологія, косметологія",
+        "city": "Львів",
+        "category": "Косметологічні клініки",
+        "profile_url": "https://mydovira.com/profiles/klinika-doktora-onutcaka-stomatologiia-kosmetologiia",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Декарта, 6",
+            "phone": "(067) 777 68 93, (0322) 97 08 78",
+            "type": "company",
+            "rating_avg": 4.61,
+            "reviews_count": 100
+        }
+    },
+    {
+        "profile_id": 4019,
+        "full_name": "Deninna, спа-комплекс",
+        "city": "Вінниця",
+        "category": "Косметологічні клініки",
+        "profile_url": "https://mydovira.com/profiles/deninna-spa-kompleks",
+        "company_url": "http://www.deninna.com",
+        "additional_identity_data": {
+            "address": "вул. Шевченка, 64 A",
+            "phone": "(096) 579 04 02, (073) 579 04 03, (050) 579 04 04",
+            "type": "company",
+            "rating_avg": 4.47,
+            "reviews_count": 92
+        }
+    },
+    {
+        "profile_id": 7084,
+        "full_name": "Подільський центр зору та естетичної медицини",
+        "city": "Хмельницький",
+        "category": "Косметологічні клініки",
+        "profile_url": "https://mydovira.com/profiles/podilskii-centr-zoru-ta-esteticnoyi-medicini",
+        "company_url": "https://www.centr-zory-est.com.ua",
+        "additional_identity_data": {
+            "address": "вул. Зарічанська, 24 А",
+            "phone": "(067) 744 26 00",
+            "type": "company",
+            "rating_avg": 4.41,
+            "reviews_count": 92
+        }
+    },
+    {
+        "profile_id": 4059,
+        "full_name": "SoBeauty, лазерна епіляція",
+        "city": "Вінниця",
+        "category": "Косметологічні клініки",
+        "profile_url": "https://mydovira.com/profiles/sobeauty-lazerna-epiliaciia",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Архітектора Артинова, 6",
+            "phone": "(097) 117 01 77, (097) 117 01 07",
+            "type": "company",
+            "rating_avg": 4.92,
+            "reviews_count": 91
+        }
+    },
+    {
+        "profile_id": 4060,
+        "full_name": "TK Laser",
+        "city": "Вінниця",
+        "category": "Косметологічні клініки",
+        "profile_url": "https://mydovira.com/profiles/tk-laser-lazerna-epiliaciia",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "проспект Коцюбинського, 56",
+            "phone": "(067) 572 18 45, (068) 296 10 00",
+            "type": "company",
+            "rating_avg": 4.88,
+            "reviews_count": 91
+        }
+    },
+    {
+        "profile_id": 4062,
+        "full_name": "Леді Елеганс, косметологічний кабінет",
+        "city": "Вінниця",
+        "category": "Косметологічні клініки",
+        "profile_url": "https://mydovira.com/profiles/ledi-elegans-kosmetologicnii-kabinet",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "Хлібна, 7",
+            "phone": "(0432) 69 00 29, (063) 179 07 63, (063) 179 07 69",
+            "type": "company",
+            "rating_avg": 4.84,
+            "reviews_count": 91
+        }
+    },
+    {
+        "profile_id": 4064,
+        "full_name": "Лазерхауз, центр лазерної епіляції та косметології",
+        "city": "Вінниця",
+        "category": "Косметологічні клініки",
+        "profile_url": "https://mydovira.com/profiles/lazerxauz-centr-lazernoyi-epiliaciyi-ta-kosmetologiyi",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "вул. Монастирська, 41",
+            "phone": "(093) 177 02 11",
+            "type": "company",
+            "rating_avg": 4.93,
+            "reviews_count": 91
+        }
+    },
+    {
+        "profile_id": 4067,
+        "full_name": "Центр здорової шкіри Вікторії Хачатрян, лазерна епіляція, косметолог, масаж",
+        "city": "Вінниця",
+        "category": "Косметологічні клініки",
+        "profile_url": "https://mydovira.com/profiles/centr-zdorovoyi-skiri-viktoriyi-xacatrian-lazerna-epiliaciia-kosmetolog-masaz",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "вулиця Замостянська, 21",
+            "phone": "(093) 265 80 72, (098) 437 58 25",
+            "type": "company",
+            "rating_avg": 4.75,
+            "reviews_count": 91
+        }
+    },
+    {
+        "profile_id": 4453,
+        "full_name": "Princess VAB, косметологічний центр",
+        "city": "Вінниця",
+        "category": "Косметологічні клініки",
+        "profile_url": "https://mydovira.com/profiles/princess-vab-kosmetologicnii-centr",
+        "company_url": null,
+        "additional_identity_data": {
+            "address": "вул. Пирогова, 77/2",
+            "phone": "(067) 914 86 07",
+            "type": "company",
+            "rating_avg": 4.74,
+            "reviews_count": 91
+        }
+    },
+    {
+        "profile_id": 7072,
+        "full_name": "PodoPlex, мережа подологічних центрів",
+        "city": "Одеса",
+        "category": "Косметологічні клініки",
+        "profile_url": "https://mydovira.com/profiles/podoplex-mereza-podologicnix-centriv",
+        "company_url": "http://www.podoplex.com.ua",
+        "additional_identity_data": {
+            "address": "Преображенська, 9",
+            "phone": "(050) 369 53 53, (097) 053 32 55",
+            "type": "company",
+            "rating_avg": 4.78,
+            "reviews_count": 91
+        }
+    }
+]

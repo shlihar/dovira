@@ -11,6 +11,8 @@ use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkAction;
 use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
 use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables\Columns\TextColumn;
@@ -250,6 +252,11 @@ class TasksRelationManager extends RelationManager
                                 ->danger()
                                 ->send();
                         }),
+                    DeleteAction::make()
+                        ->label('Видалити задачу')
+                        ->modalHeading('Видалити задачу збагачення')
+                        ->modalDescription('Видаляється лише сама задача з черги. Створений профіль, джерела та згадки залишаються — у них просто зникне звʼязок із задачею.')
+                        ->successNotificationTitle('Задачу видалено'),
                 ])->label('Дії')->icon('heroicon-o-ellipsis-horizontal')->size('sm'),
             ])
             ->toolbarActions([
@@ -347,6 +354,10 @@ class TasksRelationManager extends RelationManager
                                 ->danger()
                                 ->send();
                         }),
+                    DeleteBulkAction::make()
+                        ->label('Видалити задачі')
+                        ->modalDescription('Видаляються лише задачі з черги. Створені профілі, джерела та згадки залишаються.')
+                        ->successNotificationTitle('Задачі видалено'),
                 ]),
             ])
             ->defaultSort('row_number');

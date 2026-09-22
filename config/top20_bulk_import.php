@@ -8,7 +8,7 @@ return [
     'media_max_bytes' => 6 * 1024 * 1024,
     'review_avatar_max_bytes' => 2 * 1024 * 1024,
     'max_reviews_per_profile' => (int) env('TOP20_BULK_IMPORT_MAX_REVIEWS_PER_PROFILE', 100),
-    'download_review_avatars' => (bool) env('TOP20_BULK_IMPORT_DOWNLOAD_REVIEW_AVATARS', true),
+    'download_review_avatars' => (bool) env('TOP20_BULK_IMPORT_DOWNLOAD_REVIEW_AVATARS', false),
     'max_listing_pages' => (int) env('TOP20_BULK_IMPORT_MAX_LISTING_PAGES', 250),
     'profile_fetch_concurrency' => (int) env('TOP20_BULK_IMPORT_PROFILE_FETCH_CONCURRENCY', 4),
     'review_fetch_concurrency' => (int) env('TOP20_BULK_IMPORT_REVIEW_FETCH_CONCURRENCY', 8),

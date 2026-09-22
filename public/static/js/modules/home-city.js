@@ -1,7 +1,7 @@
 // Місто на головній: автовизначення (кукі → IP, без браузерних дозволів)
-// плюс явний вибір у селекторі hero-пошуку. Персоналізує секції
-// «Dovira рекомендує» і «Топ-рейтинги» (профілі міста першими) та
-// підставляє місто в пошук: прихований input regions[] летить у каталог.
+// персоналізує секції «Dovira рекомендує» і «Топ-рейтинги».
+// Hero-пошук стартує з «Вся Україна» і отримує місто тільки після явного
+// вибору користувача: прихований input regions[] летить у каталог.
 // SSR-версія секцій глобальна і однакова для всіх — кешування не ламається.
 (() => {
     if (!document.body.classList.contains('page-home-main')) return;
@@ -50,7 +50,7 @@
         });
     };
 
-    const setCity = (city) => {
+    const setSearchCity = (city) => {
         const label = city || 'Вся Україна';
         pickers.forEach((picker) => {
             const labelNode = picker.querySelector('[data-city-label]');
@@ -63,6 +63,9 @@
             input.value = city || '';
             input.disabled = !city;
         });
+    };
+
+    const setSectionCity = (city) => {
         // Бейдж міста в заголовках персоналізованих секцій.
         cityBadges.forEach((badge) => {
             badge.textContent = city ? `· ${city}` : '';
@@ -86,11 +89,14 @@
                 reviewsTrack.innerHTML = html.reviews;
                 reviewsTrack.scrollLeft = 0;
             }
-            if (leaderboardShell && typeof html.leaderboard === 'string') {
+            // Гард на порожній рядок — як у решти секцій: місто без власного
+            // рейтингу (мале місто) не повинно затирати глобальний SSR-борд.
+            // Без цього гео-визначення такого міста «гасило» рейтинги на головній.
+            if (leaderboardShell && typeof html.leaderboard === 'string' && html.leaderboard.trim() !== '') {
                 leaderboardShell.innerHTML = html.leaderboard;
                 initLeaderboardTabs(leaderboardShell);
             }
-            setCity(payload.city);
+            setSectionCity(payload.city);
             // Свіжовставлені картки треба «дофітити»: рядок напрямів
             // згортається у «+N» модулем card-tags-tooltip (як у каталозі).
             window.DoviraFitCardTags?.(document);
@@ -104,7 +110,7 @@
                 initLeaderboardTabs(leaderboardShell);
             }
             if (reviewsTrack) reviewsTrack.innerHTML = initialHtml.reviews;
-            setCity('');
+            setSectionCity('');
             window.DoviraFitCardTags?.(document);
         }
     };
@@ -154,7 +160,8 @@
             closeMenus();
             // Лейбл і input оновлюємо одразу, щоб пошук працював навіть
             // якщо запит секцій ще летить чи впав.
-            setCity(city);
+            setSearchCity(city);
+            setSectionCity(city);
             try {
                 const payload = await fetchSections(city);
                 applyPayload(payload, { restoreOnEmpty: true });
@@ -173,6 +180,7 @@
     });
 
     initLeaderboardTabs(document);
+    setSearchCity('');
 
     // Стартове визначення міста (кукі або IP).
     (async () => {

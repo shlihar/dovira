@@ -103,9 +103,23 @@
         </button>
 
         <div class="cat-filter__mega" data-cat-mega hidden>
+            <div class="cat-filter__sheet-head">
+                <span class="cat-filter__sheet-title">Категорія</span>
+                <button type="button" class="cat-filter__sheet-close" data-cat-close aria-label="Закрити">
+                    <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+                </button>
+            </div>
+            <label class="cat-filter__search">
+                <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                <input type="search" class="cat-filter__search-input" data-cat-search placeholder="Пошук категорії" autocomplete="off" aria-label="Пошук категорії">
+                <button type="button" class="cat-filter__search-clear" data-cat-search-clear aria-label="Очистити пошук" hidden>
+                    <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+                </button>
+            </label>
+            <p class="cat-filter__empty" data-cat-empty hidden>Нічого не знайдено</p>
             <div class="cat-filter__mega-inner">
                 <div class="cat-filter__cats" data-cat-cats>
-                    <a href="{{ $catalogCategoryUrl() }}" class="cat-filter__cat cat-filter__cat--all @if(!$hasCategorySelection) is-selected @endif" data-catalog-category-link>
+                    <a href="{{ $catalogCategoryUrl() }}" class="cat-filter__cat cat-filter__cat--all @if(!$hasCategorySelection) is-selected @endif" data-catalog-category-link data-cat-option-all>
                         <span class="cat-filter__cat-name"><i class="fa-solid fa-grip cat-filter__cat-ico" aria-hidden="true"></i>Усі категорії</span>
                     </a>
                     @foreach ($catGroups as $group)
@@ -114,6 +128,7 @@
                                 type="button"
                                 class="cat-filter__cat @if($group['key'] === $megaActiveKey) is-active @endif @if($group['isActive'] || $group['hasActiveKid']) is-selected @endif"
                                 data-cat-cat="{{ $group['key'] }}"
+                                data-cat-option="{{ $group['name'] }}"
                                 aria-expanded="false"
                             >
                                 <span class="cat-filter__cat-name">{{ $group['name'] }}</span>
@@ -123,7 +138,7 @@
                                 </span>
                             </button>
                         @else
-                            <a href="{{ $catalogCategoryUrl($group['name']) }}" class="cat-filter__cat cat-filter__cat--leaf @if($group['isActive']) is-selected @endif" data-catalog-category-link>
+                            <a href="{{ $catalogCategoryUrl($group['name']) }}" class="cat-filter__cat cat-filter__cat--leaf @if($group['isActive']) is-selected @endif" data-catalog-category-link data-cat-option="{{ $group['name'] }}">
                                 <span class="cat-filter__cat-name">{{ $group['name'] }}</span>
                                 <span class="cat-filter__cat-meta"><small>{{ $group['count'] }}</small></span>
                             </a>
@@ -139,12 +154,12 @@
                                     <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
                                     <span>{{ $group['name'] }}</span>
                                 </button>
-                                <a href="{{ $catalogCategoryUrl($group['name']) }}" class="cat-filter__sub cat-filter__sub--all @if($group['isActive']) is-selected @endif" data-catalog-category-link>
+                                <a href="{{ $catalogCategoryUrl($group['name']) }}" class="cat-filter__sub cat-filter__sub--all @if($group['isActive']) is-selected @endif" data-catalog-category-link data-cat-option-all data-cat-option-group="{{ $group['name'] }}">
                                     <span>Усі: {{ $group['name'] }}</span>
                                     <small>{{ $group['count'] }}</small>
                                 </a>
                                 @foreach ($group['kids'] as $child)
-                                    <a href="{{ $catalogCategoryUrl($group['name'], $child['name']) }}" class="cat-filter__sub @if($child['active']) is-selected @endif" data-catalog-category-link>
+                                    <a href="{{ $catalogCategoryUrl($group['name'], $child['name']) }}" class="cat-filter__sub @if($child['active']) is-selected @endif" data-catalog-category-link data-cat-option="{{ $child['name'] }}" data-cat-option-group="{{ $group['name'] }}">
                                         <span>{{ $child['name'] }}</span>
                                         <small>{{ $child['count'] }}</small>
                                     </a>
@@ -177,14 +192,28 @@
         </button>
 
         <div class="cat-filter__mega" data-cat-mega hidden>
+            <div class="cat-filter__sheet-head">
+                <span class="cat-filter__sheet-title">Місто</span>
+                <button type="button" class="cat-filter__sheet-close" data-cat-close aria-label="Закрити">
+                    <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+                </button>
+            </div>
+            <label class="cat-filter__search">
+                <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                <input type="search" class="cat-filter__search-input" data-cat-search placeholder="Пошук міста" autocomplete="off" aria-label="Пошук міста">
+                <button type="button" class="cat-filter__search-clear" data-cat-search-clear aria-label="Очистити пошук" hidden>
+                    <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+                </button>
+            </label>
+            <p class="cat-filter__empty" data-cat-empty hidden>Нічого не знайдено</p>
             <div class="cat-filter__mega-inner">
                 <div class="cat-filter__cats" data-cat-cats>
-                    <button type="button" class="cat-filter__cat cat-filter__cat--all @if(!$hasCitySelection) is-selected @endif" data-cat-city-clear>
+                    <button type="button" class="cat-filter__cat cat-filter__cat--all @if(!$hasCitySelection) is-selected @endif" data-cat-city-clear data-cat-option-all>
                         <span class="cat-filter__cat-name"><i class="fa-solid fa-grip cat-filter__cat-ico" aria-hidden="true"></i>Усі міста</span>
                     </button>
                     @foreach ($regionFilters as $region)
                         @php $isChecked = in_array(mb_strtolower($region), $selectedRegions, true); @endphp
-                        <label class="cat-filter__cat cat-filter__cat--leaf cat-filter__city @if($isChecked) is-selected @endif">
+                        <label class="cat-filter__cat cat-filter__cat--leaf cat-filter__city @if($isChecked) is-selected @endif" data-cat-option="{{ $region }}">
                             <input type="checkbox" name="regions[]" value="{{ $region }}" @checked($isChecked) data-filter-input hidden>
                             <span class="cat-filter__cat-name">{{ $region }}</span>
                             <span class="cat-filter__cat-meta"><i class="fa-solid fa-check cat-filter__city-check" aria-hidden="true"></i></span>
@@ -264,11 +293,15 @@
                 <span class="minimal-control__icon" aria-hidden="true"><i class="fa-solid fa-check"></i></span>
                 <span>Підтверджений власником</span>
             </label>
-            <label class="minimal-control minimal-control--checkbox">
-                <input type="checkbox" name="status" value="recommended" @checked($selectedStatus === 'recommended') data-filter-input>
-                <span class="minimal-control__icon" aria-hidden="true"><i class="fa-solid fa-check"></i></span>
-                <span>Довіра рекомендує</span>
-            </label>
+            @if (($hasRecommendedProfiles ?? true) || $selectedStatus === 'recommended')
+                {{-- Бейдж присвоюється автоматично; поки жодного профілю з ним немає,
+                     фільтр приховано, щоб він не давав порожню видачу. --}}
+                <label class="minimal-control minimal-control--checkbox">
+                    <input type="checkbox" name="status" value="recommended" @checked($selectedStatus === 'recommended') data-filter-input>
+                    <span class="minimal-control__icon" aria-hidden="true"><i class="fa-solid fa-check"></i></span>
+                    <span>Довіра рекомендує</span>
+                </label>
+            @endif
         </div>
     </section>
 </div>

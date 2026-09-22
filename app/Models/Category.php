@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Support\SitemapCache;
+use App\Support\TopRatingIndexCache;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -75,6 +77,16 @@ class Category extends Model
             } elseif ($category->is_active !== null) {
                 $category->status = $category->is_active ? 'active' : 'inactive';
             }
+        });
+
+        static::saved(function (): void {
+            SitemapCache::forget();
+            TopRatingIndexCache::forget();
+        });
+
+        static::deleted(function (): void {
+            SitemapCache::forget();
+            TopRatingIndexCache::forget();
         });
     }
 

@@ -98,7 +98,7 @@
 
                         @if (\App\Support\Turnstile::isEnabled())
                             {{-- Turnstile сам додає приховане поле cf-turnstile-response у форму. --}}
-                            <div class="cf-turnstile review-popup__turnstile" data-sitekey="{{ config('services.turnstile.site_key') }}" data-language="uk"></div>
+                            <div class="cf-turnstile review-popup__turnstile" data-sitekey="{{ config('services.turnstile.site_key') }}" data-language="uk" data-refresh-expired="auto"></div>
                         @endif
                     @endguest
                 </section>

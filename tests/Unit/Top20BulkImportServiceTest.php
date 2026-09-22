@@ -197,10 +197,12 @@ HTML;
         $this->assertNull($localized);
     }
 
-    public function test_find_existing_profile_matches_by_slug_and_city(): void
+    public function test_find_existing_profile_matches_by_name_city_and_address(): void
     {
         $profile = Profile::query()->create([
             'name' => 'ПРИКАРПАТАУДИТ',
+            'city' => 'Івано-Франківськ',
+            'address' => 'Тестова, 1',
             'slug' => 'prikarpataudit',
             'type' => 'company',
             'status' => 'draft',
@@ -213,8 +215,12 @@ HTML;
 
         $found = $method->invoke($service, 'https://top20.ua/example.html', [
             'name' => 'ПРИКАРПАТАУДИТ',
+            'city' => 'Івано-Франківськ',
+            'address' => 'Тестова, 1',
         ], [
             'name' => 'ПРИКАРПАТАУДИТ',
+            'city' => 'Івано-Франківськ',
+            'address' => 'Тестова, 1',
         ]);
 
         $this->assertInstanceOf(Profile::class, $found);
