@@ -1833,10 +1833,13 @@ class CatalogPageController extends Controller
                 $profile->services->pluck('name')->all(),
                 $profile->short_description,
                 $profile->description
-            )) ? ProfileSeo::withRatingPrefix(
-                (string) $profile->seo_description,
-                \App\Support\RatingDisplay::visible((int) $profile->reviews_count),
-                (float) $profile->rating_avg,
+            )) ? ProfileSeo::withReviewKeyword(
+                ProfileSeo::withRatingPrefix(
+                    (string) $profile->seo_description,
+                    \App\Support\RatingDisplay::visible((int) $profile->reviews_count),
+                    (float) $profile->rating_avg,
+                    (int) $profile->reviews_count
+                ),
                 (int) $profile->reviews_count
             ) : ProfileSeo::resolvedSearchDescription(
                 $profile->seo_description,

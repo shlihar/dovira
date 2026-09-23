@@ -524,6 +524,7 @@
         // {позиція} → «2 місце у категорії «Адвокати» у Києві (із 515)».
         const PROFILE_RANK_URL_TEMPLATE = @json(route('outreach.profile-rank', ['profile' => '__PROFILE_ID__']));
         const rankById = {};
+        const rankShortById = {};
         const rankPending = {};
 
         function reviewsPhrase(count) {
@@ -547,6 +548,7 @@
                 .then(r => r.ok ? r.json() : null)
                 .then(data => {
                     rankById[s.id] = (data && data.label) ? data.label : null;
+                    rankShortById[s.id] = (data && data.short) ? data.short : null;
                     // Перемальовуємо повідомлення, коли позиція доїхала.
                     if (selectedId === s.id) regenerate();
                 })
@@ -559,6 +561,25 @@
         function applyProfileNumbers(body, s) {
             let text = String(body || '');
             if (!s) return text;
+
+            // Досьє є не в кожного профілю — згадку про нього прибираємо,
+            // щоб у листі не було твердження, яке легко спростувати.
+            if (!s.has_dossier) {
+                text = text
+                    .split('профіль та досьє').join('профіль')
+                    .split('досьє та профіль').join('профіль');
+            }
+
+            const short = rankShortById[s.id];
+            if (text.includes('{місце}')) {
+                ensureRank(s);
+                if (short) {
+                    text = text.split('{місце}').join(short);
+                } else {
+                    // Рядок списку без позиції прибираємо цілком.
+                    text = text.split('\n— {місце}').join('').split('{місце}').join('');
+                }
+            }
 
             const rank = rankById[s.id];
             if (text.includes('{позиція}')) {

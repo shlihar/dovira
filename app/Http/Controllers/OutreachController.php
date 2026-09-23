@@ -227,6 +227,7 @@ class OutreachController extends Controller
 
         $rank = $context['rank'] ?? null;
         $label = null;
+        $short = null;
 
         if ($rank !== null && filled($context['city'] ?? null)) {
             // «2 місце в категорії «Адвокати» у Києві» — фраза одразу готова до
@@ -238,6 +239,23 @@ class OutreachController extends Controller
 
             // Формат підігнаний під речення «…та позиція {позиція}», тож без
             // слова «місце»: інакше виходить «позиція 2 місце».
+            // Коротка форма для рядка «— 2 місце серед адвокатів у Києві».
+            // Родовий відмінок беремо з мапи: автоматично відмінювати назви
+            // категорій українською надійно не вийде.
+            $genitive = [
+                'Адвокати' => 'адвокатів',
+                'Юристи' => 'юристів',
+                'Нотаріуси' => 'нотаріусів',
+                'Ветеринари та ветеринарні клініки' => 'ветеринарних клінік',
+                'Стоматологія' => 'стоматологій',
+            ][$category] ?? null;
+
+            $short = $rank . ' місце'
+                . ($genitive !== null
+                    ? ' серед ' . $genitive
+                    : ($category !== '' ? ' у категорії «' . $category . '»' : ''))
+                . ' ' . $cityPhrase;
+
             $label = '#' . $rank
                 . ($category !== '' ? ' у категорії «' . $category . '»' : '')
                 . ' ' . $cityPhrase
@@ -249,6 +267,7 @@ class OutreachController extends Controller
             'rank' => $rank,
             'total' => (int) ($context['total'] ?? 0),
             'label' => $label,
+            'short' => $short ?? null,
         ]);
     }
 

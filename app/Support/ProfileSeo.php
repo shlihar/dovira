@@ -495,8 +495,79 @@ final class ProfileSeo
         $prefix = '⭐ ' . self::formatRatingValue($rating) . '/5 · '
             . $reviewsCount . ' ' . self::reviewsWord($reviewsCount) . '. ';
 
-        return mb_strlen($prefix . $description) <= self::DESCRIPTION_MAX_LENGTH
-            ? $prefix . $description
+        if (mb_strlen($prefix . $description) <= self::DESCRIPTION_MAX_LENGTH) {
+            return $prefix . $description;
+        }
+
+        // Опис задовгий для префікса. Раніше в такому разі рейтинг просто
+        // губився — а це найсильніший елемент сніпета і водночас той ключ
+        // («відгуки»), за яким сторінку й шукають. Тому не відкидаємо префікс,
+        // а підрізаємо хвіст опису по межі речення.
+        $room = self::DESCRIPTION_MAX_LENGTH - mb_strlen($prefix);
+        $trimmed = self::trimToSentence($description, $room);
+
+        return $trimmed !== null ? $prefix . $trimmed : $description;
+    }
+
+    /**
+     * Обрізає текст до $limit по межі речення, інакше по межі слова.
+     * Повертає null, якщо осмисленого залишку не лишається.
+     */
+    private static function trimToSentence(string $value, int $limit): ?string
+    {
+        $value = trim($value);
+
+        if ($limit < 40) {
+            return null;
+        }
+
+        if (mb_strlen($value) <= $limit) {
+            return $value;
+        }
+
+        $head = mb_substr($value, 0, $limit);
+
+        foreach (['. ', '! ', '? '] as $stop) {
+            $position = mb_strrpos($head, $stop);
+
+            if ($position !== false && $position >= 40) {
+                return trim(mb_substr($head, 0, $position + 1));
+            }
+        }
+
+        $space = mb_strrpos($head, ' ');
+
+        if ($space === false || $space < 40) {
+            return null;
+        }
+
+        return rtrim(trim(mb_substr($head, 0, $space)), ',;:—–-') . '.';
+    }
+
+    /**
+     * Дописує ключ «відгуки» в хвіст опису, якщо його там немає, а відгуки в
+     * профілі реально є. Без цього опис на платформі відгуків не збігається з
+     * запитом «{назва} відгуки», і Google переписує сніпет своїм текстом.
+     */
+    public static function withReviewKeyword(string $description, int $reviewsCount): string
+    {
+        if ($reviewsCount <= 0 || preg_match('/відгук|⭐/iu', $description) === 1) {
+            return $description;
+        }
+
+        $tail = ' ' . $reviewsCount . ' ' . self::reviewsWord($reviewsCount) . ' клієнтів на DOVIRA.';
+        $base = rtrim(trim($description));
+
+        if ($base === '') {
+            return $description;
+        }
+
+        if (! str_ends_with($base, '.') && ! str_ends_with($base, '!') && ! str_ends_with($base, '?')) {
+            $base .= '.';
+        }
+
+        return mb_strlen($base . $tail) <= self::DESCRIPTION_MAX_LENGTH
+            ? $base . $tail
             : $description;
     }
 
@@ -740,7 +811,9 @@ final class ProfileSeo
         $source = preg_replace('/\s*([,.!?;:])\s*/u', '$1 ', $source);
         $source = trim((string) $source);
 
-        return self::ensureSentence(Str::limit($source, $maxLength, '...'));
+        // Str::limit різав посеред слова («…широкий спектр п...»), і такий
+        // обрив ішов прямо у сніпет Google. Ріжемо по межі речення або слова.
+        return self::ensureSentence(self::trimToSentence($source, $maxLength) ?? Str::limit($source, $maxLength, '...'));
     }
 
     private static function rawAboutText(?string $shortDescription, ?string $description): ?string
