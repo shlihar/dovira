@@ -65,6 +65,7 @@ Route::get('/rozsylka/email-stats', [OutreachController::class, 'emailStats'])->
 Route::get('/rozsylka/notifications', [OutreachController::class, 'notifications'])->name('outreach.notifications');
 Route::post('/rozsylka/profiles/{profile}/flags', [OutreachController::class, 'updateProfileFlags'])->name('outreach.profile-flags');
 Route::post('/rozsylka/profiles/{profile}/email', [OutreachController::class, 'updateProfileContact'])->name('outreach.profile-email');
+Route::get('/rozsylka/profiles/{profile}/rank', [OutreachController::class, 'profileRank'])->name('outreach.profile-rank');
 // Особистий трекер задач із розкрутки (лише персонал; прогрес у localStorage).
 Route::get('/rozsylka/tasks', [OutreachController::class, 'tasks'])->name('outreach.tasks');
 Route::get('/sitemap.xml', [App\Http\Controllers\SeoController::class, 'sitemap'])->name('seo.sitemap');

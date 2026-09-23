@@ -519,11 +519,70 @@
                 body: Object.prototype.hasOwnProperty.call(saved, 'body') ? String(saved.body || '') : base.body,
             };
         }
+        // ── Живі цифри профілю в шаблонах ──────────────────────────────
+        // {відгуки} → «90 відгуків», {рейтинг} → «5.0»,
+        // {позиція} → «2 місце у категорії «Адвокати» у Києві (із 515)».
+        const PROFILE_RANK_URL_TEMPLATE = @json(route('outreach.profile-rank', ['profile' => '__PROFILE_ID__']));
+        const rankById = {};
+        const rankPending = {};
+
+        function reviewsPhrase(count) {
+            const n = Number(count || 0);
+            const mod10 = n % 10, mod100 = n % 100;
+            let word = 'відгуків';
+            if (mod10 === 1 && mod100 !== 11) word = 'відгук';
+            else if ([2, 3, 4].includes(mod10) && ![12, 13, 14].includes(mod100)) word = 'відгуки';
+            return n + ' ' + word;
+        }
+
+        function ratingPhrase(rating) {
+            const value = Number(rating || 0);
+            return value > 0 ? value.toFixed(1).replace('.', ',') : 'поки без оцінки';
+        }
+
+        function ensureRank(s) {
+            if (!s || rankById[s.id] !== undefined || rankPending[s.id]) return;
+            rankPending[s.id] = true;
+            fetch(PROFILE_RANK_URL_TEMPLATE.replace('__PROFILE_ID__', s.id), { headers: { Accept: 'application/json' } })
+                .then(r => r.ok ? r.json() : null)
+                .then(data => {
+                    rankById[s.id] = (data && data.label) ? data.label : null;
+                    // Перемальовуємо повідомлення, коли позиція доїхала.
+                    if (selectedId === s.id) regenerate();
+                })
+                .catch(() => { rankById[s.id] = null; })
+                .finally(() => { delete rankPending[s.id]; });
+        }
+
+        // Поки позиція не відома (або її немає) — прибираємо згадку про неї
+        // цілком, щоб у листі не лишалось «та позиція —».
+        function applyProfileNumbers(body, s) {
+            let text = String(body || '');
+            if (!s) return text;
+
+            const rank = rankById[s.id];
+            if (text.includes('{позиція}')) {
+                ensureRank(s);
+                if (rank) {
+                    text = text.split('{позиція}').join(rank);
+                } else {
+                    text = text
+                        .split(' та позиція {позиція}').join('')
+                        .split(', позиція {позиція}').join('')
+                        .split('{позиція}').join('—');
+                }
+            }
+
+            return text
+                .split('{відгуки}').join(reviewsPhrase(s.reviews))
+                .split('{рейтинг}').join(ratingPhrase(s.rating));
+        }
+
         function replaceTemplateTokens(body, s, step, linkBuilder) {
             if (!s) return String(body || '');
             const name = s.name || '';
             const link = linkBuilder(s, step.id);
-            return String(body || '')
+            return applyProfileNumbers(body, s)
                 .split('{імя}').join(name)
                 .split("{ім'я}").join(name)
                 .split('{ім’я}').join(name)
@@ -748,6 +807,8 @@
             }
             if (!last) return null;
             const seq = SEQUENCES[last.info.seqIdx];
+            // Незалежні варіанти першого звернення: жодних наступних дотиків.
+            if (seq.alternatives) return { last, next: null, dueDate: null, isDue: false, done: true };
             const next = seq.steps[last.info.stepIdx + 1] || null;
             // Розмовний сценарій («Діалог»): наступний крок настає ПО ВІДПОВІДІ,
             // а не за календарем — тому без дати й без «⏰ час дотику».
@@ -904,9 +965,10 @@
         function buildMessagePayload() {
             const step = curStep();
             const s = byId[selectedId];
-            const body = resolveBody(step, s);
+            let body = resolveBody(step, s);
             if (!s) return { display: body, plain: body, html: esc(body) };
             const name = s.name || '', link = buildLink(s, step.id);
+            body = applyProfileNumbers(body, s);
             const richLinkLabel = 'Відкрити профіль';
             const replaceNames = value => value
                 .split('{імя}').join(name)

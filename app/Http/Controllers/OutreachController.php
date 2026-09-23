@@ -207,6 +207,51 @@ class OutreachController extends Controller
         ]);
     }
 
+    /**
+     * Позиція профілю в популярних по місту — для повідомлень із живими
+     * цифрами. Рахується ліниво (один вибраний профіль), бо для всього списку
+     * це був би запит на кожен рядок: ранг береться з того самого порядку, що
+     * й у каталозі.
+     */
+    public function profileRank(Profile $profile): JsonResponse
+    {
+        if ($redirect = $this->guardStaff()) {
+            return response()->json(['ok' => false], 403);
+        }
+
+        $context = \Illuminate\Support\Facades\Cache::remember(
+            'outreach:rank:v1:' . $profile->id,
+            now()->addHours(6),
+            fn (): array => app(\App\Services\ProfileAnalyticsService::class)->popularityRankInLocalContext($profile)
+        );
+
+        $rank = $context['rank'] ?? null;
+        $label = null;
+
+        if ($rank !== null && filled($context['city'] ?? null)) {
+            // «2 місце в категорії «Адвокати» у Києві» — фраза одразу готова до
+            // вставки в повідомлення. Локатив міста беремо з довідника, бо
+            // «у місті Київ» у листі виглядає як машинний текст.
+            $category = trim((string) ($context['context_name'] ?? ''));
+            $cityPhrase = \App\Support\RegionCityDirectory::cityLocative((string) $context['city'])
+                ?? ('у місті ' . $context['city']);
+
+            // Формат підігнаний під речення «…та позиція {позиція}», тож без
+            // слова «місце»: інакше виходить «позиція 2 місце».
+            $label = '#' . $rank
+                . ($category !== '' ? ' у категорії «' . $category . '»' : '')
+                . ' ' . $cityPhrase
+                . (($context['total'] ?? 0) > 0 ? ' (із ' . (int) $context['total'] . ')' : '');
+        }
+
+        return response()->json([
+            'ok' => true,
+            'rank' => $rank,
+            'total' => (int) ($context['total'] ?? 0),
+            'label' => $label,
+        ]);
+    }
+
     public function updateProfileFlags(Request $request, Profile $profile): JsonResponse|RedirectResponse
     {
         if ($redirect = $this->guardStaff()) {

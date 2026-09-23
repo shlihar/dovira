@@ -1260,7 +1260,7 @@
                     @if ($hasReviewOverview)
                     <section class="profile-card" id="summary">
                         <div class="profile-card__head">
-                            <h2>Огляд відгуків</h2>
+                            <h2>{{ $profile['name'] }} — огляд відгуків</h2>
                         </div>
                         @php
                             $aiReviewPending = (($profile['ai_review_status'] ?? null) === 'pending') || (int) ($publishedReviewsTotal ?? 0) === 0;
@@ -1586,7 +1586,7 @@
                             $reviewsHasMore = $reviewsTotal > $initialReviewsLoaded;
                         @endphp
                         <div class="profile-card__head @if ($reviewsTotal > 0) has-reviews @endif">
-                            <h2>Відгуки клієнтів</h2>
+                            <h2>{{ $profile['name'] }} — відгуки клієнтів</h2>
                             @if (($nativeReviewStats['count'] ?? 0) >= 3 && ($nativeReviewStats['rating'] ?? 0) > 0)
                                 {{-- Видима оцінка саме з відгуків, залишених на Dovira.
                                      Вона — джерело AggregateRating у розмітці: Google
@@ -2074,7 +2074,7 @@
 
                         <div class="profile-reviews-mobile-extras" aria-label="Додаткові контакти профілю">
                             <div class="profile-side-card" id="profile-mobile-contacts">
-                                <h2>Контакти</h2>
+                                <h3>Контакти</h3>
                                 @include('static.partials.profile-contact-actions')
                             </div>
 
@@ -2102,7 +2102,7 @@
                 <aside class="profile-side">
                     <div class="profile-side__inner" data-side-inner>
                     <div class="profile-side-card profile-side-card--contacts-desktop" id="profile-contacts-aside-anchor">
-                        <h2>Контакти</h2>
+                        <h3>Контакти</h3>
                         @include('static.partials.profile-contact-actions')
                     </div>
 

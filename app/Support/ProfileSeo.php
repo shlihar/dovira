@@ -233,6 +233,28 @@ final class ProfileSeo
             return $storedValue;
         }
 
+        // Крафтовий заголовок із пошуковим ключем («відгуки», «досьє»,
+        // «рейтинг») віддаємо як є: ключ у ньому вже стоїть, а разом із ним —
+        // категорія і місто в живому формулюванні («Адвокат Андрій Смирнов в
+        // Одесі — відгуки, досвід»), чого шаблон не дає. Раніше такий заголовок
+        // ішов далі й мовчки гинув у craftedSearchTitle, якщо в ньому не було
+        // двокрапки, — у видачу йшов шаблон без міста й категорії.
+        if (mb_strlen($storedValue) <= self::TITLE_MAX_LENGTH
+            && self::titleMentionsProfile($storedValue, $name)
+            && self::hasSearchKeySignals($storedValue)) {
+            return self::withBrandSuffix($storedValue);
+        }
+
+        // Шаблон для довгої назви ріже її трьома крапками посеред слова
+        // («Адвокатське об’єднання «Центр юридичної... — досьє, відгуки»).
+        // Написаний руками заголовок читабельніший і несе місто з категорією,
+        // тож у цьому випадку він виграє — ключ доклеюємо, поки влазить.
+        if (str_contains($generated, '...')
+            && mb_strlen($storedValue) <= self::TITLE_MAX_LENGTH
+            && self::titleMentionsProfile($storedValue, $name)) {
+            return self::withSearchKeyAndBrand($storedValue, $hasDossier);
+        }
+
         // Крафтовий хук із досьє: «{Назва}, {Місто}: {суть претензії}». Такий
         // заголовок не починається з ключа «відгуки», і раніше його мовчки
         // відкидало на користь шаблону — разом із єдиним, чого в шаблоні немає:
@@ -350,6 +372,62 @@ final class ProfileSeo
             $parts,
             static fn (string $word): bool => mb_strlen($word) >= 4 && ! in_array($word, $generic, true)
         )));
+    }
+
+    /**
+     * Доклеює пошуковий ключ і бренд до крафтового заголовка в межах ліміту.
+     */
+    private static function withSearchKeyAndBrand(string $value, bool $hasDossier): string
+    {
+        if (self::hasSearchKeySignals($value)) {
+            return self::withBrandSuffix($value);
+        }
+
+        $base = self::stripBrandSuffix($value);
+        // У заголовку вже є тире («… — адвокати в Одесі») — другим тире ключ не
+        // чіпляємо, бо виходить «— … — відгуки». Ставимо двокрапку.
+        $separator = preg_match('/[—–-]/u', $base) === 1 ? ': ' : ' — ';
+
+        foreach ([$hasDossier ? $separator . 'відгуки і досьє' : $separator . 'відгуки', $separator . 'відгуки'] as $key) {
+            $candidate = self::withBrandSuffix($base . $key);
+
+            if (mb_strlen($candidate) <= self::TITLE_MAX_LENGTH) {
+                return $candidate;
+            }
+        }
+
+        return self::withBrandSuffix($base);
+    }
+
+    /** Чи несе заголовок пошуковий ключ, заради якого сторінка й ранжується.
+     * Легасі-тайтли виду «{Назва}, {категорія} - Dovira» ключа не мають —
+     * вони програють шаблону, і це правильно.
+     */
+    private static function hasSearchKeySignals(string $value): bool
+    {
+        $normalized = mb_strtolower($value);
+
+        foreach (['відгу', 'досьє', 'рейтинг'] as $key) {
+            if (str_contains($normalized, $key)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /** Додає бренд у хвіст, якщо його немає і він влазить у ліміт. */
+    private static function withBrandSuffix(string $value): string
+    {
+        $brand = ' | DOVIRA';
+
+        if (self::stripBrandSuffix($value) !== $value) {
+            return $value;
+        }
+
+        $withBrand = $value . $brand;
+
+        return mb_strlen($withBrand) <= self::TITLE_MAX_LENGTH ? $withBrand : $value;
     }
 
     private static function stripBrandSuffix(string $value): string

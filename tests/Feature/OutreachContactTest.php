@@ -17,6 +17,26 @@ class OutreachContactTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_top_profiles_has_three_independent_message_options(): void
+    {
+        $sequences = collect(config('outreach.sequences'));
+        $sequence = $sequences->firstWhere('id', 'top_profiles');
+        $this->assertSame('Топові', $sequence['label']);
+        $this->assertTrue($sequence['alternatives']);
+        $this->assertCount(3, $sequence['steps']);
+        foreach ($sequence['steps'] as $step) {
+            $this->assertArrayNotHasKey('day', $step);
+            $this->assertStringContainsString('{імя}', $step['body']);
+        }
+        $ids = $sequences->flatMap(fn ($item) => array_column($item['steps'], 'id'));
+        $this->assertSame($ids->count(), $ids->unique()->count());
+        $this->actingAs($this->staff())->get(route('outreach'))
+            ->assertOk()
+            ->assertSee('top_profiles')
+            ->assertSee('Варіант 1 · знайомство')
+            ->assertSee('if (seq.alternatives)', false);
+    }
+
     private function staff(): User
     {
         return User::factory()->create(['role' => 'admin', 'status' => 'active']);
