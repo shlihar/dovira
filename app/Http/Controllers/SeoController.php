@@ -11,6 +11,7 @@ use App\Support\ProfileSeoIndexPolicy;
 use App\Support\RegionCityDirectory;
 use App\Support\SitemapCache;
 use Illuminate\Http\Response;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -45,11 +46,10 @@ final class SeoController extends Controller
         return $this->xmlResponse($xml);
     }
 
-    public function sitemapRatings(): Response
+    public function sitemapRatings(): RedirectResponse
     {
-        $xml = SitemapCache::remember('ratings', fn (): string => $this->renderUrlset($this->topRatingEntries()));
-
-        return $this->xmlResponse($xml);
+        // Legacy submissions must lead to the canonical catalog URLs, not /top.
+        return redirect()->route('seo.sitemap.landing', [], 301);
     }
 
     public function sitemapProfiles(string $page): Response
@@ -109,15 +109,14 @@ final class SeoController extends Controller
 
         // sitemap-ratings свідомо НЕ в індексі: сторінки /top канонікалізовані
         // на відповідні /catalog, а sitemap має містити лише канонічні URL —
-        // інакше Google отримує суперечливий сигнал. Сам файл лишається
-        // доступним за прямою адресою (нічого не ламає, легко повернути).
+        // інакше Google отримує суперечливий сигнал. Стара адреса файла
+        // перенаправляє на sitemap канонічних посадкових каталогу.
         $sitemaps = [
             ['loc' => route('seo.sitemap.static'), 'lastmod' => $this->entriesLastmod($this->staticEntries(), $lastmod)],
             ['loc' => route('seo.sitemap.landing'), 'lastmod' => $this->entriesLastmod($this->landingEntries(), $lastmod)],
         ];
 
         $profileEntries = $this->profileSitemapEntries();
-        $profileLastmod = $this->entriesLastmod($profileEntries, $lastmod);
         $profileCount = count($profileEntries);
         $pages = (int) min(
             SitemapCache::PROFILE_PAGES_MAX,
@@ -127,7 +126,7 @@ final class SeoController extends Controller
         for ($page = 1; $page <= $pages; $page++) {
             $sitemaps[] = [
                 'loc' => route('seo.sitemap.profiles', ['page' => $page]),
-                'lastmod' => $profileLastmod,
+                // No lastmod until content edits have a dedicated timestamp.
             ];
         }
 
@@ -211,7 +210,8 @@ final class SeoController extends Controller
 
                     $entries[] = [
                         'loc' => route('profile.show', ['slug' => $profile->slug]),
-                        'lastmod' => optional($profile->updated_at)?->toAtomString(),
+                        // updated_at also changes on views/clicks. Omitting the
+                        // optional date is more accurate than claiming an edit.
                         'changefreq' => 'weekly',
                         'priority' => '0.8',
                     ];

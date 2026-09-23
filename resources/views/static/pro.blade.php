@@ -76,9 +76,44 @@
                             <span>{{ \App\Support\ProPricing::launchCohortPriceLine() }}</span>
                         </p>
 
+                        {{-- Пошук компанії ПЕРЕД реєстрацією: людина обирає свій
+                             профіль тут, і його id їде далі через `next`, тож після
+                             створення акаунта вона потрапляє одразу на підтвердження
+                             прав, а не на головну. --}}
+                        <form
+                            class="pro-claim-search"
+                            data-pro-claim-search
+                            data-authed="{{ $isAuthed ? '1' : '0' }}"
+                            data-account-url="{{ route('pro.account') }}"
+                            data-register-url="{{ route('register') }}"
+                            action="{{ route('pro.account', ['tab' => 'claims']) }}"
+                            method="get"
+                        >
+                            <label class="sr-only" for="pro-claim-input">Знайдіть свою компанію в каталозі</label>
+                            <div class="pro-claim-search__field">
+                                <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                                <input
+                                    id="pro-claim-input"
+                                    type="search"
+                                    name="q"
+                                    autocomplete="off"
+                                    placeholder="Назва компанії, місто або сайт"
+                                    aria-expanded="false"
+                                    data-pro-claim-input
+                                >
+                                <button type="submit" class="pro-claim-search__submit">
+                                    <span>Знайти</span>
+                                </button>
+                            </div>
+                            <div class="pro-claim-search__results" data-pro-claim-results hidden></div>
+                            <p class="pro-claim-search__note">
+                                Ваша компанія, найімовірніше, вже в каталозі. Підтвердження прав — безкоштовне.
+                            </p>
+                        </form>
+
                         <div class="pro-hero__actions">
                             <a class="btn dovira-btn pro-hero__btn" href="{{ $proPrimaryUrl }}">
-                                <span>{{ $isAuthed ? 'Відкрити PRO кабінет' : 'Знайти свій профіль' }}</span>
+                                <span>{{ $isAuthed ? 'Відкрити PRO кабінет' : 'Створити акаунт' }}</span>
                             </a>
                             <a class="btn dovira-btn pro-hero__btn pro-hero__btn--alt" href="#pro-pricing">
                                 <span>Переглянути тарифи</span>

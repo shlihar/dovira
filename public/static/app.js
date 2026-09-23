@@ -16,6 +16,10 @@ import './js/modules/carousels.js?v=2';
 if (document.body.classList.contains('page-pro') || document.body.classList.contains('page-pro-account')) {
     import('./js/modules/pro.js?v=19');
 }
+// Пошук своєї компанії на сторінці тарифів: намір зберігається до реєстрації.
+if (document.body.classList.contains('page-pro')) {
+    import('./js/modules/pro-claim-search.js?v=1');
+}
 // ?v=3: business-cta делегує пошук у повноекранний мобільний модал (scope/action форми).
 import './js/modules/search.js?v=3';
 import './js/modules/content-ui.js?v=3';

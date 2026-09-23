@@ -14,6 +14,13 @@
     RewriteRule .* - [E=HTTP_X_XSRF_TOKEN:%{HTTP:X-XSRF-Token}]
 
     # Redirect Trailing Slashes If Not A Folder...
+    # Behind the hosting proxy Apache may see HTTP even for HTTPS visitors.
+    # Use the canonical production origin explicitly to avoid HTTPS -> HTTP.
+    RewriteCond %{HTTP_HOST} ^(www\.)?mydovira\.com$ [NC]
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_URI} (.+)/$
+    RewriteRule ^ https://mydovira.com%1 [L,R=301]
+
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_URI} (.+)/$
     RewriteRule ^ %1 [L,R=301]

@@ -4,12 +4,12 @@
 
 return [
     // Режим індексації профілів:
-    //   reviews_dossier_ai — індексуємо, якщо є відгук, досьє або AI-аналіз (типово);
-    //   all_public         — усі публічні (так було до 22.09.2026, саме через це
-    //                        в sitemap потрапляли 34 тис. сторінок, з них 86%
-    //                        без власного контенту);
+    //   all_public — усі активні, опубліковані профілі, видимі в каталозі
+    //                (типово, за рішенням власника 22.09.2026).
+    //                Чернетки, приховані та карантинні записи не відкриваємо.
+    //   reviews_dossier_ai — лише профілі з відгуком, досьє або AI-аналізом;
     //   reviews_contacts_dossier — старий режим «є контакти або відгуки».
-    'profile_indexing_mode' => env('SEO_PROFILE_INDEXING_MODE', 'reviews_dossier_ai'),
+    'profile_indexing_mode' => env('SEO_PROFILE_INDEXING_MODE', 'all_public'),
 
     'strict_profile_indexing' => (bool) env('SEO_STRICT_PROFILE_INDEXING', false),
 

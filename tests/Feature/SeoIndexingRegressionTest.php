@@ -74,4 +74,36 @@ class SeoIndexingRegressionTest extends TestCase
             }
         }
     }
+
+    public function test_sitemap_legacy_ratings_redirects_to_canonical_landings(): void
+    {
+        $this->get('/sitemap-ratings.xml')
+            ->assertStatus(301)
+            ->assertRedirect(route('seo.sitemap.landing'));
+    }
+
+    public function test_sitemap_profile_xml_does_not_change_with_analytics_timestamp(): void
+    {
+        config(['seo.profile_indexing_mode' => 'all_public']);
+        $profile = Profile::withoutEvents(fn () => Profile::create([
+            'name' => 'Stable sitemap', 'slug' => 'stable-sitemap',
+            'status' => 'active', 'is_published' => true, 'show_in_catalog' => true,
+        ]));
+        $before = $this->get('/sitemap-profiles-1.xml')->assertOk()
+            ->assertSee(route('profile.show', $profile->slug), false)
+            ->assertDontSee('<lastmod>', false)->getContent();
+
+        $this->travel(1)->days();
+        Profile::withoutEvents(fn () => $profile->increment('views_count'));
+        SitemapCache::forget();
+        $after = $this->get('/sitemap-profiles-1.xml')->assertOk()->getContent();
+        $this->assertSame($before, $after);
+        $index = simplexml_load_string($this->get('/sitemap.xml')->assertOk()->getContent());
+        foreach ($index->sitemap as $entry) {
+            if (str_contains((string) $entry->loc, 'sitemap-profiles-')) {
+                $this->assertFalse(isset($entry->lastmod));
+            }
+        }
+        $this->travelBack();
+    }
 }

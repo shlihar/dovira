@@ -98,7 +98,7 @@
 
       <p class="platform-hero__lead">
         DOVIRA — каталог компаній, сервісів і фахівців з реальними відгуками клієнтів.
-        Відгуки не можна видалити чи купити, а компанії відповідають на них публічно.
+        Відгук не можна купити чи прибрати за оплату — публікацію знімають лише за порушення правил, і рішення ухвалює модерація. Компанії відповідають на відгуки публічно.
       </p>
 
       <div class="platform-hero__actions">
@@ -204,8 +204,8 @@
       <article class="platform-step">
         <span class="platform-step__num">03</span>
         <span class="platform-step__icon"><i class="fa-solid fa-circle-check" aria-hidden="true"></i></span>
-        <h3>Обираєте впевнено</h3>
-        <p>Порівнюйте профілі та обирайте перевіреного виконавця без ризику.</p>
+        <h3>Обираєте свідомо</h3>
+        <p>Порівнюйте рейтинг, відгуки й відповіді компаній — рішення ухвалюєте з повнішою картиною.</p>
       </article>
 
       <article class="platform-step">
@@ -418,7 +418,7 @@
       <article class="platform-why-card">
         <span class="platform-why-card__icon platform-why-card__icon--blue"><i class="fa-solid fa-comment-dots" aria-hidden="true"></i></span>
         <h3>Модерація перед публікацією</h3>
-        <p>Кожен відгук перевіряється на спам і фейки, перш ніж з'явитися на сторінці профілю.</p>
+        <p>Нові відгуки проходять антиспам-перевірку, спірні — ще й ручну модерацію. Відгуки, зібрані з зовнішніх джерел, підписані джерелом.</p>
       </article>
 
       <article class="platform-why-card">
@@ -435,14 +435,14 @@
 
       <article class="platform-why-card">
         <span class="platform-why-card__icon platform-why-card__icon--amber"><i class="fa-solid fa-lock" aria-hidden="true"></i></span>
-        <h3>Відгук не можна видалити</h3>
-        <p>Ні прибрати, ні викупити негатив. Спірні випадки розглядає модерація за прозорими правилами.</p>
+        <h3>Негатив не прибрати за оплату</h3>
+        <p>Жодна підписка не ховає й не стирає відгук. Зняти публікацію можна лише за порушення правил, і це рішення ухвалює модерація, а не компанія.</p>
       </article>
     </div>
 
     <div class="platform-why__cta">
       <a href="{{ route('catalog') }}" class="btn btn--primary">
-        <span>Знайти перевіреного виконавця</span>
+        <span>Перейти до каталогу</span>
         <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
       </a>
       <a href="{{ route('faq') }}" class="platform-why__cta-link">
