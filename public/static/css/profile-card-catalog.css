@@ -128,6 +128,22 @@
   line-height: 1;
 }
 
+/* PRO: спокійна синя плашка, а не другий акцент поруч із «Довіра рекомендує».
+   Платне розміщення має бути помітним, але не кричати гучніше за оцінку. */
+.dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__badge--pro {
+  border-color: #cddffc;
+  background: #eef4ff;
+  color: #1e56c9;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  cursor: help;
+}
+
+.dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__badge--pro i {
+  font-size: 9.5px;
+  opacity: 0.85;
+}
+
 .dovira-catalog-card.dovira-catalog-card .dovira-catalog-card__badge--recommend {
   border-color: transparent;
   color: #fff;

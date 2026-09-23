@@ -83,20 +83,23 @@
         <div class="dovira-catalog-card__main">
             <h3 class="dovira-catalog-card__name">
                 <a href="{{ $profileLink }}">{{ $name }}</a>
-                @if (!empty($profile['pro']))
-                    {{-- Платне розміщення має бути видимим: профіль із підпискою
-                         стоїть у видачі вище, і людина повинна це бачити. --}}
-                    <span class="dovira-catalog-card__pro" title="Профіль з підпискою PRO: розміщується вище у видачі">PRO</span>
-                @endif
             </h3>
 
-            @if (!empty($profile['recommended']))
+            {{-- Позначка PRO живе в рядку статусів, а не всередині заголовка:
+                 назва обрізається в два рядки блоковим елементом, тож бейдж
+                 усередині h3 завжди падав окремим рядком і читався як баг. --}}
+            @if (!empty($profile['pro']) || !empty($profile['recommended']) || !empty($profile['not_recommended']))
                 <div class="dovira-catalog-card__badges" aria-label="Статуси профілю">
-                    <span class="dovira-catalog-card__badge dovira-catalog-card__badge--recommend"><i class="fa-solid fa-award" aria-hidden="true"></i> Довіра рекомендує</span>
-                </div>
-            @elseif (!empty($profile['not_recommended']))
-                <div class="dovira-catalog-card__badges" aria-label="Статуси профілю">
-                    <span class="dovira-catalog-card__badge dovira-catalog-card__badge--not-recommend"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> Довіра не рекомендує</span>
+                    @if (!empty($profile['pro']))
+                        <span class="dovira-catalog-card__badge dovira-catalog-card__badge--pro" title="Профіль з підпискою PRO: розміщується вище у видачі">
+                            <i class="fa-solid fa-circle-check" aria-hidden="true"></i> PRO
+                        </span>
+                    @endif
+                    @if (!empty($profile['recommended']))
+                        <span class="dovira-catalog-card__badge dovira-catalog-card__badge--recommend"><i class="fa-solid fa-award" aria-hidden="true"></i> Довіра рекомендує</span>
+                    @elseif (!empty($profile['not_recommended']))
+                        <span class="dovira-catalog-card__badge dovira-catalog-card__badge--not-recommend"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> Довіра не рекомендує</span>
+                    @endif
                 </div>
             @endif
 
