@@ -1891,6 +1891,11 @@ class CatalogPageController extends Controller
             'dossier_generated_at' => $profile->dossier_generated_at,
             'dossier_verdict' => $profile->dossier_verdict,
             'dossier_verdict_note' => $profile->dossier_verdict_note,
+            // Позиція компанії: лише схвалена модерацією версія їде на сторінку.
+            'owner_statement' => $profile->hasPublishedOwnerStatement() ? trim((string) $profile->owner_statement) : null,
+            'owner_statement_published_at' => $profile->hasPublishedOwnerStatement()
+                ? optional($profile->owner_statement_published_at)->translatedFormat('d F Y')
+                : null,
             // Прайс: обʼєкти з цінами й описами. Ціни/описи — PRO-перевага
             // (стратегія, розділ 03), FREE віддає лише назви-теги.
             'services' => $profile->services

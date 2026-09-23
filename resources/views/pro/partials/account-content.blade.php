@@ -1965,6 +1965,88 @@
                                     </div>
                                 </section>
 
+                                @if ($currentProfile && $currentProfile->hasActiveProSubscription() && (filled($currentProfile->dossier) || filled($currentProfile->dossier_verdict)))
+                                    {{-- Позиція компанії: публічна відповідь власника на досьє.
+                                         Стоїть окремою секцією одразу після досьє, бо це не правка
+                                         фактів (для цього є запит на перегляд), а другий голос
+                                         поруч із висновком ШІ. --}}
+                                    @php
+                                        $statementStatus = (string) ($currentProfile->owner_statement_status ?? '');
+                                        $statementText = trim((string) ($currentProfile->owner_statement ?? ''));
+                                        $statementIsPending = $statementStatus === \App\Models\Profile::OWNER_STATEMENT_PENDING;
+                                        $statementIsApproved = $currentProfile->hasPublishedOwnerStatement();
+                                        $statementIsRejected = $statementStatus === \App\Models\Profile::OWNER_STATEMENT_REJECTED;
+                                    @endphp
+                                    <section class="pro-profile-section">
+                                        <div class="pro-profile-section__head">
+                                            <h3><i class="fa-solid fa-comment-dots" aria-hidden="true"></i> Позиція компанії</h3>
+                                        </div>
+
+                                        <div
+                                            class="owner-pos"
+                                            data-owner-statement
+                                            data-owner-statement-url="{{ route('pro.account.profiles.owner-statement', $currentProfile) }}"
+                                            data-profile-url="{{ route('profile.show', ['slug' => $currentProfile->slug]) }}?tab=info#profile-owner-statement"
+                                        >
+                                            <p class="owner-pos__intro">
+                                                Досьє збирає ШІ з відкритих джерел, тож воно показує лише один бік.
+                                                Додайте свою відповідь — вона зʼявиться на сторінці профілю під досьє,
+                                                з підписом компанії й датою.
+                                            </p>
+
+                                            <div class="owner-pos__status owner-pos__status--pending" data-owner-statement-state="pending" @if (! $statementIsPending) hidden @endif>
+                                                <i class="fa-regular fa-clock" aria-hidden="true"></i>
+                                                <span>На перевірці модерації. Поки перевіряємо, на сторінці профілю позиція не показується.</span>
+                                            </div>
+
+                                            <div class="owner-pos__status owner-pos__status--live" data-owner-statement-state="approved" @if (! $statementIsApproved) hidden @endif>
+                                                <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+                                                <span>
+                                                    Опубліковано на сторінці профілю.
+                                                    <a href="{{ route('profile.show', ['slug' => $currentProfile->slug]) }}?tab=info#profile-owner-statement" target="_blank" rel="noopener">Подивитись, як бачить клієнт</a>
+                                                </span>
+                                            </div>
+
+                                            @if ($statementIsRejected)
+                                                <div class="owner-pos__status owner-pos__status--rejected">
+                                                    <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+                                                    <span>
+                                                        Модерація не опублікувала цей текст.
+                                                        @if (filled($currentProfile->owner_statement_note))
+                                                            Причина: {{ $currentProfile->owner_statement_note }}
+                                                        @endif
+                                                        Виправте й надішліть ще раз.
+                                                    </span>
+                                                </div>
+                                            @endif
+
+                                            <label class="owner-pos__label" for="owner-statement-input">Ваша позиція</label>
+                                            <textarea
+                                                id="owner-statement-input"
+                                                class="owner-pos__input"
+                                                rows="6"
+                                                maxlength="1500"
+                                                placeholder="Наприклад: у досьє згадано судову справу 2021 року. Вона завершена, рішення на нашу користь, копію надали модерації. Зараз компанія працює за ліцензією №…"
+                                                data-owner-statement-input
+                                            >{{ $statementText }}</textarea>
+
+                                            <div class="owner-pos__foot">
+                                                <span class="owner-pos__counter" data-owner-statement-counter>{{ mb_strlen($statementText) }} / 1500</span>
+                                                <button type="button" class="owner-pos__submit" data-owner-statement-submit>
+                                                    <i class="fa-solid fa-paper-plane" aria-hidden="true"></i>
+                                                    <span>{{ $statementText === '' ? 'Надіслати на перевірку' : 'Оновити й надіслати' }}</span>
+                                                </button>
+                                            </div>
+
+                                            <p class="owner-pos__hint">
+                                                Пишіть по суті досьє: що неточне, що змінилось, який контекст важливий.
+                                                Реклама, відповіді на конкретні відгуки й особисті випади не проходять модерацію.
+                                            </p>
+                                            <p class="owner-pos__error" data-owner-statement-error hidden></p>
+                                        </div>
+                                    </section>
+                                @endif
+
                                 <section class="pro-profile-section" id="pro-profile-contacts-section">
                                     <div class="pro-profile-section__head">
                                         <h3><i class="fa-solid fa-envelope" aria-hidden="true"></i> Контакти</h3>

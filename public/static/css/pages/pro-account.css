@@ -13143,3 +13143,154 @@ body.is-pro-upgrade-popup-open {
 .pro-cases-hint__more > summary::-webkit-details-marker {
   display: none;
 }
+
+/* ── Позиція компанії (кабінет) ───────────────────────────────────────────
+   Форма розрахована на телефон: одна колонка, велике поле вводу, кнопка на
+   всю ширину, статуси кольором, а не дрібним текстом. */
+.owner-pos {
+  padding: 14px;
+  border: 1px solid #e3ebf8;
+  border-radius: 14px;
+  background: #fff;
+}
+
+.owner-pos__intro {
+  margin: 0 0 12px;
+  color: #4a5c7d;
+  font-size: 13.5px;
+  line-height: 1.55;
+}
+
+.owner-pos__status {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin: 0 0 12px;
+  padding: 11px 12px;
+  border-radius: 11px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.owner-pos__status i {
+  margin-top: 2px;
+  flex: 0 0 auto;
+}
+
+.owner-pos__status--pending {
+  background: #fff7e6;
+  color: #92600a;
+}
+
+.owner-pos__status--live {
+  background: #e8f8ee;
+  color: #1a7a45;
+}
+
+.owner-pos__status--live a {
+  color: #14663a;
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+.owner-pos__status--rejected {
+  background: #fdeced;
+  color: #a32432;
+}
+
+.owner-pos__label {
+  display: block;
+  margin-bottom: 6px;
+  color: #7890b7;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.owner-pos__input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 13px;
+  border: 1px solid #dde6f5;
+  border-radius: 12px;
+  background: #fbfcff;
+  color: #1e293b;
+  font: inherit;
+  font-size: 14.5px;
+  line-height: 1.6;
+  resize: vertical;
+}
+
+.owner-pos__input:focus {
+  border-color: #2f6ef9;
+  outline: none;
+  background: #fff;
+}
+
+.owner-pos__foot {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.owner-pos__counter {
+  color: #8b9ab5;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.owner-pos__submit {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 18px;
+  border: 0;
+  border-radius: 11px;
+  background: linear-gradient(135deg, #4e83ff, #2f6df4);
+  color: #fff;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.owner-pos__submit[disabled] {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.owner-pos__hint {
+  margin: 10px 0 0;
+  color: #8b9ab5;
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.owner-pos__error {
+  margin: 8px 0 0;
+  color: #be123c;
+  font-size: 13px;
+}
+
+@media (max-width: 640px) {
+  .owner-pos { padding: 12px; }
+
+  .owner-pos__foot {
+    flex-direction: column-reverse;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .owner-pos__submit {
+    margin-left: 0;
+    width: 100%;
+    padding: 13px 18px;
+    font-size: 15px;
+  }
+
+  .owner-pos__counter { text-align: right; }
+}

@@ -940,6 +940,47 @@ class ProAccountController extends Controller
     }
 
     /**
+     * Публічна позиція власника щодо досьє.
+     *
+     * Йде на модерацію, а не одразу в ефір: блок стоїть поруч із досьє, і без
+     * перевірки він швидко став би місцем для реклами або відповіді на відгуки
+     * у стилі «це все неправда». Поки нова редакція на перевірці, попередню
+     * публічно не показуємо — інакше на сторінці висів би текст, який власник
+     * уже сам вважає застарілим.
+     */
+    public function submitOwnerStatement(Request $request, Profile $profile): JsonResponse
+    {
+        $this->assertOwnedProfile($request, $profile);
+        abort_unless($profile->hasActiveProSubscription(), 403, 'Позиція компанії доступна з PRO-підпискою.');
+
+        $validated = $request->validate([
+            'statement' => ['required', 'string', 'min:40', 'max:1500'],
+        ], [
+            'statement.min' => 'Напишіть хоча б кілька речень (від 40 символів) — коротку репліку модерація не зможе перевірити.',
+            'statement.max' => 'Максимум 1500 символів: це коментар до досьє, а не окрема стаття.',
+        ]);
+
+        $profile->forceFill([
+            'owner_statement' => trim((string) $validated['statement']),
+            'owner_statement_status' => Profile::OWNER_STATEMENT_PENDING,
+            'owner_statement_note' => null,
+            'owner_statement_submitted_at' => now(),
+            'owner_statement_published_at' => null,
+        ])->saveQuietly();
+
+        AuditLogger::log('pro.owner_statement_submitted', $profile, [
+            'length' => mb_strlen((string) $profile->owner_statement),
+        ]);
+        rescue(fn () => app(\App\Services\Notifications\TelegramAdminNotifier::class)->newOwnerStatement($profile));
+
+        return response()->json([
+            'ok' => true,
+            'message' => 'Позицію надіслано на перевірку. Опублікуємо на сторінці профілю після модерації.',
+            'date' => now()->translatedFormat('d F Y'),
+        ]);
+    }
+
+    /**
      * Тумблер автопродовження підписки: вимкнення не скасовує PRO — доступ
      * діє до кінця сплаченого періоду, просто не буде наступного списання.
      */

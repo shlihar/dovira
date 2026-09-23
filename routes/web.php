@@ -295,6 +295,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/pro/account/profiles', [ProfileClaimController::class, 'createProfile'])->middleware('verified')->name('pro.account.profiles.store');
     Route::patch('/pro/account/profiles/{profile}', [ProAccountController::class, 'updateProfile'])->name('pro.account.profiles.update');
     Route::post('/pro/account/profiles/{profile}/dossier-revision', [ProAccountController::class, 'submitDossierRevision'])->middleware('throttle:6,1')->name('pro.account.profiles.dossier-revision');
+    Route::post('/pro/account/profiles/{profile}/owner-statement', [ProAccountController::class, 'submitOwnerStatement'])->middleware('throttle:6,1')->name('pro.account.profiles.owner-statement');
     // Оплата БЕЗ вимоги підтвердженого email (рішення власника 14.09.2026):
     // підтвердження пошти зайвий бар'єр перед платежем, а права на профіль
     // усе одно захищені окремо — claim через OTP на контакти з профілю.

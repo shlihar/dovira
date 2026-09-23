@@ -222,10 +222,18 @@
                             </article>
 
                             <article class="prol-feature">
+                                <span class="prol-feature__icon prol-feature__icon--violet"><i class="fa-solid fa-comment-dots" aria-hidden="true"></i></span>
+                                <div>
+                                    <h3>Ваша позиція поруч із досьє</h3>
+                                    <p>Досьє збирає ШІ з відкритих джерел і показує лише один бік. З PRO ви публікуєте свою відповідь прямо під ним: що неточне, що змінилось, який контекст важливий. Біля вердикту зʼявляється позначка «Компанія надала свою позицію», а текст проходить модерацію.</p>
+                                </div>
+                            </article>
+
+                            <article class="prol-feature">
                                 <span class="prol-feature__icon prol-feature__icon--blue"><i class="fa-solid fa-sliders" aria-hidden="true"></i></span>
                                 <div>
                                     <h3>Сторінка, якою керуєте ви</h3>
-                                    <p>Послуги, ціни, фото, FAQ, переваги й навіть досьє — ви вирішуєте, як виглядає сторінка в момент, коли на неї дивиться клієнт.</p>
+                                    <p>Послуги, ціни, фото, FAQ і переваги — ви вирішуєте, як виглядає сторінка в момент, коли на неї дивиться клієнт. Самі факти досьє редагує команда Dovira за вашим запитом.</p>
                                 </div>
                             </article>
 
@@ -465,7 +473,8 @@
                                     <li><i class="fa-solid fa-circle-check"></i> <b>Верхні позиції у видачі категорії</b> — вище за всі безплатні профілі</li>
                                     <li><i class="fa-solid fa-circle-check"></i> Позначка PRO на картці й лічильник показів на платних позиціях</li>
                                     <li><i class="fa-solid fa-circle-check"></i> Офіційні відповіді на відгуки від імені компанії</li>
-                                    <li><i class="fa-solid fa-circle-check"></i> Повне керування сторінкою: послуги, ціни, фото, FAQ, досьє</li>
+                                    <li><i class="fa-solid fa-circle-check"></i> Повне керування сторінкою: послуги, ціни, фото, FAQ</li>
+                                    <li><i class="fa-solid fa-circle-check"></i> Публічна позиція компанії під досьє + запит на перевірку фактів</li>
                                     <li><i class="fa-solid fa-circle-check"></i> Блок кейсів (до 10) із підтвердженням відгуком клієнта</li>
                                     <li><i class="fa-solid fa-circle-check"></i> Контакти клієнтів із заявок — телефон та email тих, хто звернувся</li>
                                     <li><i class="fa-solid fa-circle-check"></i> Email і соцмережі на сторінці профілю</li>

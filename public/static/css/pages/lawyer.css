@@ -8225,3 +8225,128 @@ body.is-lead-popup-open {
   background: #fff;
   color: #2f6ef9;
 }
+
+/* ── Позиція компанії під досьє ───────────────────────────────────────────
+   Друга сторона поруч із висновком ШІ. Візуально це цитата компанії, тому
+   ліва акцентна лінія і логотип замість «ще одного блоку сайту». */
+.profile-dossier__answered {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin: 8px 0 0;
+  padding: 5px 11px;
+  border-radius: 999px;
+  border: 1px solid #cfe0ff;
+  background: #eef4ff;
+  color: #1f4fa8;
+  font-size: 12.5px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.profile-dossier__answered:hover {
+  border-color: #2f6ef9;
+  background: #e3edff;
+}
+
+.profile-statement {
+  margin-top: 14px;
+  padding: 14px;
+  border: 1px solid #e3ebf8;
+  border-left: 3px solid #2f6ef9;
+  border-radius: 6px 14px 14px 6px;
+  background: linear-gradient(180deg, #fbfcff 0%, #f6f9ff 100%);
+}
+
+.profile-statement__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.profile-statement__avatar {
+  flex: 0 0 38px;
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  background: #e8f0ff;
+  color: #2f6ef9;
+}
+
+.profile-statement__avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-statement__meta {
+  min-width: 0;
+  display: grid;
+  gap: 1px;
+}
+
+.profile-statement__meta strong {
+  color: #17376f;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.profile-statement__meta span {
+  color: #74859f;
+  font-size: 12px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profile-statement__text {
+  color: #3d4d6b;
+  font-size: 14px;
+  line-height: 1.65;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+/* Обрізаємо до 6 рядків: довга «відповідь на все» не має відсувати відгуки. */
+.profile-statement__text.is-clamped {
+  display: -webkit-box;
+  -webkit-line-clamp: 6;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.profile-statement__more {
+  margin-top: 8px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #2f6ef9;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.profile-statement__more.is-hidden {
+  display: none;
+}
+
+/* Специфічність навмисно вища: у блоці досьє є власні правила для <p>,
+   і без цього примітка читалась як частина цитати компанії. */
+.profile-statement .profile-statement__note {
+  margin: 10px 0 0;
+  color: #93a1b8;
+  font-size: 11.5px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+@media (max-width: 560px) {
+  .profile-statement { padding: 12px; }
+  .profile-statement__text { font-size: 14.5px; }
+}

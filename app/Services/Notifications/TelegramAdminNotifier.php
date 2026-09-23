@@ -221,6 +221,29 @@ class TelegramAdminNotifier
         $this->send(implode("\n", $lines));
     }
 
+    /** Власник опублікував свою позицію щодо досьє — чекає на модерацію. */
+    public function newOwnerStatement(Profile $profile): void
+    {
+        if ($this->chatIds() === []) {
+            return;
+        }
+
+        $lines = [
+            '🗣 <b>Позиція компанії щодо досьє</b>',
+            $this->escape((string) $profile->name),
+            '',
+            '«' . $this->escape(mb_substr((string) $profile->owner_statement, 0, 700)) . '»',
+            '',
+            'Схвалити або відхилити — у картці профілю в адмінці.',
+        ];
+
+        if ($url = $this->profileUrl($profile)) {
+            $lines[] = $url;
+        }
+
+        $this->send(implode("\n", $lines));
+    }
+
     private function profileUrl(?Profile $profile): ?string
     {
         if (! $profile || blank($profile->slug)) {

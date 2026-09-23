@@ -20,6 +20,10 @@ if (document.body.classList.contains('page-pro') || document.body.classList.cont
 if (document.body.classList.contains('page-pro')) {
     import('./js/modules/pro-claim-search.js?v=1');
 }
+// Позиція компанії щодо досьє (кабінет).
+if (document.body.classList.contains('page-pro-account')) {
+    import('./js/modules/owner-statement.js?v=1');
+}
 // ?v=3: business-cta делегує пошук у повноекранний мобільний модал (scope/action форми).
 import './js/modules/search.js?v=3';
 import './js/modules/content-ui.js?v=3';

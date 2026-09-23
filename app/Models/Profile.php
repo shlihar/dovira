@@ -29,6 +29,11 @@ class Profile extends Model
         'dossier_generated_at',
         'dossier_verdict',
         'dossier_verdict_note',
+        'owner_statement',
+        'owner_statement_status',
+        'owner_statement_note',
+        'owner_statement_submitted_at',
+        'owner_statement_published_at',
         'ai_review_summary',
         'ai_review_summary_generated_at',
         'ai_review_summary_source_count',
@@ -87,6 +92,8 @@ class Profile extends Model
         'ai_review_summary_generated_at' => 'datetime',
         'description_rewritten_at' => 'datetime',
         'dossier_generated_at' => 'datetime',
+        'owner_statement_submitted_at' => 'datetime',
+        'owner_statement_published_at' => 'datetime',
         'is_verified' => 'boolean',
         'dovira_recommends' => 'boolean',
         'is_owner_verified' => 'boolean',
@@ -324,6 +331,20 @@ class Profile extends Model
             },
             'proSubscriptions as has_any_pro_subscription',
         ]);
+    }
+
+    /** Статуси публічної позиції власника щодо досьє. */
+    public const OWNER_STATEMENT_PENDING = 'pending';
+
+    public const OWNER_STATEMENT_APPROVED = 'approved';
+
+    public const OWNER_STATEMENT_REJECTED = 'rejected';
+
+    /** Чи є що показувати відвідувачу: позиція написана І схвалена модерацією. */
+    public function hasPublishedOwnerStatement(): bool
+    {
+        return $this->owner_statement_status === self::OWNER_STATEMENT_APPROVED
+            && trim((string) $this->owner_statement) !== '';
     }
 
     public function hasActiveProSubscription(?Carbon $at = null): bool

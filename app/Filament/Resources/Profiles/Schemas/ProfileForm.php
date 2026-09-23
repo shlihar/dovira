@@ -115,6 +115,42 @@ class ProfileForm
                                     ]),
                             ]),
 
+                        Tab::make('Позиція компанії')
+                            ->badge(fn ($record): ?string => ($record?->owner_statement_status ?? null) === \App\Models\Profile::OWNER_STATEMENT_PENDING ? 'на перевірці' : null)
+                            ->badgeColor('warning')
+                            ->schema([
+                                Section::make('Публічна відповідь власника на досьє')
+                                    ->description('Текст пише власник у кабінеті. Публікується на сторінці профілю під досьє лише після схвалення.')
+                                    ->schema([
+                                        Placeholder::make('owner_statement_submitted_info')
+                                            ->label('Надіслано')
+                                            ->content(fn ($record): string => $record?->owner_statement_submitted_at
+                                                ? $record->owner_statement_submitted_at->translatedFormat('d F Y, H:i')
+                                                : 'Власник ще не надсилав позицію')
+                                            ->columnSpanFull(),
+                                        Textarea::make('owner_statement')
+                                            ->label('Текст позиції')
+                                            ->rows(8)
+                                            ->autosize()
+                                            ->maxLength(1500)
+                                            ->helperText('Можна відредагувати перед публікацією: прибрати рекламу чи випади, не змінюючи суті.')
+                                            ->columnSpanFull(),
+                                        Select::make('owner_statement_status')
+                                            ->label('Статус')
+                                            ->options([
+                                                \App\Models\Profile::OWNER_STATEMENT_PENDING => 'На перевірці',
+                                                \App\Models\Profile::OWNER_STATEMENT_APPROVED => 'Опубліковано',
+                                                \App\Models\Profile::OWNER_STATEMENT_REJECTED => 'Відхилено',
+                                            ])
+                                            ->native(false)
+                                            ->placeholder('Немає позиції'),
+                                        TextInput::make('owner_statement_note')
+                                            ->label('Причина відхилення (побачить власник)')
+                                            ->maxLength(500),
+                                    ])
+                                    ->columns(['default' => 1, 'md' => 2]),
+                            ]),
+
                         Tab::make('Кейси')
                             ->schema([
                                 Section::make('Кейси профілю')

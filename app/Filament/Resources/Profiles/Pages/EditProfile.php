@@ -347,6 +347,20 @@ class EditProfile extends EditRecord
             unset($data['owner_cases']);
         }
 
+        // Дата публікації позиції ставиться автоматично в момент схвалення —
+        // саме її бачить відвідувач поруч із текстом.
+        if (array_key_exists('owner_statement_status', $data)) {
+            $wasApproved = $this->record->owner_statement_status === \App\Models\Profile::OWNER_STATEMENT_APPROVED;
+            $nowApproved = $data['owner_statement_status'] === \App\Models\Profile::OWNER_STATEMENT_APPROVED;
+
+            if ($nowApproved && ! $wasApproved) {
+                $data['owner_statement_published_at'] = now();
+                $data['owner_statement_note'] = null;
+            } elseif (! $nowApproved) {
+                $data['owner_statement_published_at'] = null;
+            }
+        }
+
         $data['updated_by_user_id'] = Auth::id();
 
         return $data;

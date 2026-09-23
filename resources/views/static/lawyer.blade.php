@@ -856,6 +856,15 @@
                                             @endif
                                         </div>
                                     @endif
+
+                                    @if (filled($profile['owner_statement'] ?? null))
+                                        {{-- Вердикт не змінюємо: він спирається на відгуки й джерела.
+                                             Але читач має одразу бачити, що є друга сторона. --}}
+                                        <a class="profile-dossier__answered" href="#profile-owner-statement">
+                                            <i class="fa-solid fa-comment-dots" aria-hidden="true"></i>
+                                            <span>Компанія надала свою позицію</span>
+                                        </a>
+                                    @endif
                                     <p class="profile-dossier__meta">
                                         <span class="profile-dossier__badge"><i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i> Зібрано ШІ з відкритих джерел</span>
                                         @if ($dossierUpdatedLabel)
@@ -881,6 +890,31 @@
                                     <div class="profile-about-card__text profile-dossier__text is-collapsed" data-about-text>{!! $dossierHtml !!}</div>
                                     <button type="button" class="profile-about-card__more is-hidden" data-about-toggle>Читати більше</button>
                                     <p class="profile-dossier__disclaimer">Досьє сформовано з відкритих джерел і може бути неповним чи застарілим. Це не юридична оцінка діяльності — перевіряйте критичні факти за першоджерелами.</p>
+
+                                    @if (filled($profile['owner_statement'] ?? null))
+                                        <section class="profile-statement" id="profile-owner-statement" aria-label="Позиція компанії">
+                                            <div class="profile-statement__head">
+                                                <span class="profile-statement__avatar" aria-hidden="true">
+                                                    @if (!empty($profile['logo_image_url'] ?? $profile['logo_url']))
+                                                        <img src="{{ $profile['logo_image_url'] ?? $profile['logo_url'] }}" alt="" loading="lazy">
+                                                    @else
+                                                        <i class="fa-solid fa-comment-dots"></i>
+                                                    @endif
+                                                </span>
+                                                <div class="profile-statement__meta">
+                                                    <strong>Позиція компанії</strong>
+                                                    <span>{{ $profile['name'] }}@if (!empty($profile['owner_statement_published_at'])) · {{ $profile['owner_statement_published_at'] }}@endif</span>
+                                                </div>
+                                            </div>
+
+                                            <div class="profile-statement__text is-clamped" data-statement-text>{{ $profile['owner_statement'] }}</div>
+                                            <button type="button" class="profile-statement__more is-hidden" data-statement-toggle>Показати повністю</button>
+
+                                            <p class="profile-statement__note">
+                                                Це слова представника компанії, яка підтвердила права на профіль. Текст пройшов модерацію Dovira, але ми не перевіряємо кожне твердження.
+                                            </p>
+                                        </section>
+                                    @endif
 
                                     {{-- Owner-CTA прямо в досьє: адвокати з розсилки приземляються сюди,
                                          тож дію «підтвердити профіль» показуємо саме тут (а не лише в hero). --}}
@@ -2404,6 +2438,23 @@
     triggers.forEach((btn) => {
         btn.addEventListener('click', () => setTab(btn.dataset.profileTabTrigger || 'info'));
     });
+
+    // Позиція компанії: довгий текст показуємо частково, щоб блок не
+    // відсував решту сторінки на мобільному.
+    (() => {
+        const text = root.querySelector('[data-statement-text]');
+        const toggle = root.querySelector('[data-statement-toggle]');
+        if (!text || !toggle) return;
+
+        if (text.scrollHeight - text.clientHeight > 8) {
+            toggle.classList.remove('is-hidden');
+        }
+
+        toggle.addEventListener('click', () => {
+            const open = text.classList.toggle('is-clamped');
+            toggle.textContent = open ? 'Показати повністю' : 'Згорнути';
+        });
+    })();
 
     // Точні пропорції відео відомі лише з метаданих — до того тримаємо
     // вертикальну заглушку, після завантаження підганяємо кадр під ролик.
