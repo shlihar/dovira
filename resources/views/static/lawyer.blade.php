@@ -809,6 +809,15 @@
                                             ],
                                             $dossierHtml
                                         );
+
+                                        // Джерела в досьє ведуть на чужі сайти: відкриваємо в
+                                        // новій вкладці й закриваємо від передачі ваги
+                                        // (1699 профілів з досьє — це помітний витік лінків).
+                                        $dossierHtml = preg_replace(
+                                            '/<a href="(https?:\/\/[^"]+)"/i',
+                                            '<a href="$1" target="_blank" rel="nofollow noopener"',
+                                            $dossierHtml
+                                        );
                                     } catch (\Throwable $e) {
                                         $dossierHtml = '';
                                     }
