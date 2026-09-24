@@ -165,9 +165,11 @@
             <a href="{{ route('home') }}">Головна</a>
             <span aria-hidden="true">›</span>
             <a href="{{ route('top.index') }}">Рейтинги</a>
+            <span aria-hidden="true">›</span>
+            <a href="{{ route('top.rating', ['category' => $categorySlug]) }}">{{ $catName }}</a>
             @if ($cityName)
                 <span aria-hidden="true">›</span>
-                <a href="{{ route('top.rating', ['category' => $categorySlug]) }}">{{ $catName }}</a>
+                <span aria-current="page">{{ $cityName }}</span>
             @endif
         </nav>
 
