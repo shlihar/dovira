@@ -61,8 +61,11 @@
         ];
         logos.forEach((logo) => {
             const seed = logo.dataset.seed ?? '';
-            const [bg1, bg2] = palettes[hash(seed) % palettes.length];
-            logo.style.background = `linear-gradient(135deg, ${bg1}, ${bg2})`;
+            // Світлий кінець палітри (bg1) під білими ініціалами не читається,
+            // тому градієнт будуємо від насиченого кольору до темного.
+            const [, bg2] = palettes[hash(seed) % palettes.length];
+            logo.style.background = `linear-gradient(135deg, ${bg2}, #10307e)`;
+            logo.style.color = '#ffffff';
         });
     };
 
