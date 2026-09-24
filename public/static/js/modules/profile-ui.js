@@ -153,9 +153,13 @@ export const initProfileVisualSeeds = (root = document) => {
         const palette = avatarPalettes[value % avatarPalettes.length];
         const invert = ((value >> 8) & 1) === 1;
 
+        // Літера в такому кружку завжди біла, тому обидва кінці градієнта
+        // мають бути насиченими. Половина палітр має майже білий bg1, і при
+        // invert він ставав початком градієнта — біла літера зникала на
+        // світлому фоні, і аватарка читалась як баг (скарга 24.09.2026).
         logo.classList.add('has-random-gradient');
-        logo.style.setProperty('--av-bg-1', invert ? palette.bg2 : palette.bg1);
-        logo.style.setProperty('--av-bg-2', invert ? palette.bg1 : palette.bg2);
+        logo.style.setProperty('--av-bg-1', palette.bg2);
+        logo.style.setProperty('--av-bg-2', palette.bg2);
         logo.style.setProperty('--av-text', '#ffffff');
     });
 

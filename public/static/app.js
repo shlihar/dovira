@@ -6,8 +6,8 @@ import './js/modules/analytics.js?v=3';
 import './js/modules/impressions.js?v=2';
 // ?v=2: трекінг A/B hero (hero_view / hero_cta)
 import './js/modules/track-actions.js?v=2';
-// ?v=2: розкриття повного прайсу послуг на профілі.
-import './js/modules/profile-ui.js?v=2';
+// ?v=3: насичений фон під білою літерою в аватарках-заглушках.
+import './js/modules/profile-ui.js?v=3';
 // ?v=2: вимкнено автопрокрутку каруселей
 import './js/modules/carousels.js?v=2';
 // pro.js (~140 KB) потрібен лише на сторінці тарифів /pro та в кабінеті
