@@ -186,6 +186,14 @@
                 <span><i class="fa-solid fa-lock" aria-hidden="true"></i> Місця не продаються</span>
             </p>
 
+            <figure class="tp-cover tp-cover--{{ ['blue','violet','green','amber'][crc32($categorySlug) % 4] }}">
+                @if (! empty($coverUrl))
+                    <img src="{{ $coverUrl }}" alt="{{ $catRatingName }} {{ $placeLabel }}" loading="eager" decoding="async">
+                @else
+                    <i class="{{ $coverIcon ?? 'fa-solid fa-ranking-star' }}" aria-hidden="true"></i>
+                @endif
+            </figure>
+
             <div class="tp-lead">
                 <p>
                     Це рейтинг {{ $catRatingName }} {{ $placeLabel }} станом на {{ $periodLabel }}.
@@ -335,6 +343,9 @@
         {{-- ── Перелінковка ── --}}
         <section class="tp-more" aria-labelledby="tp-more-title">
             <h2 class="tp-h2" id="tp-more-title">Дивіться також</h2>
+            <p class="tp-more__back">
+                <a href="{{ route('top.index') }}"><span aria-hidden="true">←</span> Усі рейтинги DOVIRA</a>
+            </p>
             <p class="tp-more__catalog">
                 <a href="{{ $catalogUrl }}">Усі {{ $fmt(max($totalProfiles, $topCount)) }} {{ $catRatingName }} {{ $placeLabel }} у каталозі <span aria-hidden="true">→</span></a>
             </p>

@@ -133,6 +133,7 @@ class TopRatingController extends Controller
                 // Колір обкладинки — як у блозі (blog-cover--*), детерміновано
                 // за категорією, щоб стрічка виглядала різнобарвно, але стабільно.
                 'accent' => ['blue', 'violet', 'green', 'amber'][crc32($first->category_slug) % 4],
+                'cover_url' => \App\Support\TopRatingCover::forCategory($category),
                 'group' => $first->city_slug === null ? 'ua' : 'city',
             ];
         }
@@ -280,6 +281,8 @@ class TopRatingController extends Controller
             'period' => $period,
             'periodLabel' => $this->periodLabel($period),
             'changesParagraph' => $changes,
+            'coverUrl' => \App\Support\TopRatingCover::forCategory($category),
+            'coverIcon' => $this->ratingCategoryIcon((string) $category->name, (string) ($category->icon ?? '')),
             'weights' => TopRatingIndex::WEIGHTS,
             'minReviews' => TopRatingIndex::MIN_REVIEWS,
             'totalProfiles' => $totalProfiles,

@@ -820,3 +820,26 @@
     :root:not([data-theme="light"]) .tp-entry__index-bar,
     :root:not([data-theme="light"]) .tp-entry__logo { background: rgba(255, 255, 255, .08); }
 }
+
+/* Обкладинка статті — одразу під заголовком, як у лонгріді. Поки тематичного
+   фото для категорії немає, показуємо градієнт зі значком (мова блогу). */
+.tp-cover { position: relative; margin: 0 0 22px; border-radius: 18px; overflow: hidden; aspect-ratio: 21 / 9; display: grid; place-items: center; }
+.tp-cover img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.tp-cover i { font-size: 56px; color: rgba(255, 255, 255, .92); filter: drop-shadow(0 4px 14px rgba(16, 24, 40, .22)); }
+.tp-cover--blue { background: linear-gradient(135deg, #1f6feb, #6aa6ff); }
+.tp-cover--violet { background: linear-gradient(135deg, #6d3ee0, #a78bfa); }
+.tp-cover--green { background: linear-gradient(135deg, #1f9d6b, #63d3a4); }
+.tp-cover--amber { background: linear-gradient(135deg, #d97706, #fbbf24); }
+
+.tp-more__back { margin: 0 0 12px; font-size: 16px; }
+.tp-more__back a { font-weight: 600; text-decoration: none; }
+
+/* Крихти вгорі статті: були надто тьмяні, і з довгої сторінки здавалось,
+   що повернутись до списку рейтингів нема куди. */
+.tp-crumbs { font-size: 14px; }
+.tp-crumbs a { color: var(--primary, #1f6feb); }
+
+@media (max-width: 720px) {
+    .tp-cover { aspect-ratio: 16 / 9; margin-bottom: 18px; border-radius: 14px; }
+    .tp-cover i { font-size: 42px; }
+}

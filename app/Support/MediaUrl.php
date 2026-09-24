@@ -119,6 +119,31 @@ final class MediaUrl
         return $base . '=s' . $target;
     }
 
+    /**
+     * Ширини, під які вже згенеровані мініатюри. Порядок = порядок пошуку:
+     * спершу запитана ширина, далі найближчі більші (масштабувати вниз
+     * безпечніше, ніж розтягувати вгору).
+     *
+     * @var array<int, int>
+     */
+    private const THUMB_FALLBACK_WIDTHS = [256, 320, 240, 400, 160, 128, 112, 96];
+
+    /**
+     * URL уже наявної мініатюри, якщо оригінал недоступний.
+     */
+    private static function existingThumbUrl(string $relative, int $width): ?string
+    {
+        $encoded = implode('/', array_map('rawurlencode', explode('/', $relative)));
+
+        foreach (array_unique([$width, ...self::THUMB_FALLBACK_WIDTHS]) as $candidate) {
+            if (is_file(public_path('media/thumb/' . $candidate . '/' . $relative . '.webp'))) {
+                return '/media/thumb/' . $candidate . '/' . $encoded . '.webp';
+            }
+        }
+
+        return null;
+    }
+
     public static function thumbUrl(?string $value, int $width): ?string
     {
         $value = self::sourcePathFromThumbUrl($value) ?? $value;
@@ -139,7 +164,11 @@ final class MediaUrl
 
         $source = self::resolvePhysicalLocalPath($relative);
         if ($source === null) {
-            return self::publicImageUrl($value);
+            // Оригінал зник (медіа не переживає переїзди хостингу: public/
+            // catalog-media на сервері порожня), але раніше згенерована
+            // мініатюра часто лежить на місці. Без цієї гілки сторінка
+            // показувала ініціали там, де картинка фактично є.
+            return self::existingThumbUrl($relative, $width) ?? self::publicImageUrl($value);
         }
 
         // Генеруємо файл-кеш ОДРАЗУ при формуванні URL: тоді адреса завжди
