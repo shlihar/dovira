@@ -194,26 +194,58 @@ final class TopRatingNarrative
         }
 
         $sentences = preg_split('/(?<=[.!?])\s+/u', $lead) ?: [];
+        $first = trim((string) ($sentences[0] ?? ''));
 
-        return trim((string) ($sentences[0] ?? '')) ?: null;
+        // Буває, що перше речення досьє — сама лише назва («Адвокат Іваненко
+        // Іван Іванович.»). Такий «опис» нічого не додає, тож беремо ще одне
+        // речення, а якщо й разом коротко — віддаємо роботу структурному тексту.
+        if (mb_strlen($first) < 60 && isset($sentences[1])) {
+            $first = trim($first . ' ' . trim((string) $sentences[1]));
+        }
+
+        return mb_strlen($first) >= 60 ? $first : null;
     }
 
+    /**
+     * Опис зі структурних полів, коли немає ні AI-розбору, ні досьє.
+     * Пишемо про сам профіль (місто, спеціалізація, що кажуть оцінки), а не
+     * про його місце в рейтингу: «посідає 4-ту позицію» — це текст про
+     * таблицю, а не про виконавця, і читачеві він нічого не дає.
+     */
     private function structuralSentence(Profile $profile, int $position): string
     {
         $name = trim((string) $profile->name);
         $city = trim((string) $profile->city);
-        $specializations = $profile->relationLoaded('categories')
-            ? $profile->categories->pluck('name')->take(2)->implode(', ')
-            : '';
+        $reviews = (int) $profile->reviews_count;
+        $rating = number_format((float) $profile->rating_avg, 2, ',', ' ');
+
+        $ratingRow = $profile->rating;
+        $total = max(1, (int) ($ratingRow->reviews_total ?? $reviews));
+        $fiveShare = (int) round(((int) ($ratingRow->dist_5 ?? 0)) / $total * 100);
+
+        $specialization = $profile->relationLoaded('categories')
+            ? $profile->categories
+                ->pluck('name')
+                ->map(fn ($n) => mb_strtolower(trim((string) $n)))
+                ->filter()
+                ->first()
+            : null;
+
+        $where = $city !== '' ? ' з міста ' . $city : '';
+        $reviewsWord = Plural::uk($reviews, 'відгук', 'відгуки', 'відгуків');
 
         // Шаблон обираємо за id профілю, щоб десять описів на одній сторінці
         // не читались однаково.
         $templates = [
-            fn () => $name . ($city !== '' ? ' працює в місті ' . $city : '') . '.',
-            fn () => ($city !== '' ? 'Спеціаліст із міста ' . $city . '. ' : '') . 'У профілі зібрано '
-                . $profile->reviews_count . ' ' . Plural::uk((int) $profile->reviews_count, 'відгук', 'відгуки', 'відгуків') . '.',
-            fn () => $name . ' посідає ' . $position . '-ту позицію за індексом DOVIRA'
-                . ($specializations !== '' ? ' у напрямі «' . $specializations . '»' : '') . '.',
+            fn (): string => $name . ($specialization ? ' — ' . $specialization : '') . $where
+                . '. Клієнти залишили ' . $reviews . ' ' . $reviewsWord
+                . ($fiveShare > 0 ? ', ' . $fiveShare . '% із них — найвищі оцінки.' : '.'),
+            fn (): string => 'За ' . $reviews . ' ' . Plural::uk($reviews, 'відгуком', 'відгуками', 'відгуками')
+                . ' середня оцінка — ' . $rating . ' з 5'
+                . ($city !== '' ? '. Працює в місті ' . $city : '') . '.',
+            fn (): string => ($city !== '' ? 'Місто: ' . $city . '. ' : '')
+                . 'У профілі ' . $reviews . ' ' . $reviewsWord . ' із середньою оцінкою ' . $rating
+                . ($fiveShare >= 70 ? ', переважна більшість — позитивні.' : '.'),
         ];
 
         return $templates[$profile->id % count($templates)]();

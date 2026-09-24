@@ -133,7 +133,7 @@
                     data-blog-category="{{ $featuredArticle['category_slug'] }}"
                 >
                     <div class="blog-featured__cover blog-cover blog-cover--{{ $featuredArticle['accent'] }}" aria-hidden="true">
-                        <i class="{{ $featuredArticle['icon_class'] }}"></i>
+                        @include('static.partials.top-cover', ['avatars' => $featuredArticle['avatars'], 'icon' => $featuredArticle['icon_class']])
                     </div>
                     <div class="blog-featured__body">
                         <div class="blog-card__meta">
@@ -167,7 +167,7 @@
                         data-blog-category="{{ $article['category_slug'] }}"
                     >
                         <div class="blog-card__cover blog-cover blog-cover--{{ $article['accent'] }}" aria-hidden="true">
-                            <i class="{{ $article['icon_class'] }}"></i>
+                            @include('static.partials.top-cover', ['avatars' => $article['avatars'], 'icon' => $article['icon_class']])
                         </div>
                         <div class="blog-card__body">
                             <div class="blog-card__meta">

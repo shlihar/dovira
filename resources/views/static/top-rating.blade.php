@@ -248,18 +248,39 @@
 
             @foreach ($rows as $row)
                 <article class="tp-entry" id="place-{{ $row['rank'] }}">
-                    <div class="tp-entry__rank" aria-label="Місце {{ $row['rank'] }}">{{ $row['rank'] }}</div>
+                    {{-- Шапка запису: номер, аватарка, назва й оцінка в одному
+                         рядку. На мобільному все лишається зверху, а текст іде
+                         під ним — раніше аватарка провалювалась у кінець картки. --}}
+                    <header class="tp-entry__head">
+                        <span class="tp-entry__rank" aria-label="Місце {{ $row['rank'] }}">{{ $row['rank'] }}</span>
+
+                        <a class="tp-entry__logo" href="{{ $row['url'] }}" tabindex="-1" aria-hidden="true">
+                            @if ($row['logo_url'])
+                                <img src="{{ $row['logo_url'] }}" alt="" loading="lazy" decoding="async" width="56" height="56">
+                            @else
+                                <span>{{ $row['initials'] }}</span>
+                            @endif
+                        </a>
+
+                        <span class="tp-entry__headings">
+                            <h3 class="tp-entry__name">
+                                <a href="{{ $row['url'] }}">{{ $row['name'] }}</a>
+                                @if ($row['verified'])
+                                    <span class="tp-entry__badge" title="Власник підтвердив профіль"><i class="fa-solid fa-circle-check" aria-hidden="true"></i></span>
+                                @endif
+                            </h3>
+                            <span class="tp-entry__facts">{{ $row['facts'] }}</span>
+                        </span>
+
+                        @if ($row['rating_visible'])
+                            <span class="tp-entry__rating">
+                                <strong>{{ number_format($row['rating'], 2, ',', ' ') }}</strong>
+                                {!! $starsHtml((float) $row['rating']) !!}
+                            </span>
+                        @endif
+                    </header>
 
                     <div class="tp-entry__body">
-                        <h3 class="tp-entry__name">
-                            <a href="{{ $row['url'] }}">{{ $row['name'] }}</a>
-                            @if ($row['verified'])
-                                <span class="tp-entry__badge" title="Власник підтвердив профіль"><i class="fa-solid fa-circle-check" aria-hidden="true"></i></span>
-                            @endif
-                        </h3>
-
-                        <p class="tp-entry__facts">{{ $row['facts'] }}</p>
-
                         @if (!empty($row['description']))
                             <p class="tp-entry__text">{{ $row['description'] }}</p>
                         @endif
@@ -287,30 +308,14 @@
                                     @endphp
                                     <li>
                                         <span class="tp-entry__index-label">{{ $label[0] }}</span>
-                                        <span class="tp-entry__index-bar" aria-hidden="true"><span style="width: {{ round(min(1, max(0, (float) $value)) * 100) }}%"></span></span>
-                                        <span class="tp-entry__index-value">{{ number_format((float) $value, 2, ',', ' ') }}</span>
+                                        <span class="tp-entry__index-bar" aria-hidden="true"><span style="width: {{ round(min(1, max(0, $value)) * 100) }}%"></span></span>
+                                        <span class="tp-entry__index-value">{{ number_format($value, 2, ',', ' ') }}</span>
                                     </li>
                                 @endforeach
                             </ul>
                         </details>
 
                         <a class="tp-entry__more" href="{{ $row['url'] }}">Профіль і всі відгуки <span aria-hidden="true">→</span></a>
-                    </div>
-
-                    <div class="tp-entry__side">
-                        <a class="tp-entry__logo" href="{{ $row['url'] }}" tabindex="-1" aria-hidden="true">
-                            @if ($row['logo_url'])
-                                <img src="{{ $row['logo_url'] }}" alt="" loading="lazy" width="64" height="64">
-                            @else
-                                <span>{{ $row['initials'] }}</span>
-                            @endif
-                        </a>
-                        @if ($row['rating_visible'])
-                            <div class="tp-entry__rating">
-                                <strong>{{ number_format($row['rating'], 2, ',', ' ') }}</strong>
-                                {!! $starsHtml((float) $row['rating']) !!}
-                            </div>
-                        @endif
                     </div>
                 </article>
             @endforeach

@@ -680,3 +680,21 @@
 .top-fallback-card__cities { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 20px 18px; }
 .top-fallback-card__cities a { font-size: 13px; padding: 4px 10px; border-radius: 99px; border: 1px solid var(--border, #e6eaf0); text-decoration: none; color: var(--text-muted, #62718a); }
 .top-fallback-card__cities a:hover { border-color: var(--primary, #1f6feb); color: var(--primary, #1f6feb); }
+
+/* Обкладинка картки рейтингу: колаж з аватарок учасників поверх градієнта. */
+.top-cover { position: absolute; inset: 0; display: grid; gap: 6px; padding: 14px; place-items: center; }
+.top-cover--1 { grid-template-columns: 1fr; padding: 0; }
+.top-cover--2 { grid-template-columns: 1fr 1fr; }
+.top-cover--3,
+.top-cover--4 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
+.top-cover--3 .top-cover__item:first-child { grid-column: 1 / -1; }
+
+.top-cover__item { width: 100%; height: 100%; overflow: hidden; border-radius: 14px; background: rgba(255, 255, 255, .22); box-shadow: 0 2px 10px rgba(16, 24, 40, .14); }
+.top-cover__item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.top-cover--1 .top-cover__item { width: 96px; height: 96px; border-radius: 50%; border: 3px solid rgba(255, 255, 255, .5); }
+
+@media (max-width: 720px) {
+    .top-cover { padding: 10px; gap: 5px; }
+    .top-cover--1 .top-cover__item { width: 76px; height: 76px; }
+}

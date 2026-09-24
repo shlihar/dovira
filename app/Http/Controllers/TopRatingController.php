@@ -67,7 +67,7 @@ class TopRatingController extends Controller
             ->orderByRaw('city_slug is null desc')
             ->orderBy('city_slug')
             ->orderBy('position')
-            ->with('profile:id,name,slug')
+            ->with('profile:id,name,slug,logo_url,city')
             ->get()
             ->groupBy(fn (TopRatingSnapshot $row) => $row->category_slug . '|' . (string) $row->city_slug);
 
@@ -105,6 +105,29 @@ class TopRatingController extends Controller
                 'places' => $group->count(),
                 'leader' => (string) ($group->first()->profile->name ?? ''),
                 'leader_rating' => (float) $group->first()->rating,
+                // Обкладинку картки робимо з фото самих учасників рейтингу —
+                // це доречніше за абстрактний градієнт і чесно показує, про
+                // кого огляд. Беремо перших, у кого лого справді є.
+                'avatars' => $group
+                    ->map(function (TopRatingSnapshot $row): ?array {
+                        if (! $row->profile) {
+                            return null;
+                        }
+
+                        // Справжнє фото цінніше за згенеровану заглушку, тому
+                        // спершу шукаємо його і виносимо такі картки наперед.
+                        $real = MediaUrl::realProfileLogoUrl($row->profile, 256);
+                        $url = $real ?: MediaUrl::profileLogoUrl($row->profile, 256);
+
+                        return filled($url)
+                            ? ['name' => (string) $row->profile->name, 'url' => $url, 'real' => $real !== null]
+                            : null;
+                    })
+                    ->filter()
+                    ->sortByDesc('real')
+                    ->take(4)
+                    ->values()
+                    ->all(),
                 'reviews_total' => (int) $group->sum('reviews_count'),
                 'icon_class' => $this->ratingCategoryIcon((string) $category->name, (string) ($category->icon ?? '')),
                 // Колір обкладинки — як у блозі (blog-cover--*), детерміновано
