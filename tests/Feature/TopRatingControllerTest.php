@@ -51,7 +51,7 @@ class TopRatingControllerTest extends TestCase
             ->assertSee('Рейтинги компаній і спеціалістів України')
             ->assertSee('Юридичні послуги')
             ->assertSee('Топ адвокатів')
-            ->assertSee('fa-scale-balanced', false)
+            ->assertSee('fa-gavel', false)
             ->assertSee(route('top.rating', ['category' => 'advokaty']), false)
             ->assertSee(route('top.rating.city', ['category' => 'advokaty', 'city' => 'kyiv']), false);
     }
@@ -110,7 +110,7 @@ class TopRatingControllerTest extends TestCase
         $content = $this
             ->get(route('top.rating', ['category' => 'advokaty']))
             ->assertOk()
-            ->assertSee('Топ адвокатів України')
+            ->assertSee('адвокатів України')
             ->assertSee('Ручний адвокат')
             ->assertSee('Автоматичний адвокат')
             ->assertDontSee('Схований адвокат')
@@ -151,7 +151,7 @@ class TopRatingControllerTest extends TestCase
         ]);
 
         for ($i = 1; $i <= 3; $i++) {
-            $this->createTopProfile($notaries, "Нотаріус {$i}", "notarius-{$i}", reviews: 5 + $i, rating: 4.8);
+            $this->createTopProfile($notaries, "Нотаріус {$i}", "notarius-{$i}", reviews: 20 + $i, rating: 4.8);
         }
 
         $lawyer = $this->createTopProfile($lawyers, 'Адвокат у другорядній рубриці', 'advokat-secondary-notarius', reviews: 200, rating: 5.0);

@@ -6,9 +6,9 @@ use Illuminate\Support\Facades\Cache;
 
 class TopRatingIndexCache
 {
-    // v4: іконки категорій змінені на FA-гліфи з сабсету (порожні квадрати
-    // зникли) — бампимо ключ, щоб після деплою хаб не віддав старий кеш.
-    public const KEY = 'public:top-rating:index:v4';
+    // v5: хаб рейтингів перебудовано на стрічку статей із місячних зрізів —
+    // форма payload змінилась, тож ключ бампимо, інакше віддасть старий кеш.
+    public const KEY = 'public:top-rating:index:v5';
 
     private const TTL_SECONDS = 21600;
 

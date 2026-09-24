@@ -7,6 +7,10 @@ use App\Models\Profile;
 use App\Support\CategoryHierarchy;
 use App\Support\MediaUrl;
 use App\Support\RegionCityDirectory;
+use App\Models\TopRatingSnapshot;
+use App\Services\Rating\TopRatingIndex;
+use App\Services\Rating\TopRatingNarrative;
+use App\Services\Rating\TopRatingPool;
 use App\Support\TopRatingIndexCache;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\DB;
@@ -37,8 +41,82 @@ class TopRatingController extends Controller
     {
         return view('static.top-index', [
             ...TopRatingIndexCache::remember(fn (): array => $this->topIndexPayload()),
+            'articles' => TopRatingIndexCache::remember(fn (): array => $this->topIndexPayload())['articles'] ?? [],
             'year' => now()->year,
         ]);
+    }
+
+    /**
+     * Стрічка опублікованих статей-рейтингів: будуємо з реальних місячних
+     * зрізів, а не з категорій. Сторінка існує лише там, де зріз збережено,
+     * тож хаб показує рівно те, що справді опубліковано.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function ratingArticles(): array
+    {
+        $period = TopRatingSnapshot::query()->max('period');
+
+        if ($period === null) {
+            return [];
+        }
+
+        $rows = TopRatingSnapshot::query()
+            ->where('period', $period)
+            ->orderBy('category_slug')
+            ->orderByRaw('city_slug is null desc')
+            ->orderBy('city_slug')
+            ->orderBy('position')
+            ->with('profile:id,name,slug')
+            ->get()
+            ->groupBy(fn (TopRatingSnapshot $row) => $row->category_slug . '|' . (string) $row->city_slug);
+
+        $categories = Category::query()
+            ->whereIn('slug', $rows->map(fn ($g) => $g->first()->category_slug)->unique())
+            ->get()
+            ->keyBy('slug');
+
+        $articles = [];
+
+        foreach ($rows as $group) {
+            $first = $group->first();
+            $category = $categories->get($first->category_slug);
+
+            if ($category === null) {
+                continue;
+            }
+
+            $cityName = $first->city_slug ? RegionCityDirectory::cityFromSlug($first->city_slug) : null;
+            $catLabel = $this->ratingCategoryLabel((string) $category->name);
+            $placeLabel = $cityName
+                ? (RegionCityDirectory::cityLocative($cityName) ?: $cityName)
+                : 'України';
+
+            $articles[] = [
+                'title' => 'ТОП-' . $group->count() . ' ' . $catLabel . ' ' . $placeLabel,
+                'category_name' => (string) $category->name,
+                'category_slug' => $first->category_slug,
+                'city_name' => $cityName,
+                'url' => $first->city_slug
+                    ? route('top.rating.city', ['category' => $first->category_slug, 'city' => $first->city_slug])
+                    : route('top.rating', ['category' => $first->category_slug]),
+                'period' => $first->period,
+                'period_label' => $this->periodLabel($first->period),
+                'places' => $group->count(),
+                'leader' => (string) ($group->first()->profile->name ?? ''),
+                'leader_rating' => (float) $group->first()->rating,
+                'reviews_total' => (int) $group->sum('reviews_count'),
+                'icon_class' => $this->ratingCategoryIcon((string) $category->name, (string) ($category->icon ?? '')),
+                // Колір обкладинки — як у блозі (blog-cover--*), детерміновано
+                // за категорією, щоб стрічка виглядала різнобарвно, але стабільно.
+                'accent' => ['blue', 'violet', 'green', 'amber'][crc32($first->category_slug) % 4],
+                'group' => $first->city_slug === null ? 'ua' : 'city',
+            ];
+        }
+
+        usort($articles, fn (array $a, array $b): int => [$b['reviews_total']] <=> [$a['reviews_total']]);
+
+        return $articles;
     }
 
     public function show(string $categorySlug, ?string $citySlug = null): View
@@ -117,52 +195,54 @@ class TopRatingController extends Controller
         $totalReviews = (int) ($aggregates->reviews ?? 0);
         $avgRating = round((float) ($aggregates->rating ?? 0), 1);
 
-        // Рейтинг — лише профілі з ПОКАЗУВАНОЮ оцінкою (≥ MIN_REVIEWS): інакше
-        // в топ малих категорій потрапляли профілі з 13 відгуками і числом,
-        // яке на їхній же сторінці приховане. Якщо таких менше 3 — м'якший
-        // поріг, щоб сторінка не була порожньою.
-        $minReviews = (int) \App\Support\RatingDisplay::MIN_REVIEWS;
-        $qualified = (int) rescue(fn () => $base()->where('reviews_count', '>=', $minReviews)->count(), 0, false);
-        $topMinReviews = $qualified >= 3 ? $minReviews : self::TOP_FALLBACK_MIN_REVIEWS;
+        // Рейтинг беремо із замороженого місячного зрізу: сторінка — стаття
+        // «станом на {місяць}», а не живий запит, який пливе щодня.
+        $period = TopRatingSnapshot::currentPeriod();
+        $snapshot = $this->snapshotRows($period, $categorySlug, $citySlug);
 
-        $top = rescue(fn () => $base()
-            ->where('reviews_count', '>=', $topMinReviews)
-            ->select(['id', 'slug', 'name', 'logo_url', 'city', 'rating_avg', 'reviews_count', 'is_verified', 'is_owner_verified', 'is_pro', 'dovira_recommendation_status', 'dossier', 'rating_placement', 'rating_priority'])
-            ->with(['categories:id,name,parent_id'])
-            ->orderByRaw("CASE WHEN rating_placement = 'force' THEN 1 ELSE 0 END DESC")
-            ->orderByDesc('rating_priority')
-            ->orderByRaw(
-                '(reviews_count / (reviews_count + ' . self::BAYES_M . ')) * rating_avg + (' . self::BAYES_M . ' / (reviews_count + ' . self::BAYES_M . ')) * ? DESC',
-                [$globalAvg]
-            )
-            ->orderByDesc('reviews_count')
-            ->take(self::TOP_LIMIT)
-            ->get(), collect(), false);
+        if ($snapshot->isEmpty()) {
+            $period = $this->latestPeriodFor($categorySlug, $citySlug) ?? $period;
+            $snapshot = $this->snapshotRows($period, $categorySlug, $citySlug);
+        }
 
-        $rows = $top->values()->map(fn (Profile $profile, int $i) => [
-            'rank' => $i + 1,
-            'url' => route('profile.show', ['slug' => $profile->slug]),
-            'name' => (string) $profile->name,
-            'city' => $profile->city ? (string) $profile->city : null,
-            'logo_url' => MediaUrl::profileLogoUrl($profile, 128),
-            'initials' => mb_strtoupper(mb_substr(trim((string) $profile->name), 0, 1)),
-            'rating' => round((float) $profile->rating_avg, 1),
-            'rating_visible' => \App\Support\RatingDisplay::visible((int) $profile->reviews_count),
-            'reviews_count' => (int) $profile->reviews_count,
-            'verified' => (bool) ($profile->is_owner_verified || $profile->is_verified),
-            'recommended' => $profile->dovira_recommendation_status === 'recommend',
-            'dossier_excerpt' => $this->dossierExcerpt($profile->dossier),
-            // Спеціалізації = назви (під)категорій, крім поточної рубрики (щоб не
-            // дублювати «Адвокати» на сторінці адвокатів).
-            'specializations' => $profile->categories
-                ->pluck('name')
-                ->map(fn ($n) => trim((string) $n))
-                ->filter(fn (string $n) => $n !== '' && ! $excludeNames->contains(mb_strtolower($n)))
-                ->unique()
-                ->take(2)
-                ->values()
-                ->all(),
-        ])->all();
+        $narrative = app(TopRatingNarrative::class);
+
+        if ($snapshot->isEmpty()) {
+            // Зрізу ще немає (нова комбінація) — рахуємо наживо, щоб сторінка
+            // не була порожньою до першого прогону команди.
+            $ranked = array_slice(
+                app(TopRatingIndex::class)->rank(app(TopRatingPool::class)->build($category, $cityName)),
+                0,
+                self::TOP_LIMIT
+            );
+            $rows = [];
+            foreach ($ranked as $i => $item) {
+                $rows[] = $this->articleRow($item['profile'], $i + 1, (float) $item['index'], $item['components'], $excludeNames, $narrative);
+            }
+            $changes = null;
+        } else {
+            $profiles = Profile::query()
+                ->whereIn('id', $snapshot->pluck('profile_id'))
+                ->with(['rating', 'categories:id,name,parent_id'])
+                ->get()
+                ->keyBy('id');
+
+            $rows = [];
+            foreach ($snapshot as $row) {
+                $profile = $profiles->get($row->profile_id);
+                if (! $profile) {
+                    continue;
+                }
+                $rows[] = $this->articleRow($profile, (int) $row->position, (float) $row->index_score, (array) $row->components, $excludeNames, $narrative);
+            }
+
+            $previous = $this->snapshotRows(TopRatingSnapshot::previousPeriod($period), $categorySlug, $citySlug);
+            $changes = $narrative->changesParagraph(
+                $snapshot->load('profile:id,name'),
+                $previous->load('profile:id,name'),
+                $this->periodLabel($period)
+            );
+        }
 
         // Інші міста цієї категорії, де рейтинг має сенс (внутрішня перелінковка).
         $cityLinks = $this->cityLinks($categoryIds, $categorySlug, $citySlug);
@@ -174,6 +254,11 @@ class TopRatingController extends Controller
             'cityName' => $cityName,
             'citySlug' => $citySlug,
             'rows' => $rows,
+            'period' => $period,
+            'periodLabel' => $this->periodLabel($period),
+            'changesParagraph' => $changes,
+            'weights' => TopRatingIndex::WEIGHTS,
+            'minReviews' => TopRatingIndex::MIN_REVIEWS,
             'totalProfiles' => $totalProfiles,
             'totalReviews' => $totalReviews,
             'avgRating' => $avgRating,
@@ -197,6 +282,7 @@ class TopRatingController extends Controller
 
         return [
             'groups' => $groups,
+            'articles' => $this->ratingArticles(),
             'totalRatings' => $totalRatings,
             'totalProfiles' => $totalProfiles,
             'updatedAt' => now(),
@@ -332,6 +418,73 @@ class TopRatingController extends Controller
             ->sortBy('name')
             ->values()
             ->all();
+    }
+
+    /**
+     * @return \Illuminate\Support\Collection<int, TopRatingSnapshot>
+     */
+    private function snapshotRows(string $period, string $categorySlug, ?string $citySlug): \Illuminate\Support\Collection
+    {
+        return TopRatingSnapshot::query()
+            ->where('period', $period)
+            ->where('category_slug', $categorySlug)
+            ->when($citySlug === null, fn ($q) => $q->whereNull('city_slug'), fn ($q) => $q->where('city_slug', $citySlug))
+            ->orderBy('position')
+            ->get();
+    }
+
+    private function latestPeriodFor(string $categorySlug, ?string $citySlug): ?string
+    {
+        return TopRatingSnapshot::query()
+            ->where('category_slug', $categorySlug)
+            ->when($citySlug === null, fn ($q) => $q->whereNull('city_slug'), fn ($q) => $q->where('city_slug', $citySlug))
+            ->max('period');
+    }
+
+    private function periodLabel(string $period): string
+    {
+        return \Carbon\CarbonImmutable::createFromFormat('Y-m-d', $period . '-01')->translatedFormat('F Y');
+    }
+
+    /**
+     * Рядок статті: профіль + індекс + опис + теми відгуків.
+     *
+     * @param  array<string, float>  $components
+     * @return array<string, mixed>
+     */
+    private function articleRow(
+        Profile $profile,
+        int $position,
+        float $index,
+        array $components,
+        \Illuminate\Support\Collection $excludeNames,
+        TopRatingNarrative $narrative
+    ): array {
+        return [
+            'rank' => $position,
+            'index' => $index,
+            'components' => $components,
+            'url' => route('profile.show', ['slug' => $profile->slug]),
+            'name' => (string) $profile->name,
+            'city' => $profile->city ? (string) $profile->city : null,
+            'logo_url' => MediaUrl::profileLogoUrl($profile, 128),
+            'initials' => mb_strtoupper(mb_substr(trim((string) $profile->name), 0, 1)),
+            'rating' => round((float) $profile->rating_avg, 2),
+            'rating_visible' => \App\Support\RatingDisplay::visible((int) $profile->reviews_count),
+            'reviews_count' => (int) $profile->reviews_count,
+            'verified' => (bool) ($profile->is_owner_verified || $profile->is_verified),
+            'description' => $narrative->profileDescription($profile, $position),
+            'topics' => $narrative->reviewTopics($profile),
+            'facts' => $narrative->factsLine($profile, $components),
+            'specializations' => $profile->categories
+                ->pluck('name')
+                ->map(fn ($n) => trim((string) $n))
+                ->filter(fn (string $n) => $n !== '' && ! $excludeNames->contains(mb_strtolower($n)))
+                ->unique()
+                ->take(2)
+                ->values()
+                ->all(),
+        ];
     }
 
     private function ratingCategoryLabel(string $name): string

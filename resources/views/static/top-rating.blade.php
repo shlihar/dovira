@@ -2,80 +2,95 @@
 
 @php
     /**
-     * «ТОП-10 {категорія} {місто}» — programmatic SEO-рейтинг на реальних
-     * даних платформи. Дизайн-мова головної: hero-градієнт, скромні шапки
-     * секцій, картки на токенах. Комбінації з < MIN_INDEXABLE профілів —
-     * noindex (рендеряться, але не індексуються і не потрапляють у sitemap).
+     * Стаття-рейтинг «ТОП-{N} {категорія} {місто} — {місяць рік}».
+     *
+     * Сторінка рендерить ЗАМОРОЖЕНИЙ місячний зріз (top_rating_snapshots), а не
+     * живий запит: інакше склад топу пливе щодня і стаття не може чесно сказати
+     * «станом на вересень». Порядок — індекс DOVIRA з шести вимірів, кожен із
+     * яких показаний читачеві під профілем.
      */
     $catName = (string) $category->name;
-    $catNameLower = mb_strtolower($catName);
-    $catRatingName = (string) ($categoryRatingName ?? $catNameLower);
-    $inCity = $cityName ? ' у місті ' . $cityName : ' України';
+    $catRatingName = (string) ($categoryRatingName ?? mb_strtolower($catName));
     $fmt = fn (int $n): string => number_format($n, 0, ',', ' ');
-
-    // Візуальний відсоток заповнення 5 зірок за рейтингом.
     $starFill = fn (float $r): string => round(max(0, min(5, $r)) / 5 * 100, 2) . '%';
 
-    $leader = $rows[0] ?? null;
-    $rest = array_slice($rows, 1);
-
-    // Заголовок за формулою, що працює на посадкових каталогу: спершу сам
-    // запит («адвокати у Києві»), далі конкретне число відгуків. Старий
-    // патерн («Топ адвокатів — Київ 2026») починався зі слова «Топ», якого
-    // немає в запитах людей, і не мав жодної цифри — конкуренти з числами
-    // у заголовку виглядали у видачі змістовнішими.
     $cityLocative = $cityName ? \App\Support\RegionCityDirectory::cityLocative($cityName) : null;
+    $placeLabel = $cityName ? ($cityLocative ?: $cityName) : 'України';
     $topCount = count($rows);
-    $reviewsWord = \App\Support\Plural::uk($totalReviews, 'відгуком', 'відгуками', 'відгуками');
-    $pageTitle = $cityName
-        ? 'ТОП-' . $topCount . ' ' . $catRatingName . ' ' . ($cityLocative ?: $cityName)
-            . ' ' . $year . ' — за ' . $fmt($totalReviews) . ' ' . $reviewsWord . ' | DOVIRA'
-        : 'ТОП-' . $topCount . ' ' . $catRatingName . ' України ' . $year
-            . ' — рейтинг за ' . $fmt($totalReviews) . ' ' . $reviewsWord . ' | DOVIRA';
-    $pageDescription = 'Топ ' . $catRatingName . $inCity . ' за реальними відгуками клієнтів. Рейтинг '
-        . count($rows)
-        . ' з ' . $fmt($totalProfiles) . ' профілів, ' . $fmt($totalReviews) . ' відгуків. Оновлюється щодня — безкоштовно, без реєстрації.';
-    // Власна адреса сторінки (для хлібних крихт і schema — там потрібен
-    // саме цей URL, а не канонічний).
+    $period = $period ?? \App\Models\TopRatingSnapshot::currentPeriod();
+    $periodLabel = $periodLabel ?? '';
+    $weights = $weights ?? [];
+    $minReviews = $minReviews ?? 20;
+
+    $pageTitle = 'ТОП-' . $topCount . ' ' . $catRatingName . ' ' . $placeLabel
+        . ' — ' . $periodLabel . ' | DOVIRA';
+    $pageDescription = 'ТОП-' . $topCount . ' ' . $catRatingName . ' ' . $placeLabel . ' станом на '
+        . $periodLabel . '. Рейтинг за індексом DOVIRA: оцінка, обсяг і свіжість відгуків, попит, перевірка профілю. '
+        . $fmt($totalReviews) . ' відгуків, ' . $fmt($totalProfiles) . ' профілів.';
+
     $selfUrl = $citySlug
         ? route('top.rating.city', ['category' => $categorySlug, 'city' => $citySlug])
         : route('top.rating', ['category' => $categorySlug]);
 
-    // КАНОНІЧНА сторінка пари «категорія × місто» — каталог, а не рейтинг.
-    // Обидві відповідали на той самий запит («адвокати Київ»), конкурували
-    // між собою у видачі й показували різні цифри по одному місту. Каталог
-    // повніший (усі профілі проти ТОП-10) і має сильніший заголовок, тому
-    // вагу консолідуємо на ньому; /top лишається для людей і внутрішньої
-    // перелінковки, але в індексі не дублює каталог.
+    // КАНОНІЧНА сторінка пари «категорія × місто» — каталог. Обидві сторінки
+    // відповідають на той самий запит, і колись вони конкурували між собою у
+    // видачі з різними цифрами по одному місту. Поки агрегати не зведені до
+    // одного джерела, вагу лишаємо на каталозі.
     $canonical = $citySlug
         ? route('catalog.landing.city', ['category' => $categorySlug, 'city' => $citySlug])
         : route('catalog.landing', ['category' => $categorySlug]);
 
+    $catalogUrl = $canonical;
+
+    $weightLabels = [
+        'quality' => ['Якість відгуків', 'Середня оцінка плюс «чистий сентимент»: пʼятірки мінус одиниці й двійки. Так профіль «або 5, або 1» не виглядає відмінником.'],
+        'volume' => ['Обсяг доказів', 'Кількість відгуків за логарифмом: 200 відгуків важать більше за 20, але не в десять разів.'],
+        'freshness' => ['Свіжість', 'Відгуки за останні 90 днів. Рейтинг має показувати тих, хто працює зараз, а не зібрав відгуки три роки тому.'],
+        'demand' => ['Попит', 'Перегляди профілю й звернення до контактів. Наші власні розсилки з підрахунку виключені.'],
+        'trust' => ['Перевірка', 'Підтверджений власник, досьє з відкритих джерел, розбір тем у відгуках.'],
+        'responsiveness' => ['Робота з відгуками', 'Публічні відповіді власника, зокрема на негативні відгуки.'],
+    ];
+
     $topFaq = [
         [
-            'q' => 'Як формується рейтинг «' . $catName . ($cityName ? ' — ' . $cityName : '') . '»?',
-            'a' => 'Оцінка — проста середня всіх відгуків профілю, її можна перерахувати самому. Щоб профіль із трьома пʼятірками не обганяв спеціаліста з сотнею оцінок, у топ потрапляють лише профілі від 20 відгуків. Купити місце в рейтингу неможливо — він однаковий для всіх.',
+            'q' => 'Як формується цей рейтинг?',
+            'a' => 'Місце визначає індекс DOVIRA — сума шести вимірів: якість відгуків (35%), обсяг відгуків (20%), свіжість за 90 днів (20%), попит на профіль (10%), перевірка профілю (10%) і робота з відгуками (5%). Індекс рахується всередині пари «категорія та місто»: '
+                . $catRatingName . ' ' . $placeLabel . ' порівнюються між собою, а не з іншими містами.',
         ],
         [
-            'q' => 'Чи можна довіряти відгукам у рейтингу?',
-            'a' => 'Відгуки проходять автоматичну й ручну модерацію, а профілі з підтвердженими власниками позначаються окремо. Негативні відгуки не видаляються — спеціаліст може лише публічно відповісти на них.',
+            'q' => 'Хто потрапляє в рейтинг?',
+            'a' => 'Профіль має мати щонайменше ' . $minReviews . ' відгуків і оцінку від 4.0. Якщо ми складали досьє з відкритих джерел і знайшли тривожні сигнали, профіль у рейтинг не потрапляє — він лишається в каталозі.',
         ],
         [
-            'q' => 'Як потрапити в цей рейтинг?',
-            'a' => 'Безкоштовно: підтвердіть свій профіль на DOVIRA і збирайте реальні відгуки клієнтів. Що більше підтверджених відгуків і вища оцінка — то вища позиція. Платних місць у рейтингу немає.',
+            'q' => 'Чи можна купити місце в рейтингу?',
+            'a' => 'Ні. Платна підписка PRO у формулу не входить жодним чином. Єдиний спосіб піднятися — реальні відгуки клієнтів, свіжі оцінки й підтверджений профіль.',
+        ],
+        [
+            'q' => 'Як часто оновлюється рейтинг?',
+            'a' => 'Раз на місяць. Ми фіксуємо зріз на початку місяця, і він не змінюється до наступного — тому сторінку можна цитувати з датою. Різниця між зрізами показана в розділі «Що змінилось».',
         ],
     ];
 
     $topSchemas = [
         [
             '@context' => 'https://schema.org',
+            '@type' => 'Article',
+            'headline' => 'ТОП-' . $topCount . ' ' . $catRatingName . ' ' . $placeLabel . ' — ' . $periodLabel,
+            'description' => $pageDescription,
+            'datePublished' => $period . '-01',
+            'dateModified' => optional($updatedAt)->toDateString(),
+            'inLanguage' => 'uk-UA',
+            'isAccessibleForFree' => true,
+            'author' => ['@type' => 'Organization', 'name' => 'DOVIRA', 'url' => route('home')],
+            'publisher' => ['@type' => 'Organization', 'name' => 'DOVIRA', 'url' => route('home')],
+            'mainEntityOfPage' => ['@type' => 'WebPage', '@id' => $selfUrl],
+        ],
+        [
+            '@context' => 'https://schema.org',
             '@type' => 'ItemList',
-            'name' => 'Топ ' . $catRatingName . $inCity . ' — рейтинг за відгуками',
-            'numberOfItems' => count($rows),
+            'name' => 'ТОП-' . $topCount . ' ' . $catRatingName . ' ' . $placeLabel . ' — ' . $periodLabel,
+            'numberOfItems' => $topCount,
             'itemListOrder' => 'https://schema.org/ItemListOrderDescending',
-            // Оцінки з видимого рейтингу віддаємо і в розмітці (для AI-движків
-            // і як опис позиції). reviews_count завжди ≥1 — сторінка будується
-            // лише на профілях із відгуками, тож AggregateRating валідний.
             'itemListElement' => collect($rows)->map(fn (array $row) => [
                 '@type' => 'ListItem',
                 'position' => $row['rank'],
@@ -114,16 +129,12 @@
             ])->all(),
         ],
     ];
-
-    $catalogUrl = $cityName
-        ? route('catalog.landing.city', ['category' => $categorySlug, 'city' => $citySlug])
-        : route('catalog.landing', ['category' => $categorySlug]);
 @endphp
 
 @section('title', $pageTitle)
 @section('description', $pageDescription)
 @section('canonical', $canonical)
-@section('body_class', 'page-top-rating')
+@section('body_class', 'page-top-rating page-top-article')
 @unless ($indexable)
     @section('robots', 'noindex, follow')
 @endunless
@@ -138,7 +149,6 @@
 @endpush
 
 @php
-    // Переюзний рендер зірок (bg + clipped fg).
     $starsHtml = function (float $rating) use ($starFill): string {
         return '<span class="stars" role="img" aria-label="' . number_format($rating, 1) . ' з 5">'
             . '<span class="stars__bg">★★★★★</span>'
@@ -148,249 +158,193 @@
 @endphp
 
 @section('content')
-    {{-- ── Hero ── --}}
-    <section class="top-hero" aria-labelledby="top-title">
-        <div class="top-hero__glow" aria-hidden="true"></div>
-        <div class="container top-hero__inner">
-            <nav class="top-hero__crumbs" aria-label="Хлібні крихти">
-                <a href="{{ route('home') }}">Головна</a>
-                <span aria-hidden="true">/</span>
-                @if ($cityName)
-                    <a href="{{ route('top.rating', ['category' => $categorySlug]) }}">Рейтинг: {{ $catName }}</a>
-                    <span aria-hidden="true">/</span>
-                    <span>{{ $cityName }}</span>
-                @else
-                    <span>Рейтинг: {{ $catName }}</span>
-                @endif
-            </nav>
+<article class="tp-article">
+    <div class="wrap tp-article__wrap">
 
-            <span class="top-hero__eyebrow"><i class="fa-solid fa-ranking-star" aria-hidden="true"></i> Рейтинг {{ $year }}</span>
+        <nav class="tp-crumbs" aria-label="Хлібні крихти">
+            <a href="{{ route('home') }}">Головна</a>
+            <span aria-hidden="true">›</span>
+            <a href="{{ route('top.index') }}">Рейтинги</a>
+            @if ($cityName)
+                <span aria-hidden="true">›</span>
+                <a href="{{ route('top.rating', ['category' => $categorySlug]) }}">{{ $catName }}</a>
+            @endif
+        </nav>
 
-            <h1 class="top-hero__title" id="top-title">
-                Топ {{ $catRatingName }}{{ $cityName ? ' — ' . $cityName : ' України' }}
+        {{-- ── Шапка статті ── --}}
+        <header class="tp-head">
+            <p class="tp-head__eyebrow">
+                <i class="fa-solid fa-ranking-star" aria-hidden="true"></i>
+                Рейтинг DOVIRA · {{ $periodLabel }}
+            </p>
+            <h1 class="tp-head__title">
+                ТОП-{{ $topCount }} {{ $catRatingName }} {{ $placeLabel }} — {{ $periodLabel }}
             </h1>
-
-            <p class="top-hero__lead">
-                @if ($totalProfiles > 0)
-                    ТОП-{{ count($rows) }} за реальними відгуками з <strong>{{ $fmt($totalProfiles) }}</strong> профілів
-                    і <strong>{{ $fmt($totalReviews) }}</strong> відгуків
-                @else
-                    Рейтинг за реальними відгуками клієнтів
-                @endif
+            <p class="tp-head__byline">
+                <span><i class="fa-regular fa-calendar" aria-hidden="true"></i> Зріз за {{ $periodLabel }}</span>
+                <span><i class="fa-solid fa-database" aria-hidden="true"></i> {{ $fmt($totalReviews) }} {{ \App\Support\Plural::uk($totalReviews, 'відгук', 'відгуки', 'відгуків') }} із {{ $fmt($totalProfiles) }} {{ \App\Support\Plural::uk($totalProfiles, 'профілю', 'профілів', 'профілів') }}</span>
+                <span><i class="fa-solid fa-lock" aria-hidden="true"></i> Місця не продаються</span>
             </p>
 
-            <div class="top-hero__badges">
-                <span class="top-hero__pill"><i class="fa-solid fa-lock" aria-hidden="true"></i> Позиції не продаються</span>
-                <span class="top-hero__pill"><i class="fa-solid fa-scale-balanced" aria-hidden="true"></i> Зважений рейтинг</span>
-                <span class="top-hero__pill"><i class="fa-solid fa-rotate" aria-hidden="true"></i> Оновлено {{ $updatedAt->translatedFormat('d.m.Y') }}</span>
+            <div class="tp-lead">
+                <p>
+                    Це рейтинг {{ $catRatingName }} {{ $placeLabel }} станом на {{ $periodLabel }}.
+                    Він побудований не на редакційній думці, а на даних: у розрахунок увійшло
+                    {{ $fmt($totalReviews) }} {{ \App\Support\Plural::uk($totalReviews, 'відгук', 'відгуки', 'відгуків') }}
+                    про {{ $fmt($totalProfiles) }} {{ \App\Support\Plural::uk($totalProfiles, 'профіль', 'профілі', 'профілів') }}.
+                    До списку потрапляють лише ті, хто має щонайменше {{ $minReviews }} відгуків і оцінку від 4.0.
+                </p>
+                <p>
+                    Місце визначає індекс DOVIRA — він враховує не тільки середню оцінку, а й те,
+                    скільки відгуків зібрано, чи зʼявляються нові, наскільки профіль затребуваний
+                    і що ми змогли перевірити про виконавця. Розклад індексу показаний під кожним
+                    учасником, тож будь-яку позицію можна перевірити.
+                </p>
             </div>
-        </div>
-    </section>
+        </header>
 
-    {{-- ── Інші міста ── --}}
-    @if (count($cityLinks) > 0)
-        <section class="section top-cities" aria-labelledby="top-cities-title">
-            <div class="container">
-                <div class="top-head">
-                    <div class="top-head__text">
-                        <h2 class="top-head__title" id="top-cities-title">{{ $catName }} в інших містах</h2>
+        {{-- ── Що змінилось ── --}}
+        @if (!empty($changesParagraph))
+            <section class="tp-changes" aria-labelledby="tp-changes-title">
+                <h2 class="tp-h2" id="tp-changes-title">Що змінилось за {{ $periodLabel }}</h2>
+                <p>{{ $changesParagraph }}</p>
+            </section>
+        @endif
+
+        {{-- ── Методологія ── --}}
+        <section class="tp-method" aria-labelledby="tp-method-title">
+            <h2 class="tp-h2" id="tp-method-title">Як ми рахували</h2>
+            <p class="tp-method__intro">
+                Індекс складається з шести вимірів. Кожен рахується всередині пари «{{ mb_strtolower($catName) }} + {{ $cityName ?: 'Україна' }}»,
+                тобто учасники порівнюються між собою, а не з іншими містами.
+            </p>
+            <ul class="tp-method__list">
+                @foreach ($weights as $key => $weight)
+                    @php $label = $weightLabels[$key] ?? [$key, '']; @endphp
+                    <li class="tp-method__item">
+                        <div class="tp-method__bar" aria-hidden="true">
+                            <span style="width: {{ round($weight * 100) }}%"></span>
+                        </div>
+                        <div class="tp-method__text">
+                            <strong>{{ $label[0] }} — {{ round($weight * 100) }}%</strong>
+                            <span>{{ $label[1] }}</span>
+                        </div>
+                    </li>
+                @endforeach
+            </ul>
+            <p class="tp-method__note">
+                PRO-підписка у формулу не входить. Профілі, у яких наше досьє виявило тривожні
+                сигнали, до рейтингу не допускаються.
+            </p>
+        </section>
+
+        {{-- ── Рейтинг ── --}}
+        <section class="tp-list" aria-labelledby="tp-list-title">
+            <h2 class="tp-h2" id="tp-list-title">Рейтинг {{ $catRatingName }} {{ $placeLabel }}: місця з 1 по {{ $topCount }}</h2>
+
+            @if ($topCount === 0)
+                <p class="tp-empty">Для цієї комбінації поки замало даних, щоб скласти чесний рейтинг.</p>
+            @endif
+
+            @foreach ($rows as $row)
+                <article class="tp-entry" id="place-{{ $row['rank'] }}">
+                    <div class="tp-entry__rank" aria-label="Місце {{ $row['rank'] }}">{{ $row['rank'] }}</div>
+
+                    <div class="tp-entry__body">
+                        <h3 class="tp-entry__name">
+                            <a href="{{ $row['url'] }}">{{ $row['name'] }}</a>
+                            @if ($row['verified'])
+                                <span class="tp-entry__badge" title="Власник підтвердив профіль"><i class="fa-solid fa-circle-check" aria-hidden="true"></i></span>
+                            @endif
+                        </h3>
+
+                        <p class="tp-entry__facts">{{ $row['facts'] }}</p>
+
+                        @if (!empty($row['description']))
+                            <p class="tp-entry__text">{{ $row['description'] }}</p>
+                        @endif
+
+                        @if (!empty($row['topics']))
+                            <ul class="tp-topics">
+                                @foreach ($row['topics'] as $topic)
+                                    <li class="tp-topic tp-topic--{{ $topic['sentiment'] }}">
+                                        <span class="tp-topic__name">{{ $topic['topic'] }}</span>
+                                        @if (!empty($topic['note']))
+                                            <span class="tp-topic__note">{{ $topic['note'] }}</span>
+                                        @endif
+                                    </li>
+                                @endforeach
+                            </ul>
+                        @endif
+
+                        <details class="tp-entry__index">
+                            <summary>Індекс {{ number_format($row['index'], 1, ',', ' ') }} — з чого складається</summary>
+                            <ul>
+                                @foreach ($weights as $key => $weight)
+                                    @php
+                                        $value = (float) ($row['components'][$key] ?? 0);
+                                        $label = $weightLabels[$key] ?? [$key, ''];
+                                    @endphp
+                                    <li>
+                                        <span class="tp-entry__index-label">{{ $label[0] }}</span>
+                                        <span class="tp-entry__index-bar" aria-hidden="true"><span style="width: {{ round(min(1, max(0, (float) $value)) * 100) }}%"></span></span>
+                                        <span class="tp-entry__index-value">{{ number_format((float) $value, 2, ',', ' ') }}</span>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        </details>
+
+                        <a class="tp-entry__more" href="{{ $row['url'] }}">Профіль і всі відгуки <span aria-hidden="true">→</span></a>
                     </div>
-                </div>
-                <div class="top-cities__chips">
-                    @if ($cityName)
-                        <a class="top-cities__chip top-cities__chip--all" href="{{ route('top.rating', ['category' => $categorySlug]) }}">
-                            <i class="fa-solid fa-map" aria-hidden="true"></i> Вся Україна
+
+                    <div class="tp-entry__side">
+                        <a class="tp-entry__logo" href="{{ $row['url'] }}" tabindex="-1" aria-hidden="true">
+                            @if ($row['logo_url'])
+                                <img src="{{ $row['logo_url'] }}" alt="" loading="lazy" width="64" height="64">
+                            @else
+                                <span>{{ $row['initials'] }}</span>
+                            @endif
                         </a>
+                        @if ($row['rating_visible'])
+                            <div class="tp-entry__rating">
+                                <strong>{{ number_format($row['rating'], 2, ',', ' ') }}</strong>
+                                {!! $starsHtml((float) $row['rating']) !!}
+                            </div>
+                        @endif
+                    </div>
+                </article>
+            @endforeach
+        </section>
+
+        {{-- ── FAQ ── --}}
+        <section class="tp-faq" aria-labelledby="tp-faq-title">
+            <h2 class="tp-h2" id="tp-faq-title">Часті питання про рейтинг</h2>
+            @foreach ($topFaq as $item)
+                <details class="tp-faq__item">
+                    <summary>{{ $item['q'] }}</summary>
+                    <p>{{ $item['a'] }}</p>
+                </details>
+            @endforeach
+        </section>
+
+        {{-- ── Перелінковка ── --}}
+        <section class="tp-more" aria-labelledby="tp-more-title">
+            <h2 class="tp-h2" id="tp-more-title">Дивіться також</h2>
+            <p class="tp-more__catalog">
+                <a href="{{ $catalogUrl }}">Усі {{ $fmt(max($totalProfiles, $topCount)) }} {{ $catRatingName }} {{ $placeLabel }} у каталозі <span aria-hidden="true">→</span></a>
+            </p>
+            @if (!empty($cityLinks))
+                <div class="tp-more__cities">
+                    @if ($citySlug)
+                        <a class="tp-more__chip" href="{{ route('top.rating', ['category' => $categorySlug]) }}">По всій Україні</a>
                     @endif
                     @foreach ($cityLinks as $link)
-                        <a class="top-cities__chip" href="{{ $link['url'] }}">{{ $link['name'] }}</a>
+                        <a class="tp-more__chip" href="{{ $link['url'] }}">{{ $link['name'] }}</a>
                     @endforeach
                 </div>
-            </div>
-        </section>
-    @endif
-
-    {{-- ── Рейтинг ── --}}
-    <section class="section top-list" aria-labelledby="top-list-title">
-        <div class="container">
-            <div class="top-head">
-                <div class="top-head__text">
-                    <h2 class="top-head__title" id="top-list-title">Хто в топі</h2>
-                    <p class="top-head__sub">За зваженою оцінкою і кількістю реальних відгуків.</p>
-                </div>
-                <a class="top-head__all" href="{{ $catalogUrl }}">Всі {{ $fmt(max($totalProfiles, count($rows))) }} у каталозі <span aria-hidden="true">→</span></a>
-            </div>
-
-            @if (count($rows) === 0)
-                <div class="top-empty">
-                    <i class="fa-solid fa-scale-balanced" aria-hidden="true"></i>
-                    <p>У цій комбінації поки замало профілів з відгуками, щоб будувати чесний рейтинг.</p>
-                    <a class="btn btn--primary" href="{{ route('catalog') }}">Відкрити каталог</a>
-                </div>
-            @else
-                {{-- Лідер рейтингу (#1) --}}
-                @if ($leader)
-                    <a class="top-leader" href="{{ $leader['url'] }}">
-                        <span class="top-leader__ribbon"><i class="fa-solid fa-crown" aria-hidden="true"></i> Лідер рейтингу</span>
-                        <span class="top-leader__logo">
-                            @if ($leader['logo_url'])
-                                <img src="{{ $leader['logo_url'] }}" alt="{{ $leader['name'] }}" loading="lazy" onerror="this.remove()">
-                            @endif
-                            <span aria-hidden="true">{{ $leader['initials'] }}</span>
-                        </span>
-                        <span class="top-leader__body">
-                            <span class="top-leader__name">
-                                {{ $leader['name'] }}
-                                @if ($leader['verified'])
-                                    <i class="fa-solid fa-circle-check top-leader__verified" title="Профіль підтверджено" aria-hidden="true"></i>
-                                @endif
-                            </span>
-                            <span class="top-leader__meta">
-                                @if ($leader['city'])
-                                    <span><i class="fa-solid fa-location-dot" aria-hidden="true"></i> {{ $leader['city'] }}</span>
-                                @endif
-                                @foreach ($leader['specializations'] as $spec)
-                                    <span class="top-chip">{{ $spec }}</span>
-                                @endforeach
-                                @if ($leader['recommended'])
-                                    <span class="top-chip top-chip--rec"><i class="fa-solid fa-thumbs-up" aria-hidden="true"></i> Рекомендує Dovira</span>
-                                @endif
-                            </span>
-                            <span class="top-leader__rating">
-                                @if ($leader['rating_visible'] ?? true)
-                                    {!! $starsHtml($leader['rating']) !!}
-                                    <b>{{ number_format($leader['rating'], 1) }}</b>
-                                @else
-                                    {{-- Число ховаємо так само, як на сторінці профілю (< MIN_REVIEWS). --}}
-                                    <b>оцінка формується</b>
-                                @endif
-                                <span class="top-leader__reviews">{{ $fmt($leader['reviews_count']) }} відгуків</span>
-                            </span>
-                            @if (!empty($leader['dossier_excerpt']))
-                                <span class="top-card__dossier">{{ $leader['dossier_excerpt'] }}</span>
-                            @endif
-                        </span>
-                        <span class="top-leader__cta">Переглянути профіль <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></span>
-                    </a>
-                @endif
-
-                {{-- Решта рейтингу (#2…#10) --}}
-                @if (count($rest) > 0)
-                    <ol class="top-rows" start="2">
-                        @foreach ($rest as $row)
-                            <li>
-                                <a class="top-row {{ in_array($row['rank'], [2, 3], true) ? 'top-row--medal top-row--medal-' . $row['rank'] : '' }}" href="{{ $row['url'] }}">
-                                    <span class="top-row__rank" aria-hidden="true">{{ $row['rank'] }}</span>
-                                    <span class="top-row__logo">
-                                        @if ($row['logo_url'])
-                                            <img src="{{ $row['logo_url'] }}" alt="{{ $row['name'] }}" loading="lazy" onerror="this.remove()">
-                                        @endif
-                                        <span aria-hidden="true">{{ $row['initials'] }}</span>
-                                    </span>
-                                    <span class="top-row__main">
-                                        <span class="top-row__name">
-                                            {{ $row['name'] }}
-                                            @if ($row['verified'])
-                                                <i class="fa-solid fa-circle-check top-row__verified" title="Профіль підтверджено" aria-hidden="true"></i>
-                                            @endif
-                                        </span>
-                                        <span class="top-row__meta">
-                                            @if ($row['city'])
-                                                <span class="top-row__city"><i class="fa-solid fa-location-dot" aria-hidden="true"></i> {{ $row['city'] }}</span>
-                                            @endif
-                                            @foreach (array_slice($row['specializations'], 0, 1) as $spec)
-                                                <span class="top-chip">{{ $spec }}</span>
-                                            @endforeach
-                                            @if ($row['recommended'])
-                                                <span class="top-chip top-chip--rec"><i class="fa-solid fa-thumbs-up" aria-hidden="true"></i> Рекомендує Dovira</span>
-                                            @endif
-                                        </span>
-                                        @if (!empty($row['dossier_excerpt']))
-                                            <span class="top-card__dossier">{{ $row['dossier_excerpt'] }}</span>
-                                        @endif
-                                    </span>
-                                    <span class="top-row__rating">
-                                        @if ($row['rating_visible'] ?? true)
-                                            {!! $starsHtml($row['rating']) !!}
-                                            <span class="top-row__score"><b>{{ number_format($row['rating'], 1) }}</b> · {{ $fmt($row['reviews_count']) }} відг.</span>
-                                        @else
-                                            <span class="top-row__score">оцінка формується · {{ $fmt($row['reviews_count']) }} відг.</span>
-                                        @endif
-                                    </span>
-                                    <i class="fa-solid fa-chevron-right top-row__go" aria-hidden="true"></i>
-                                </a>
-                            </li>
-                        @endforeach
-                    </ol>
-                @endif
             @endif
-        </div>
-    </section>
+        </section>
 
-    {{-- ── Методологія ── --}}
-    <section class="section top-method" aria-labelledby="top-method-title">
-        <div class="container">
-            <div class="top-method__wrap">
-                <div class="top-method__col">
-                    <h2 class="top-method__title" id="top-method-title">Як рахується цей рейтинг</h2>
-                    <p>Оцінка — це <b>проста середня</b> всіх відгуків профілю: сума оцінок поділена на їхню кількість. Щоб порівняння було чесним, у топ беруться лише профілі від 20 відгуків — трьома пʼятірками сюди не потрапити.</p>
-                    <p>Рейтинг перераховується автоматично з кожним новим відгуком. Платних місць немає: єдиний спосіб піднятися — реальні відгуки клієнтів. Докладніше — <a href="{{ route('rating.method') }}">як формується рейтинг</a>.</p>
-                </div>
-                <div class="top-method__facts">
-                    <div class="top-method__fact">
-                        <b>{{ $avgRating > 0 ? number_format($avgRating, 1) : '—' }}</b>
-                        <span>середній рейтинг{{ $cityName ? ' у місті' : '' }}</span>
-                    </div>
-                    <div class="top-method__fact">
-                        <b>{{ $fmt($totalReviews) }}</b>
-                        <span>відгуків враховано</span>
-                    </div>
-                    <div class="top-method__fact">
-                        <b>{{ $fmt($totalProfiles) }}</b>
-                        <span>профілів у вибірці</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    {{-- ── FAQ ── --}}
-    <section class="section top-faq" aria-labelledby="top-faq-title">
-        <div class="container">
-            <div class="top-head">
-                <div class="top-head__text">
-                    <h2 class="top-head__title" id="top-faq-title">Часті питання</h2>
-                </div>
-                @if ($categorySlug === 'advokaty')
-                    <a class="top-head__all" href="{{ route('lawyer.check') }}">Як перевірити адвоката <span aria-hidden="true">→</span></a>
-                @endif
-            </div>
-            <div class="top-faq__list">
-                @foreach ($topFaq as $item)
-                    <details class="top-faq__item" @if ($loop->first) open @endif>
-                        <summary class="top-faq__q">
-                            <span>{{ $item['q'] }}</span>
-                            <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
-                        </summary>
-                        <p class="top-faq__a">{{ $item['a'] }}</p>
-                    </details>
-                @endforeach
-            </div>
-        </div>
-    </section>
-
-    {{-- ── CTA для бізнесу ── --}}
-    <section class="section top-cta" aria-labelledby="top-cta-title">
-        <div class="container">
-            <div class="top-cta__wrap">
-                <div class="top-cta__text">
-                    <h2 class="top-cta__title" id="top-cta-title">Ви маєте бути в цьому рейтингу?</h2>
-                    <p class="top-cta__lead">Підтвердіть свій профіль безкоштовно і збирайте реальні відгуки — рейтинг оновиться автоматично. Платних місць тут немає.</p>
-                </div>
-                <div class="top-cta__actions">
-                    <a class="btn top-cta__btn" href="{{ route('pro') }}">Знайти свій профіль <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
-                </div>
-            </div>
-        </div>
-    </section>
+    </div>
+</article>
 @endsection
