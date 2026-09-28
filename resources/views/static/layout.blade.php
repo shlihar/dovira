@@ -324,5 +324,6 @@
         @endif
     @endguest
     @stack('scripts')
+    @include('partials.plerdy')
 </body>
 </html>

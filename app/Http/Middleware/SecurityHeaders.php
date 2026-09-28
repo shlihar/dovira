@@ -51,7 +51,12 @@ class SecurityHeaders
             && ! $response->headers->has('Content-Security-Policy')) {
             $response->headers->set('Content-Security-Policy', implode('; ', [
                 "default-src 'self'",
-                "script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com https://*.clarity.ms",
+                // Аналітика: Clarity (теплові карти) і Plerdy (кліки, записи сесій).
+                // 'unsafe-eval' потрібен саме Plerdy: його модулі виконують код
+                // із рядків, і без цього падає частина трекінгу (GA-події,
+                // SEO-перевірки). Захисна цінність втрачається небагато —
+                // 'unsafe-inline' тут і так дозволений через inline-скрипти сайту.
+                "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com https://*.clarity.ms https://a.plerdy.com https://*.plerdy.com",
                 "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
                 "font-src 'self' https://fonts.gstatic.com data:",
                 "img-src 'self' data: https:",
@@ -61,7 +66,7 @@ class SecurityHeaders
                 // мовчки лишається порожнім.
                 "media-src 'self' https: blob:",
                 "frame-src 'self' https://challenges.cloudflare.com https://www.youtube-nocookie.com https://www.youtube.com https://player.vimeo.com",
-                "connect-src 'self' https://*.clarity.ms",
+                "connect-src 'self' https://*.clarity.ms https://a.plerdy.com https://*.plerdy.com",
                 "frame-ancestors 'self'",
                 "base-uri 'self'",
                 "form-action 'self'",

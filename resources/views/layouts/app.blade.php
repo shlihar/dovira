@@ -43,5 +43,6 @@
                 {{ $slot }}
             </main>
         </div>
+        @include('partials.plerdy')
     </body>
 </html>
