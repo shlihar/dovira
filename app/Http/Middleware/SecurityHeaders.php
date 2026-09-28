@@ -12,10 +12,13 @@ class SecurityHeaders
     {
         $response = $next($request);
 
-        // Захист від clickjacking, MIME-sniffing і витоку реферера на сторонні сайти.
+        // Захист від clickjacking тримає CSP frame-ancestors: X-Frame-Options не
+        // вміє списків доменів, а панель Plerdy відкриває сторінки сайту в
+        // рамці, щоб показати теплову карту (без цього вона пише «Підключення
+        // заблоковано»). Заголовок лишаємо там, де CSP не віддаємо, — в адмінці.
         // Виняток: /widget/* створений саме для вбудовування на сторонні сайти,
         // тому frame-ancestors для нього виставляє WidgetController.
-        if (! $request->routeIs('widget.*')) {
+        if ($request->is('admin', 'admin/*')) {
             $response->headers->set('X-Frame-Options', 'SAMEORIGIN');
         }
         $response->headers->set('X-Content-Type-Options', 'nosniff');
@@ -67,7 +70,8 @@ class SecurityHeaders
                 "media-src 'self' https: blob:",
                 "frame-src 'self' https://challenges.cloudflare.com https://www.youtube-nocookie.com https://www.youtube.com https://player.vimeo.com",
                 "connect-src 'self' https://*.clarity.ms https://a.plerdy.com https://*.plerdy.com",
-                "frame-ancestors 'self'",
+                // Plerdy показує теплові карти, вбудовуючи сторінку в рамку.
+                "frame-ancestors 'self' https://plerdy.com https://*.plerdy.com",
                 "base-uri 'self'",
                 "form-action 'self'",
             ]));
