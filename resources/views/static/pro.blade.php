@@ -491,6 +491,7 @@
                         <p class="muted" style="text-align: center; margin-top: 18px; font-size: 14px;">
                             <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
                             Скасувати підписку можна будь-коли в кабінеті — профіль залишиться в каталозі на безкоштовному тарифі.
+                            Передумали? <a href="{{ route('refunds') }}">Повертаємо всю суму протягом 3 днів після оплати</a>.
                         </p>
                         <p class="muted" style="text-align: center; margin-top: 6px; font-size: 13.5px;">
                             За що платить бізнес і на що оплата не впливає — у <a href="{{ route('editorial') }}#yak-my-zaroblyaemo">редакційній політиці</a>.

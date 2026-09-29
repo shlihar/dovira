@@ -41,6 +41,7 @@
                 <a class="footer__link" href="tel:{{ $footerContactPhoneHref }}">{{ $footerContactPhone }}</a>
                 @endif
                 <a class="footer__link" href="{{ route('editorial') }}">Редакційна політика</a>
+                <a class="footer__link" href="{{ route('refunds') }}">Повернення коштів</a>
                 <a class="footer__link" href="{{ route('privacy') }}">Політика конфіденційності</a>
                 <a class="footer__link" href="{{ route('terms') }}">Умови використання</a>
             </nav>
@@ -49,6 +50,9 @@
         <div class="footer__socials" aria-label="Соцмережі">
             <a class="footer__social" href="{{ $footerSupportUrl }}" target="_blank" rel="noopener noreferrer" aria-label="Telegram підтримка"><i class="fa-brands fa-telegram" aria-hidden="true"></i></a>
             <a class="footer__social" href="mailto:{{ $footerContactEmail }}" aria-label="Email підтримка"><i class="fa-solid fa-envelope" aria-hidden="true"></i></a>
+            @if (filled(config('site_contacts.instagram')))
+                <a class="footer__social" href="{{ config('site_contacts.instagram') }}" target="_blank" rel="noopener" aria-label="Instagram DOVIRA"><i class="fa-brands fa-instagram" aria-hidden="true"></i></a>
+            @endif
             @if ($footerContactPhoneHref)
             <a class="footer__social" href="tel:{{ $footerContactPhoneHref }}" aria-label="Телефон підтримки"><i class="fa-solid fa-phone" aria-hidden="true"></i></a>
             @endif

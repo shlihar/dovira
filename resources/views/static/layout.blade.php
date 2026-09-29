@@ -58,6 +58,9 @@
                     'logo' => asset('static/assets/dovira_banner_transparent_full_head.png'),
                     'description' => 'DOVIRA — українська платформа відгуків про компанії, магазини, сервіси та спеціалістів. Каталог перевірених профілів із рейтингами й реальними відгуками клієнтів.',
                     'contactPoint' => $seoContactPoint,
+                    'sameAs' => array_values(array_filter([
+                        trim((string) config('site_contacts.instagram', '')),
+                    ])),
                 ],
                 [
                     // WebPage для головної з реальною датою оновлення: контент

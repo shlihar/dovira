@@ -242,6 +242,7 @@ Route::view('/faq', 'static.faq')->name('faq');
 Route::get('/chomu-dovirati', fn () => view('static.trust', ['stats' => $publicPlatformStats()]))->name('trust');
 Route::get('/kontakty', fn () => view('static.contacts'))->name('contacts');
 Route::get('/redakciyna-polityka', fn () => view('static.editorial'))->name('editorial');
+Route::get('/povernennia-koshtiv', fn () => view('static.refunds'))->name('refunds');
 Route::get('/yak-formuyetsya-reyting', fn () => view('static.rating-method', ['stats' => $publicPlatformStats()]))->name('rating.method');
 Route::view('/privacy', 'static.privacy')->name('privacy');
 Route::view('/terms', 'static.terms')->name('terms');
