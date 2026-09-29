@@ -34,12 +34,13 @@
             <nav class="footer__nav" aria-label="Допомога">
                 <p class="footer__nav-title">Допомога</p>
                 <a class="footer__link" href="{{ route('faq') }}">FAQ</a>
-                <a class="footer__link" href="{{ route('platform') }}#contacts">Контакти</a>
+                <a class="footer__link" href="{{ route('contacts') }}">Контакти</a>
                 <a class="footer__link" href="{{ $footerSupportUrl }}" target="_blank" rel="noopener noreferrer">Підтримка Telegram</a>
                 <a class="footer__link" href="mailto:{{ $footerContactEmail }}">{{ $footerContactEmail }}</a>
                 @if ($footerContactPhoneHref)
                 <a class="footer__link" href="tel:{{ $footerContactPhoneHref }}">{{ $footerContactPhone }}</a>
                 @endif
+                <a class="footer__link" href="{{ route('editorial') }}">Редакційна політика</a>
                 <a class="footer__link" href="{{ route('privacy') }}">Політика конфіденційності</a>
                 <a class="footer__link" href="{{ route('terms') }}">Умови використання</a>
             </nav>

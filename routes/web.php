@@ -240,6 +240,8 @@ Route::view('/faq', 'static.faq')->name('faq');
 // Контентні сторінки авторитетності: віддаємо реальні цифри платформи —
 // конкретна статистика підсилює цитування (Princeton GEO: +37%).
 Route::get('/chomu-dovirati', fn () => view('static.trust', ['stats' => $publicPlatformStats()]))->name('trust');
+Route::get('/kontakty', fn () => view('static.contacts'))->name('contacts');
+Route::get('/redakciyna-polityka', fn () => view('static.editorial'))->name('editorial');
 Route::get('/yak-formuyetsya-reyting', fn () => view('static.rating-method', ['stats' => $publicPlatformStats()]))->name('rating.method');
 Route::view('/privacy', 'static.privacy')->name('privacy');
 Route::view('/terms', 'static.terms')->name('terms');

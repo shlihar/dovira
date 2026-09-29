@@ -68,7 +68,10 @@ class SecurityHeaders
                 // браузер навіть не робить запит (NETWORK_NO_SOURCE) і плеєр
                 // мовчки лишається порожнім.
                 "media-src 'self' https: blob:",
-                "frame-src 'self' https://challenges.cloudflare.com https://www.youtube-nocookie.com https://www.youtube.com https://player.vimeo.com",
+                // Plerdy малює свою панель і плеєр записів у власному iframe
+                // просто на сторінці сайту — без цього розширення пише
+                // «Підключення заблоковано».
+                "frame-src 'self' https://challenges.cloudflare.com https://www.youtube-nocookie.com https://www.youtube.com https://player.vimeo.com https://plerdy.com https://*.plerdy.com",
                 "connect-src 'self' https://*.clarity.ms https://a.plerdy.com https://*.plerdy.com",
                 // Plerdy показує теплові карти, вбудовуючи сторінку в рамку.
                 "frame-ancestors 'self' https://plerdy.com https://*.plerdy.com",

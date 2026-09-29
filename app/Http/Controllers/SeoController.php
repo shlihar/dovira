@@ -147,6 +147,8 @@ final class SeoController extends Controller
             ['loc' => route('lawyer.check'), 'changefreq' => 'weekly', 'priority' => '0.8'],
             ['loc' => route('top.index'), 'changefreq' => 'weekly', 'priority' => '0.8'],
             ['loc' => route('platform'), 'changefreq' => 'monthly', 'priority' => '0.6'],
+            ['loc' => route('editorial'), 'changefreq' => 'monthly', 'priority' => '0.6'],
+            ['loc' => route('contacts'), 'changefreq' => 'monthly', 'priority' => '0.5'],
             ['loc' => route('faq'), 'changefreq' => 'monthly', 'priority' => '0.6'],
             ['loc' => route('blog'), 'changefreq' => 'weekly', 'priority' => '0.7'],
         ];

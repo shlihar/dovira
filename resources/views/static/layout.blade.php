@@ -60,6 +60,19 @@
                     'contactPoint' => $seoContactPoint,
                 ],
                 [
+                    // WebPage для головної з реальною датою оновлення: контент
+                    // змінюється щодня разом із новими відгуками, і пошуковики
+                    // мають це бачити.
+                    '@type' => 'WebPage',
+                    '@id' => url('/') . '#webpage',
+                    'url' => url('/'),
+                    'name' => 'DOVIRA',
+                    'inLanguage' => 'uk',
+                    'isPartOf' => ['@id' => url('/') . '#website'],
+                    'publisher' => ['@id' => url('/') . '#organization'],
+                    'dateModified' => \App\Support\SiteFreshness::lastContentUpdate()->toIso8601String(),
+                ],
+                [
                     '@type' => 'WebSite',
                     '@id' => url('/') . '#website',
                     'name' => 'DOVIRA',

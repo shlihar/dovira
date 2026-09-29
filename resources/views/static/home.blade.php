@@ -1,6 +1,6 @@
 @extends('static.layout')
 
-@section('title', 'Dovira — реальні відгуки, рейтинги та перевірені профілі бізнесу')
+@section('title', 'Dovira — відгуки про компанії та спеціалістів України')
 @section('description', 'Відгуки про компанії, магазини й спеціалістів України. Обирайте бізнес за реальними оцінками клієнтів, перевіреними профілями та рейтингами.')
 @section('canonical', route('home'))
 @section('body_class', 'page-home-main')
